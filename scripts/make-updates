@@ -85,7 +85,7 @@ send_fedmsg ${fedmsg_json_done} ${BRANCH} compose.cloudimg-build.done
 
 sg releng "mkdir -p $FINALDEST"
 pushd $FINALDEST/
-sg releng "mkdir -p Cloud-Images/i386/Images Cloud-Images/x86_64/Images Docker/x86_64 Cloud-Images-Untested/x86_64/Images"
+sg releng "mkdir -p Cloud-Images/i386/Images Cloud-Images/x86_64/Images Docker/x86_64"
 popd
 
 
@@ -95,7 +95,7 @@ sg releng "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora
 sg releng "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora-Cloud*$VERSION-$DATE\.i386.qcow2 $FINALDEST/Cloud-Images/i386/Images/"
 sg releng "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora-Cloud*$VERSION-$DATE\.x86_64.raw.xz $FINALDEST/Cloud-Images/x86_64/Images/"
 sg releng "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora-Cloud*$VERSION-$DATE\.x86_64.qcow2 $FINALDEST/Cloud-Images/x86_64/Images/"
-sg releng "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora-Cloud*$VERSION-$DATE\.x86_64.*.box $FINALDEST/Cloud-Images-Untested/x86_64/Images/"
+sg releng "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora-Cloud*$VERSION-$DATE\.x86_64.*.box $FINALDEST/Cloud-Images/x86_64/Images/"
 sg releng "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora-Docker*-$VERSION-$DATE*tar.xz $FINALDEST//Docker/x86_64/"
 
 
@@ -103,10 +103,6 @@ sg releng "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora
 send_fedmsg ${fedmsg_json_start} ${BRANCH} compose.cloudimg-checksum.start
 pushd $FINALDEST/Cloud-Images
 for arch in i386 x86_64; do pushd $arch/Images; sg releng "sha256sum --tag -b *qcow2 *raw.xz *box>  Fedora-Cloud-Images-$arch-$VERSION-CHECKSUM"; popd; done
-popd
-
-pushd $FINALDEST/Cloud-Images-Untested
-for arch in x86_64; do pushd $arch/Images; sg releng "sha256sum --tag -b *qcow2 *raw.xz *box>  Fedora-Cloud-ImagesiUntested-$arch-$VERSION-CHECKSUM"; popd; done
 popd
 
 pushd $FINALDEST/Docker/x86_64
@@ -120,7 +116,7 @@ send_fedmsg ${fedmsg_json_start} ${BRANCH} compose.cloudimg-staging.start
 # stage the composed tree to final locateion
 sg releng "mkdir $MIRRORDEST"
 sg releng "chmod 700 $MIRRORDEST"
-for type in Cloud_Atomic Docker Cloud-Images Cloud-Images-Untested; do sg releng "rsync -avhH $FINALDEST/$type/ $MIRRORDEST/$type/"; done
+for type in Cloud_Atomic Docker Cloud-Images; do sg releng "rsync -avhH $FINALDEST/$type/ $MIRRORDEST/$type/"; done
 sg releng "chmod 755 $MIRRORDEST"
 send_fedmsg ${fedmsg_json_done} ${BRANCH} compose.cloudimg-staging.done
 
