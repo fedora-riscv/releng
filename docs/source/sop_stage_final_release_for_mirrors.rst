@@ -1,3 +1,6 @@
+.. SPDX-License-Identifier:    CC-BY-SA-3.0
+
+
 ===============================
 Stage Final Release for Mirrors
 ===============================

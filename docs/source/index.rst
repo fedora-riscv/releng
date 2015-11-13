@@ -1,3 +1,6 @@
+.. SPDX-License-Identifier:    CC-BY-SA-3.0
+
+
 .. Fedora Release Engineering documentation master file, created by
    sphinx-quickstart on Tue Oct 20 14:43:54 2015.
    You can adapt this file completely to your liking, but it should at least

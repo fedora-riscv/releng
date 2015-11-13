@@ -1,3 +1,6 @@
+.. SPDX-License-Identifier:    CC-BY-SA-3.0
+
+
 ==========================
 Create Release Signing Key
 ==========================
