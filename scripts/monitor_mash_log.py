@@ -68,9 +68,9 @@ class MashMonitor(object):
 
         return self.base_url + href + "logs/mash.log"
 
-    def montitor(self):
+    def monitor(self, which=-1):
         hrefs = self.get_hrefs()
-        self.latest_href = hrefs[-1]
+        self.latest_href = hrefs[which]
         self.latest_url = self.build_mash_log_url(self.latest_href)
         warnings = self.get_signature_warnings(self.latest_url)
         return warnings
@@ -80,11 +80,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser("Get signing warnings from mash logs")
     parser.add_argument("--releases", default="branched,rawhide")
     parser.add_argument("--archs", default="primary,ppc,arm,s390")
+    parser.add_argument("--lognr", default=-1, type=int)
     args = parser.parse_args()
     for arch in args.archs.split(","):
         for release in args.releases.split(","):
             mashmon = MashMonitor(release=release, arch=arch)
-            warnings = mashmon.montitor()
+            warnings = mashmon.monitor(args.lognr)
             if warnings:
                 print(mashmon.latest_url)
             for w in warnings:
