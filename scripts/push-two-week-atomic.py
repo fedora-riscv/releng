@@ -70,6 +70,10 @@ MARK_ATOMIC_BAD_JSON_URL = \
 MARK_ATOMIC_BAD_JSON = requests.get(MARK_ATOMIC_BAD_JSON_URL).text
 MARK_ATOMIC_BAD_BUILDS = json.loads(MARK_ATOMIC_BAD_JSON)
 
+BLOCK_ATOMIC_RELEASE_JSON_URL = \
+    'https://pagure.io/mark-atomic-bad/raw/master/f/block-release.json'
+BLOCK_ATOMIC_RELEASE_JSON = requests.get(BLOCK_ATOMIC_RELEASE_JSON_URL).text
+BLOCK_ATOMIC_RELEASE = json.loads(BLOCK_ATOMIC_RELEASE_JSON)[u'block-release']
 
 DATAGREPPER_URL = "https://apps.fedoraproject.org/datagrepper/raw"
 # delta = 2 weeks in seconds
@@ -223,7 +227,6 @@ def build_manually_marked_bad(build_id, bad_builds=MARK_ATOMIC_BAD_BUILDS):
     bad = [b for b in bad_builds['bad-builds'] if b == build_id]
 
     return len(bad) > 0
-
 
 def send_atomic_announce_email(
         email_filelist,
@@ -468,6 +471,11 @@ if __name__ == '__main__':
     if not pargs.release:
         log.error("No release arg passed, see -h for help")
         sys.exit(1)
+
+    log.info("Checking to make sure release is not currently blocked")
+    if BLOCK_ATOMIC_RELEASE:
+        log.info("Release Blocked: Exiting.")
+        sys.exit(0)
 
     log.info("Querying datagrepper for latest AutoCloud successful tests")
     # Acquire the latest successful builds from datagrepper
