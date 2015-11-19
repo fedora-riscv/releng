@@ -542,4 +542,9 @@ if __name__ == '__main__':
 
     log.info("Two Week Atomic Release Complete!")
 
+    print("############REMINDER##########\n#\n#\n")
+    print("Reset the block-release value to false in {0}".format(
+        "https://pagure.io/mark-atomic-bad"
+    ))
+
 # vim: set expandtab sw=4 sts=4 ts=4
