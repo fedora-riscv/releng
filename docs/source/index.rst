@@ -13,11 +13,13 @@ Fedora Release Engineering
 Contents:
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 2
 
     overview
     philosophy
+    contributing
     sop
+
 
 This page contains information about the Fedora Release Engineering team.
 
