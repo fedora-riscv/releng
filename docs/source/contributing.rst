@@ -191,7 +191,7 @@ Tools List
 ----------
 
 Tools Release Engineering is actively involved with upstream
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Below are a set of tools that are centric to the Release Engineering team and
 our processes. We actively engage with upstreams of these projects. For these
@@ -213,7 +213,7 @@ for this git repository.
   Koji plugin to integrate OSBS with koji
 
 Tools Release Engineering is actively mostly consumers of
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Below are the set of tools that the Release Engineering team either consumes
 directly or as the side effect of other tools in the Release Engineering
