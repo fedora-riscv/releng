@@ -68,6 +68,7 @@ Standard Operating Procedures
     sop_stage_final_release_for_mirrors
     sop_update_branch_last_known_good
     sop_update_critpath
+    sop_update_releng_docs
     sop_updating_comps
 
 .. _pull request: https://pagure.io/releng/pull-requests
