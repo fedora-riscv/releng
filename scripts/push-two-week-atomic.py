@@ -367,15 +367,15 @@ A new update of Fedora Cloud Atomic Host has been released and can be
 downloaded at:
 
 Images can be found here:
-{0}
+
+    https://getfedora.org/en/cloud/download/atomic.html
 
 Respective signed CHECKSUM files can be found here:
-{1}
+{0}
 
 Thank you,
 Fedora Release Engineering
             """.format(
-                '\n'.join(released_artifacts),
                 '\n'.join(released_checksums)
             )
         )
