@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Copyright (C) 2015 Red Hat, Inc.
+# SPDX-License-Identifier:      GPL-2.0
+
 git clone https://pagure.io/releng.git /tmp/releng
 pushd /tmp/releng/docs
 make html
