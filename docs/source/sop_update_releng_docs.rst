@@ -27,28 +27,16 @@ to have the package installed:
     $ dnf install python-sphinx
 
 Then we'll need to clone the RelEng repository and the RelEng docs repository
-(the docs git repository is provided by pagure automatically). We could
-alternatively use an already cloned local git checkout of the `releng`
-repository but it is recommended to use a clean clone just to make sure changes
-or build artifacts from previous html renderings don't make it into the live
-documentation site.
+(the docs git repository is provided by pagure automatically). There is a script
+in the `releng` repository that takes care of cleanly updating the documentation
+site for us.
+
 
 ::
 
-    $ git clone https://pagure.io/releng.git /tmp/releng
-    $ cd /tmp/releng/docs
-    $ make html
+    $ ./scripts/update-docs.sh
 
-    $ git clone ssh://git@pagure.io/docs/releng.git /tmp/releng-doc
-    $ cd /tmp/releng-doc
-    $ git rm -fr ./*
-    $ cp -r /tmp/releng/docs/build/html/* ./
-    $ git add .
-    $ git commit -m "update rendered releng docs"
-    $ git push origin master
-
-The documentation is now live and these local clones of the remote git
-repositories can be safely removed.
+The documentation is now live.
 
 .. note::
     This will require someone with permissions to push to the master branch for

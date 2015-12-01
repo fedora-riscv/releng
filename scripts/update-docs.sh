@@ -16,3 +16,5 @@ git add .
 git commit -s -m "update rendered releng docs"
 git push origin master
 
+
+rm -rf  /tmp/releng/ /tmp/releng-doc/
