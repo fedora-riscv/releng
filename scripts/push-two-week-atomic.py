@@ -196,7 +196,7 @@ def get_latest_successful_autocloud_test_info(
     # Handle manually marked "good" builds that were false positives in
     # AutoCloud
     if MARK_ATOMIC_GOOD_BUILDS:
-        rcycle_time = time.time() - DATAGREPPER_DELTA
+        release_cycle_time = time.time() - DATAGREPPER_DELTA
         atomic_qcow2_failed = [
             s for s in autocloud_data
             if s[u'msg'][u'status'] == u'failed'
@@ -221,10 +221,17 @@ def get_latest_successful_autocloud_test_info(
             and s[u'msg'][u'release'] == str(release)
         ]
 
+        # Define some helpers to deal with some of this badness
+        # Thanks to Ralph(threebean) for the suggestion/patch to try and
+        # bring sanity to chaos
+        url2image = lambda s: s.split('/')[-1]
+        image2release = lambda s: int(s.split('.')[0].split('-')[-1])
+
         for k in MARK_ATOMIC_GOOD_BUILDS.keys():
-            arelease = datetime.datetime.strptime(k, "%Y%m%d")
-            if time.mktime(arelease.timetuple()) > rcycle_time:
-                for gbuild in MARK_ATOMIC_GOOD_BUILDS[k]:
+            release_window = datetime.datetime.strptime(k, "%Y%m%d")
+
+            if time.mktime(release_window.timetuple()) > release_cycle_time:
+                for good_build in MARK_ATOMIC_GOOD_BUILDS[k]:
 
                     # NOTE: By appending, we won't override an "organically"
                     #       passed test from AutoCloud because the selector
@@ -235,43 +242,40 @@ def get_latest_successful_autocloud_test_info(
                     #       "organically" passed test
 
                     # check against atomic_qcow2
-                    for cbuild in atomic_qcow2_failed:
-                        if gbuild == \
-                                cbuild[u'msg'][u'image_url'].split('/')[-1]:
+                    for check_build in atomic_qcow2_failed:
+                        if good_build == url2image(check_build[u'msg'][u'image_url']):
                             if len(atomic_qcow2) > 0:
-                                if int(atomic_qcow2[u'msg'][u'image_url'].split('/')[-1].split('.')[0].split('-')[-1]) \
-                                        < int(gbuild.split('.')[0].split('-')[-1]):
-                                    atomic_qcow2.insert(0, cbuild)
+                                candidate = url2image(atomic_qcow2[0][u'msg'][u'image_url'])
+                                if image2release(candidate) < image2release(good_build):
+                                    atomic_qcow2.insert(0, check_build)
                                 else:
-                                    atomic_qcow2.append(cbuild)
+                                    atomic_qcow2.append(check_build)
                             else:
-                                atomic_qcow2.append(cbuild)
+                                atomic_qcow2.append(check_build)
 
                     # check against vagrant_libvirt
-                    for cbuild in atomic_vagrant_libvirt_failed:
-                        if gbuild == \
-                                cbuild[u'msg'][u'image_url'].split('/')[-1]:
+                    for check_build in atomic_vagrant_libvirt_failed:
+                        if good_build == url2image(check_build[u'msg'][u'image_url']):
                             if len(atomic_vagrant_libvirt) > 0:
-                                if int(atomic_vagrant_libvirt[u'msg'][u'image_url'].split('/')[-1].split('.')[0].split('-')[-1]) \
-                                        < int(gbuild.split('.')[0].split('-')[-1]):
-                                    atomic_vagrant_libvirt.insert(0, cbuild)
+                                candidate = url2image(atomic_vagrant_libvirt[0][u'msg'][u'image_url'])
+                                if image2release(candidate) < image2release(good_build):
+                                    atomic_vagrant_libvirt.insert(0, check_build)
                                 else:
-                                    atomic_vagrant_libvirt.append(cbuild)
+                                    atomic_vagrant_libvirt.append(check_build)
                             else:
-                                atomic_vagrant_libvirt.append(cbuild)
+                                atomic_vagrant_libvirt.append(check_build)
 
                     # check against vagrant_vbox
-                    for cbuild in atomic_vagrant_vbox_failed:
-                        if gbuild == \
-                                cbuild[u'msg'][u'image_url'].split('/')[-1]:
+                    for check_build in atomic_vagrant_vbox_failed:
+                        if good_build == url2image(check_build[u'msg'][u'image_url']):
                             if len(atomic_vagrant_vbox) > 0:
-                                if int(atomic_vagrant_vbox[u'msg'][u'image_url'].split('/')[-1].split('.')[0].split('-')[-1]) \
-                                        < int(gbuild.split('.')[0].split('-')[-1]):
-                                    atomic_vagrant_vbox.insert(0, cbuild)
+                                candidate = url2image(atomic_vagrant_vbox[0][u'msg'][u'image_url'])
+                                if image2release(candidate) < image2release(good_build):
+                                    atomic_vagrant_vbox.insert(0, check_build)
                                 else:
-                                    atomic_vagrant_vbox.append(cbuild)
+                                    atomic_vagrant_vbox.append(check_build)
                             else:
-                                atomic_vagrant_vbox.append(cbuild)
+                                atomic_vagrant_vbox.append(check_build)
 
     autocloud_info = {}
 
