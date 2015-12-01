@@ -65,14 +65,6 @@ Final Release Checklist
 Various tasks need to be accomplished prior to a final Fedora release.
 Release Engineering is responsible for many of them, as outlined here.
 
-Export Approval
----------------
-
-As a U.S. based company, Red Hat needs to file for export approval when
-creating Fedora releases.  Currently this involves giving Red Hat Legal
-a heads up at the final freeze date, and updating Legal once the final
-tree has been spun.
-
 Release Announcement
 --------------------
 
