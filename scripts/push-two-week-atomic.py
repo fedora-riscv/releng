@@ -24,11 +24,13 @@ import os
 import sys
 import json
 import glob
+import time
 import shutil
 import fnmatch
 import smtplib
 import argparse
 import logging
+import datetime
 import subprocess
 
 import requests
@@ -65,15 +67,35 @@ ATOMIC_STABLE_DESTINATION = "/pub/alt/atomic/stable/"
 ATOMIC_FEDMSG_MODNAME = "releng"
 ATOMIC_FEDMSG_CERT_PREFIX = "releng"
 
-MARK_ATOMIC_BAD_JSON_URL = \
-    'https://pagure.io/mark-atomic-bad/raw/master/f/bad-builds.json'
-MARK_ATOMIC_BAD_JSON = requests.get(MARK_ATOMIC_BAD_JSON_URL).text
-MARK_ATOMIC_BAD_BUILDS = json.loads(MARK_ATOMIC_BAD_JSON)
+MARK_ATOMIC_BAD_BUILDS = None
+MARK_ATOMIC_GOOD_BUILDS = None
+BLOCK_ATOMIC_RELEASE = None
 
-BLOCK_ATOMIC_RELEASE_JSON_URL = \
-    'https://pagure.io/mark-atomic-bad/raw/master/f/block-release.json'
-BLOCK_ATOMIC_RELEASE_JSON = requests.get(BLOCK_ATOMIC_RELEASE_JSON_URL).text
-BLOCK_ATOMIC_RELEASE = json.loads(BLOCK_ATOMIC_RELEASE_JSON)[u'block-release']
+try:
+    MARK_ATOMIC_BAD_JSON_URL = \
+        'https://pagure.io/mark-atomic-bad/raw/master/f/bad-builds.json'
+    MARK_ATOMIC_BAD_JSON = requests.get(MARK_ATOMIC_BAD_JSON_URL).text
+    MARK_ATOMIC_BAD_BUILDS = json.loads(MARK_ATOMIC_BAD_JSON)
+
+    BLOCK_ATOMIC_RELEASE_JSON_URL = \
+        'https://pagure.io/mark-atomic-bad/raw/master/f/block-release.json'
+    BLOCK_ATOMIC_RELEASE_JSON = \
+        requests.get(BLOCK_ATOMIC_RELEASE_JSON_URL).text
+    BLOCK_ATOMIC_RELEASE = \
+        json.loads(BLOCK_ATOMIC_RELEASE_JSON)[u'block-release']
+
+    MARK_ATOMIC_GOOD_URL = \
+        'https://pagure.io/mark-atomic-bad/raw/master/f/good-builds.json'
+    MARK_ATOMIC_GOOD_JSON = \
+        requests.get(MARK_ATOMIC_GOOD_URL).text
+    MARK_ATOMIC_GOOD_BUILDS = \
+        json.loads(MARK_ATOMIC_GOOD_JSON)[u'good-builds']
+except Exception, e:
+    log.exception(
+        "!!!!{0}!!!!\n{0}".format("Failed to fetch or parse json", e)
+    )
+    sys.exit(1)
+
 
 DATAGREPPER_URL = "https://apps.fedoraproject.org/datagrepper/raw"
 # delta = 2 weeks in seconds
@@ -168,6 +190,88 @@ def get_latest_successful_autocloud_test_info(
             s[u'msg'][u'image_url'].split('/')[-1]
         )
     ]
+
+    # HACK
+    #
+    # Handle manually marked "good" builds that were false positives in
+    # AutoCloud
+    if MARK_ATOMIC_GOOD_BUILDS:
+        rcycle_time = time.time() - DATAGREPPER_DELTA
+        atomic_qcow2_failed = [
+            s for s in autocloud_data
+            if s[u'msg'][u'status'] == u'failed'
+            and s[u'msg'][u'image_name'] == u'Fedora-Cloud-Atomic'
+            and u'release' in s[u'msg'].keys()
+            and s[u'msg'][u'release'] == str(release)
+        ]
+
+        atomic_vagrant_libvirt_failed = [
+            s for s in autocloud_data
+            if s[u'msg'][u'status'] == u'failed'
+            and s[u'msg'][u'image_name'] == u'Fedora-Cloud-Atomic-Vagrant-Libvirt'
+            and u'release' in s[u'msg'].keys()
+            and s[u'msg'][u'release'] == str(release)
+        ]
+
+        atomic_vagrant_vbox_failed = [
+            s for s in autocloud_data
+            if s[u'msg'][u'status'] == u'failed'
+            and s[u'msg'][u'image_name'] == u'Fedora-Cloud-Atomic-Vagrant-Virtualbox'
+            and u'release' in s[u'msg'].keys()
+            and s[u'msg'][u'release'] == str(release)
+        ]
+
+        for k in MARK_ATOMIC_GOOD_BUILDS.keys():
+            arelease = datetime.datetime.strptime(k, "%Y%m%d")
+            if time.mktime(arelease.timetuple()) > rcycle_time:
+                for gbuild in MARK_ATOMIC_GOOD_BUILDS[k]:
+
+                    # NOTE: By appending, we won't override an "organically"
+                    #       passed test from AutoCloud because the selector
+                    #       below gets index 0 of the different atomic_ lists
+                    #
+                    #       We then insert at index 0 when the manually entered
+                    #       successful build is newer than the latest
+                    #       "organically" passed test
+
+                    # check against atomic_qcow2
+                    for cbuild in atomic_qcow2_failed:
+                        if gbuild == \
+                                cbuild[u'msg'][u'image_url'].split('/')[-1]:
+                            if len(atomic_qcow2) > 0:
+                                if int(atomic_qcow2[u'msg'][u'image_url'].split('/')[-1].split('.')[0].split('-')[-1]) \
+                                        < int(gbuild.split('.')[0].split('-')[-1]):
+                                    atomic_qcow2.insert(0, cbuild)
+                                else:
+                                    atomic_qcow2.append(cbuild)
+                            else:
+                                atomic_qcow2.append(cbuild)
+
+                    # check against vagrant_libvirt
+                    for cbuild in atomic_vagrant_libvirt_failed:
+                        if gbuild == \
+                                cbuild[u'msg'][u'image_url'].split('/')[-1]:
+                            if len(atomic_vagrant_libvirt) > 0:
+                                if int(atomic_vagrant_libvirt[u'msg'][u'image_url'].split('/')[-1].split('.')[0].split('-')[-1]) \
+                                        < int(gbuild.split('.')[0].split('-')[-1]):
+                                    atomic_vagrant_libvirt.insert(0, cbuild)
+                                else:
+                                    atomic_vagrant_libvirt.append(cbuild)
+                            else:
+                                atomic_vagrant_libvirt.append(cbuild)
+
+                    # check against vagrant_vbox
+                    for cbuild in atomic_vagrant_vbox_failed:
+                        if gbuild == \
+                                cbuild[u'msg'][u'image_url'].split('/')[-1]:
+                            if len(atomic_vagrant_vbox) > 0:
+                                if int(atomic_vagrant_vbox[u'msg'][u'image_url'].split('/')[-1].split('.')[0].split('-')[-1]) \
+                                        < int(gbuild.split('.')[0].split('-')[-1]):
+                                    atomic_vagrant_vbox.insert(0, cbuild)
+                                else:
+                                    atomic_vagrant_vbox.append(cbuild)
+                            else:
+                                atomic_vagrant_vbox.append(cbuild)
 
     autocloud_info = {}
 
