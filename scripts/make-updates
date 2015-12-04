@@ -26,7 +26,7 @@ FEDMSG_MODNAME="compose"
 FEDMSG_CERTPREFIX="bodhi"
 fedmsg_json_start=$(printf '{"log": "start", "branch": "%s"}' "${BRANCH}")
 fedmsg_json_done=$(printf '{"log": "done", "branch": "%s"}' "${BRANCH}")
-. fedmsg-functions.sh
+. ./scripts/fedmsg-functions.sh
 
 FULLPATH=$(pwd)
 pushd $KICKSTARTS

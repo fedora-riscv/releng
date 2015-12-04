@@ -16,7 +16,7 @@
 #
 #           FEDMSG_MODNAME="compose"
 #           FEDMSG_CERTPREFIX="bodhi"
-#           source fedmsg-functions.sh
+#           source ./scripts/fedmsg-functions.sh
 #
 #           fedmsg_json_start=$(printf '{"log": "start", "branch": "f24", "arch": "x86_64"}')
 #           send_fedmsg ${fedmsg_json_start} f24 start
