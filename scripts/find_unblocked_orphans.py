@@ -36,18 +36,20 @@ except ImportError:
 
 
 EPEL5_RELEASE = dict(
-    repo='https://kojipkgs.fedoraproject.org/mash/updates/el5-epel/x86_64/',
+    repo='https://kojipkgs.fedoraproject.org/mash/updates/dist-5E-epel/'
+    'x86_64/',
     source_repo='https://kojipkgs.fedoraproject.org/mash/updates/'
-    'el5-epel/SRPMS',
+    'dist-5E-epel/SRPMS',
     tag='dist-5E-epel',
     branch='el5',
     mailto='epel-devel@lists.fedoraproject.org',
 )
 
 EPEL6_RELEASE = dict(
-    repo='https://kojipkgs.fedoraproject.org/mash/updates/el6-epel/x86_64/',
+    repo='https://kojipkgs.fedoraproject.org/mash/updates/dist-6E-epel/'
+    'x86_64/',
     source_repo='https://kojipkgs.fedoraproject.org/mash/updates/'
-    'el6-epel/SRPMS',
+    'dist-6E-epel/SRPMS',
     tag='dist-6E-epel',
     branch='el6',
     mailto='epel-devel@lists.fedoraproject.org',
