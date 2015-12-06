@@ -640,8 +640,7 @@ def package_info(unblocked, dep_map, depchecker, orphans=None, failed=None,
         orphans = [o for o in orphans if o in unblocked]
         info += wrap_and_format("Orphans", orphans)
 
-        orphans_breaking_deps = [o for o in orphans if
-                                 o in dep_map and dep_map[o]]
+        orphans_breaking_deps = [o for o in orphans if dep_map.get(o)]
         info += wrap_and_format("Orphans (dependend on)",
                                 orphans_breaking_deps)
 
@@ -654,8 +653,7 @@ def package_info(unblocked, dep_map, depchecker, orphans=None, failed=None,
                 release_text, week_limit),
             orphans_breaking_deps_stale)
 
-        orphans_not_breaking_deps = [o for o in orphans if
-                                     o not in dep_map or not dep_map[o]]
+        orphans_not_breaking_deps = [o for o in orphans if not dep_map.get(o)]
 
         info += wrap_and_format("Orphans {}(not depended on)".format(
             release_text),
