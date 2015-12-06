@@ -624,6 +624,7 @@ def package_info(unblocked, dep_map, depchecker, orphans=None, failed=None,
 
     if release:
         release_text = " ({})".format(release)
+        branch = RELEASES[release]["branch"]
     else:
         release_text = ""
 
@@ -665,6 +666,10 @@ def package_info(unblocked, dep_map, depchecker, orphans=None, failed=None,
             o for o in orphans_not_breaking_deps if
             (pkgdb_dict[o].age.days / 7) >= week_limit]
 
+        if orphans_not_breaking_deps_stale:
+            sys.stderr.write("fedretire --orphan --branch {} -- {}\n".format(
+                branch, " ".join(orphans_not_breaking_deps_stale)))
+
         info += wrap_and_format(
             "Orphans{} for at least {} weeks (not dependend on)".format(
                 release_text, week_limit),
@@ -679,10 +684,18 @@ def package_info(unblocked, dep_map, depchecker, orphans=None, failed=None,
                                 sorted(breaking))
 
         if orphans:
+            reverse_deps = OrderedDict()
             stale_breaking = set()
             for package in orphans_breaking_deps_stale:
+                for depender in dep_map[package]:
+                    reverse_deps.setdefault(depender, []).append(package)
                 stale_breaking = stale_breaking.union(
                     set(dep_map[package].keys()))
+            for depender, provider in reverse_deps.items():
+                sys.stderr.write("fedretire --orphan-dependent {} "
+                                 "--branch {} -- {}\n".format(
+                                     " ".join(provider), branch, depender
+                                 ))
             info += wrap_and_format(
                 "Packages depending on packages orphaned{} for more than "
                 "{} weeks".format(release_text, week_limit),
