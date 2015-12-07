@@ -55,8 +55,8 @@ function log()
     echo "$(date --utc) build${DIST}: ${message}" | tee -a "${logfile}" >&2
 }
 
-fedmsg_json_start=$(printf '{"log": "start", "branch": "%s", "arch": "%s"}' "$BRANCHED" "$ARCH")
-fedmsg_json_done=$(printf '{"log": "done", "branch": "%s", "arch": "%s"}' "$BRANCHED" "$ARCH")
+fedmsg_json_start=\'$(printf '{"log": "start", "branch": "%s", "arch": "%s"}' "$BRANCHED" "$ARCH")\'
+fedmsg_json_done=\'$(printf '{"log": "done", "branch": "%s", "arch": "%s"}' "$BRANCHED" "$ARCH")\'
 
 FEDMSG_MODNAME="compose"
 FEDMSG_CERTPREFIX="bodhi"
