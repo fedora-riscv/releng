@@ -55,15 +55,15 @@ function log()
     echo "$(date --utc) build${DIST}: ${message}" | tee -a "${logfile}" >&2
 }
 
-fedmsg_json_start=\'$(printf '{"log": "start", "branch": "%s", "arch": "%s"}' "$BRANCHED" "$ARCH")\'
-fedmsg_json_done=\'$(printf '{"log": "done", "branch": "%s", "arch": "%s"}' "$BRANCHED" "$ARCH")\'
+fedmsg_json_start=$(printf '{"log": "start", "branch": "%s", "arch": "%s"}' "$BRANCHED" "$ARCH")
+fedmsg_json_done=$(printf '{"log": "done", "branch": "%s", "arch": "%s"}' "$BRANCHED" "$ARCH")
 
 FEDMSG_MODNAME="compose"
 FEDMSG_CERTPREFIX="bodhi"
 . ./scripts/fedmsg-functions.sh
 
 log "started"
-send_fedmsg ${fedmsg_json_start} ${DIST} start
+send_fedmsg "${fedmsg_json_start}" ${DIST} start
 
 # Block pkgs only when running for primary
 if [[ -z "${ARCH}" ]]; then
@@ -109,14 +109,14 @@ fi
 log "mock setup /etc/hosts"
 $MOCK -r $MOCKCONFIG --uniqueext=$DATE --copyin /etc/hosts /etc/hosts >/dev/null 2>&1 # this reports to fail, but actually works
 
-send_fedmsg ${fedmsg_json_start} ${DIST} mash.start
+send_fedmsg "${fedmsg_json_start}" ${DIST} mash.start
 
 log "starting mash"
 # Drop privs here so that we run as the masher UID
 $MOCK -r $MOCKCONFIG --uniqueext=$DATE --chroot "chown mockbuild:mockbuild /var/cache/mash" || exit 1
 $MOCK -r $MOCKCONFIG --uniqueext=$DATE --unpriv --chroot "mash $MASHOPTS -p $TREEPREFIX/development/$BRANCHED -o ${MASHDIR} --compsfile $logdir/${COMPSFILE} $BRANCHED$EXPANDARCH > $logdir/mash.log 2>&1" || exit 1
 
-send_fedmsg ${fedmsg_json_done} ${DIST} mash.complete
+send_fedmsg "${fedmsg_json_done}" ${DIST} mash.complete
 
 log "finished mash"
 log "starting hardlink"
@@ -156,7 +156,7 @@ fi
 log "finished atomic tree creation"
 }
 
-send_fedmsg ${fedmsg_json_start} ${DIST} pungify.start
+send_fedmsg "${fedmsg_json_start}" ${DIST} pungify.start
 
 log "starting critppath generation"
 #only run critpath on primary arch
@@ -173,7 +173,7 @@ for basearch in armhfp i386 x86_64 ; do
 wait
 log "finished pungify"
 
-send_fedmsg ${fedmsg_json_done} ${DIST} pungify.complete
+send_fedmsg "${fedmsg_json_done}" ${DIST} pungify.complete
 
 log "starting build_composeinfo"
 echo "Running build_composeinfo"
@@ -196,7 +196,7 @@ echo "Compose finished at $(date --utc)" >> $logdir/finish
 echo >> $logdir/finish
 log "finished compose"
 
-send_fedmsg ${fedmsg_json_start} ${DIST} rsync.start
+send_fedmsg "${fedmsg_json_start}" ${DIST} rsync.start
 
 log "started compose sync"
 # data
@@ -211,7 +211,7 @@ if [ "$?" = "0" ]; then
    export mail=0
 fi
 
-send_fedmsg ${fedmsg_json_done} ${DIST} rsync.complete
+send_fedmsg "${fedmsg_json_done}" ${DIST} rsync.complete
 
 log "starting sending email report"
 if [ "$mail" = "0" ]; then
@@ -223,7 +223,7 @@ fi
 log "finished sending email report"
 
 [ -z "$ARCH" ] && {
-send_fedmsg ${fedmsg_json_start} ${DIST} image.start
+send_fedmsg "${fedmsg_json_start}" ${DIST} image.start
 
 log "started checking out spin-kickstarts"
 pushd ../
@@ -240,7 +240,7 @@ log "finished starting building live/arm/cloud images"
 popd
 popd
 
-send_fedmsg ${fedmsg_json_done} ${DIST} image.complete
+send_fedmsg "${fedmsg_json_done}" ${DIST} image.complete
 }
 
 for koji in arm ppc s390
@@ -255,6 +255,6 @@ do
   scripts/srpm-excluded-arch.py -a $arches --path ${MASHDIR}/$BRANCHED$EXPANDARCH/source/SRPMS/\*/ >$logdir/excludearch-$koji.log
 done
 
-send_fedmsg ${fedmsg_json_done} ${DIST} complete
+send_fedmsg "${fedmsg_json_done}" ${DIST} complete
 
 exit 0
