@@ -19,7 +19,7 @@
 #           source ./scripts/fedmsg-functions.sh
 #
 #           fedmsg_json_start=$(printf '{"log": "start", "branch": "f24", "arch": "x86_64"}')
-#           send_fedmsg ${fedmsg_json_start} f24 start
+#           send_fedmsg "${fedmsg_json_start}" f24 start
 
 function send_fedmsg()
 {
