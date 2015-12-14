@@ -27,7 +27,7 @@ function send_fedmsg()
     dist="${2}"
     topic="${3}"
 
-    printf ${jsoninput} | fedmsg-logger \
+    echo ${jsoninput} | fedmsg-logger \
         --cert-prefix ${FEDMSG_CERTPREFIX} \
         --modname ${FEDMSG_MODNAME} \
         --topic "${dist}.${topic}" \
