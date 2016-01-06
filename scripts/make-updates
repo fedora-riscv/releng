@@ -36,7 +36,7 @@ git pull --rebase
 
 send_fedmsg "${fedmsg_json_start}" ${BRANCH} compose.make-updates.start
 send_fedmsg "${fedmsg_json_start}" ${BRANCH} compose.cloudimg-build.start
-$FULLPATH/build-cloud-images "$VERSION" "$DATE" "$BRANCH" "$COMPOSE"
+$FULLPATH/scripts/build-cloud-images "$VERSION" "$DATE" "$BRANCH" "$COMPOSE"
 popd
 
 # use the latest updated kickstarts
