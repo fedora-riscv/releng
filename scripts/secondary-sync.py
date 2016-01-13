@@ -14,7 +14,7 @@ import subprocess
 import optparse
 import createrepo
 import sys
-
+import re
 
 
 CANONARCHES = ['arm', 'ppc', 's390']
@@ -40,6 +40,20 @@ log = logging.getLogger("secondary-sync")
 log.addHandler(h)
 
 
+def notify(msg):
+    import fedmsg
+    kwargs = dict(
+        modname='releng',
+        topic='secondary.updates.rsync.complete',
+        msg=msg,
+
+        # These direct us to talk to a fedmsg-relay living somewhere.
+        active=True,
+        name="relay_inbound",
+        )
+    fedmsg.publish(**kwargs)
+
+
 def _run_command(cmd, shell=False, env=None, pipe=[], cwd=None):
     """Run the given command.
     Will determine if caller is on a real tty and if so stream to the tty
@@ -52,6 +66,9 @@ def _run_command(cmd, shell=False, env=None, pipe=[], cwd=None):
     Raises on error, or returns nothing.
 
     """
+
+    # This should contain the rsync output after it ran.
+    output = ""
 
     # Process any environment variables.
     environ = os.environ
@@ -94,9 +111,15 @@ def _run_command(cmd, shell=False, env=None, pipe=[], cwd=None):
                 if proc.returncode:
                    print 'Non zero exit'
             else:
-                subprocess.check_call(command, env=environ, stdout=sys.stdout,
-                                      stderr=sys.stderr, shell=shell,
-                                      cwd=cwd)
+                proc = subprocess.Popen(command, env=environ
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.STDOUT, shell=shell,
+                                        cwd=cwd)
+                # We want to output on stdout and capture the output for parsing
+                for line in iter(proc.stdout.readline, ''):
+                    sys.stdout.write(line)
+                    sys.stdout.flush()
+                    output += line
         except (subprocess.CalledProcessError,
                 OSError), e:
             print e
@@ -137,9 +160,20 @@ def _run_command(cmd, shell=False, env=None, pipe=[], cwd=None):
                               (' '.join(cmd),
                                proc.returncode,
                                error))
-    return
+    result = re.search('.*Literal data: (.*) bytes.*', output, re.MULTILINE)
+    try:
+        transferred = result.group(1)
+    except:
+        transferred = "0"
+    result = re.findall('.*deleting.*', output, re.MULTILINE)
+    if result:
+        deleted = str(len(result))
+    else:
+        deleted = "0"
 
-def syncArch(arch, repodata):
+    return (transferred, deleted)
+
+def syncArch(arch, repodata, fedmsg=False):
     '''
     Sync a binary rpm tree pass in arch and True/False for syncing repodata or not
     syncing repodata does a --delete-after
@@ -158,17 +192,23 @@ def syncArch(arch, repodata):
     cmd.extend([TARGETPATH])
     log.debug(cmd)
     if not opts.only_show:
-        _run_command(cmd)
+        transferred, deleted = _run_command(cmd)
+        if fedmsg and (transferred != "0" or deleted != "0"):
+            results = dict(deleted=deleted, bytes=transferred, arch=arch)
+            notify(results)
     else:
         print cmd
 
-def syncSRPM(srpm, arch, dest, source):
+def syncSRPM(srpm, arch, dest, source, fedmsg=False):
     if not os.path.isdir(dest):
         os.makedirs(dest)
     cmd = ['rsync', '-avhH', 'rsync://%s.koji.fedoraproject.org/fedora-%s/%s/%s' % (arch, arch, source, srpm), '%s/%s' % (dest, srpm)]
     log.debug(cmd)
     if not opts.only_show:
-        _run_command(cmd)
+        transferred, deleted = _run_command(cmd)
+        if fedmsg and (transferred != "0" or deleted != "0"):
+            results = dict(deleted=deleted, bytes=transferred, arch=arch)
+            notify(results)
     else:
         print cmd
 
@@ -218,11 +258,11 @@ def main(opts):
     if not opts.no_sync:
          if opts.onlyarch:
              syncArch(opts.onlyarch, False)
-             syncArch(opts.onlyarch, True)
+             syncArch(opts.onlyarch, True, opts.fedmsg)
          else:
              for arch in CANONARCHES:
                  syncArch(arch, False)
-                 syncArch(arch, True)
+                 syncArch(arch, True, opts.fedmsg)
 
     # work out what SRPMS we need and what can be removed.
     srpms = {}
@@ -268,7 +308,7 @@ def main(opts):
         dest = files[1][1]
         source = files[1][2]
         if not opts.only_show:
-            syncSRPM(srpm, arch, dest, source)
+            syncSRPM(srpm, arch, dest, source, opts.fedmsg)
 
     for files in zip(to_delete_srpms.keys(), to_delete_srpms.values()):
         srpmfile = os.path.join(files[1], files[0])
@@ -306,6 +346,8 @@ if __name__ == '__main__':
                      default=False, help="Show what would be done but dont actually do it.")
     opt_p.add_option('-n', '--no-sync', action='store_true', dest='no_sync',
                      default=False, help="Skip syncing new bits.")
+    opt_p.add_option('--disable-fedmsg', dest="fedmsg", action="store_false",
+                     help="Disable fedmsg notifications", default=True)
 
     (opts, args) = opt_p.parse_args()
 
