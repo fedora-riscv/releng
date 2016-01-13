@@ -34,8 +34,8 @@ git reset --hard
 git checkout f$VERSION 
 git pull --rebase
 
-send_fedmsg "${fedmsg_json_start}" ${BRANCH} compose.make-updates.start
-send_fedmsg "${fedmsg_json_start}" ${BRANCH} compose.cloudimg-build.start
+send_fedmsg "${fedmsg_json_start}" ${BRANCH} make-updates.start
+send_fedmsg "${fedmsg_json_start}" ${BRANCH} cloudimg-build.start
 $FULLPATH/scripts/build-cloud-images "$VERSION" "$DATE" "$BRANCH" "$COMPOSE"
 popd
 
@@ -49,7 +49,7 @@ mock -r fedora-$VERSION-compose-x86_64 --init || exit 1
 mock -r fedora-$VERSION-compose-x86_64 --install lorax rpm-ostree || exit 1
 mock -r fedora-$VERSION-compose-x86_64 --shell "mkdir -p ${DESTDIR}/Cloud_Atomic/x86_64/iso; mkdir -p ${DESTDIR}/logs"
 
-send_fedmsg "${fedmsg_json_start}" ${BRANCH} compose.atomic-lorax.start
+send_fedmsg "${fedmsg_json_start}" ${BRANCH} atomic-lorax.start
 mock -r fedora-$VERSION-compose-x86_64 --shell "lorax --nomacboot -p Fedora -v ${SHORTVERSION} -r ${SHORTCOMPOSE} \
                                                  -s http://infrastructure.fedoraproject.org/pub/fedora/linux/releases/$VERSION/Everything/x86_64/os/ \
                                                  -i fedora-productimg-atomic \
@@ -67,7 +67,7 @@ mock -r fedora-$VERSION-compose-x86_64 --shell "lorax --nomacboot -p Fedora -v $
                                                  ${DESTDIR}/Cloud_Atomic/x86_64/os/ " || exit 1
 mock -r fedora-$VERSION-compose-x86_64 --shell "cp -l ${DESTDIR}/Cloud_Atomic/x86_64/os/images/boot.iso ${DESTDIR}/Cloud_Atomic/x86_64/iso/Fedora-Cloud_Atomic-x86_64-${VERSION}-${DATE}.iso" || exit 1
 mock -r fedora-$VERSION-compose-x86_64 --shell "pushd ${DESTDIR}/Cloud_Atomic/x86_64/iso/ ;sha256sum -b --tag *iso >Fedora-Cloud_Atomic-${VERSION}-x86_64-CHECKSUM; popd" || exit 1
-send_fedmsg "${fedmsg_json_done}" ${BRANCH} compose.atomic-lorax.done
+send_fedmsg "${fedmsg_json_done}" ${BRANCH} atomic-lorax.done
 
 popd
 
@@ -81,7 +81,7 @@ do
     break
   fi
 done
-send_fedmsg "${fedmsg_json_done}" ${BRANCH} compose.cloudimg-build.done
+send_fedmsg "${fedmsg_json_done}" ${BRANCH} cloudimg-build.done
 
 sg releng "mkdir -p $FINALDEST"
 pushd $FINALDEST/
@@ -100,7 +100,7 @@ sg releng "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora
 
 
 
-send_fedmsg "${fedmsg_json_start}" ${BRANCH} compose.cloudimg-checksum.start
+send_fedmsg "${fedmsg_json_start}" ${BRANCH} cloudimg-checksum.start
 pushd $FINALDEST/Cloud-Images
 for arch in i386 x86_64; do pushd $arch/Images; sg releng "sha256sum --tag -b *qcow2 *raw.xz *box>  Fedora-Cloud-Images-$arch-$VERSION-CHECKSUM"; popd; done
 popd
@@ -108,16 +108,16 @@ popd
 pushd $FINALDEST/Docker/x86_64
 sg releng "sha256sum --tag -b *tar.xz>  Fedora-Docker-x86_64-$VERSION-CHECKSUM"
 popd
-send_fedmsg "${fedmsg_json_done}" ${BRANCH} compose.cloudimg-checksum.done
+send_fedmsg "${fedmsg_json_done}" ${BRANCH} cloudimg-checksum.done
 
 
 
-send_fedmsg "${fedmsg_json_start}" ${BRANCH} compose.cloudimg-staging.start
+send_fedmsg "${fedmsg_json_start}" ${BRANCH} cloudimg-staging.start
 # stage the composed tree to final locateion
 sg releng "mkdir $MIRRORDEST"
 sg releng "chmod 700 $MIRRORDEST"
 for type in Cloud_Atomic Docker Cloud-Images; do sg releng "rsync -avhH $FINALDEST/$type/ $MIRRORDEST/$type/"; done
 sg releng "chmod 755 $MIRRORDEST"
-send_fedmsg "${fedmsg_json_done}" ${BRANCH} compose.cloudimg-staging.done
+send_fedmsg "${fedmsg_json_done}" ${BRANCH} cloudimg-staging.done
 
-send_fedmsg "${fedmsg_json_done}" ${BRANCH} compose.make-updates.done
+send_fedmsg "${fedmsg_json_done}" ${BRANCH} make-updates.done
