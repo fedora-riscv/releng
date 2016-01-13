@@ -111,7 +111,7 @@ def _run_command(cmd, shell=False, env=None, pipe=[], cwd=None):
                 if proc.returncode:
                    print 'Non zero exit'
             else:
-                proc = subprocess.Popen(command, env=environ
+                proc = subprocess.Popen(command, env=environ,
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.STDOUT, shell=shell,
                                         cwd=cwd)
