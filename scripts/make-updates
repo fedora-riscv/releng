@@ -39,6 +39,9 @@ send_fedmsg "${fedmsg_json_start}" ${BRANCH} cloudimg-build.start
 $FULLPATH/scripts/build-cloud-images "$VERSION" "$DATE" "$BRANCH" "$COMPOSE"
 popd
 
+send_fedmsg "${fedmsg_json_start}" ${BRANCH} mash-atomic.start
+mash -c configs/mash.conf $VERSION-atomic-updates -o /mnt/koji/mash/atomic-updates/$VERSION-$SHORTCOMPOSE/
+send_fedmsg "${fedmsg_json_start}" ${BRANCH} mash-atomic.stop
 # use the latest updated kickstarts
 pushd $ATOMIC
 git reset --hard
@@ -52,6 +55,7 @@ mock -r fedora-$VERSION-compose-x86_64 --shell "mkdir -p ${DESTDIR}/Cloud_Atomic
 send_fedmsg "${fedmsg_json_start}" ${BRANCH} atomic-lorax.start
 mock -r fedora-$VERSION-compose-x86_64 --shell "lorax --nomacboot -p Fedora -v ${SHORTVERSION} -r ${SHORTCOMPOSE} \
                                                  -s http://infrastructure.fedoraproject.org/pub/fedora/linux/releases/$VERSION/Everything/x86_64/os/ \
+                                                 -s https://kojipkgs.fedoraproject.org/mash/atomic-updates/$VERSION-$SHORTCOMPOSE/$VERSION-atomic-updates/x86_64/ \
                                                  -i fedora-productimg-atomic \
                                                  -t Cloud_Atomic \
                                                  --tmp /tmp/ \
