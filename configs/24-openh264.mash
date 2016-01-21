@@ -1,0 +1,22 @@
+# mash config file
+
+[24-openh264]
+rpm_path = %(arch)s/
+repodata_path = %(arch)s/
+source_path = source/
+debuginfo = True
+multilib = True
+multilib_method = devel
+tag = f24-openh264
+inherit = False
+strict_keys = True
+keys = 81b46521
+arches = i386 x86_64 armhfp
+delta = True
+max_delta_rpm_size = 800000000
+max_delta_rpm_age = 604800
+delta_workers = 8
+# Change distro_tags as fedora-release version gets bumped
+distro_tags = cpe:/o:fedoraproject:fedora:24 Twenty Four
+hash_packages = True
+
