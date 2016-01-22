@@ -26,7 +26,7 @@ workdir = os.path.expanduser('~/massbuild-boost')
 enviro = os.environ
 target = 'f23-boost'
 
-pkg_skip_list = ['shim', 'shim-signed', 'kernel', 'grub2']
+pkg_skip_list = ['shim', 'shim-signed', 'kernel', 'grub2', 'openh264']
 
 # Define functions
 
