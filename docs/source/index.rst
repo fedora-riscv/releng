@@ -18,6 +18,7 @@ Contents:
     overview
     philosophy
     contributing
+    troubleshooting
     sop
 
 
