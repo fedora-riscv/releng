@@ -87,30 +87,30 @@ do
 done
 send_fedmsg "${fedmsg_json_done}" ${BRANCH} cloudimg-build.done
 
-sg releng "mkdir -p $FINALDEST"
+sg releng-team "mkdir -p $FINALDEST"
 pushd $FINALDEST/
-sg releng "mkdir -p Cloud-Images/i386/Images Cloud-Images/x86_64/Images Docker/x86_64"
+sg releng-team "mkdir -p Cloud-Images/i386/Images Cloud-Images/x86_64/Images Docker/x86_64"
 popd
 
 
 USER=$(whoami)
 # stage images
-sg releng "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora-Cloud*$VERSION-$DATE\.i386.raw.xz $FINALDEST/Cloud-Images/i386/Images/"
-sg releng "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora-Cloud*$VERSION-$DATE\.i386.qcow2 $FINALDEST/Cloud-Images/i386/Images/"
-sg releng "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora-Cloud*$VERSION-$DATE\.x86_64.raw.xz $FINALDEST/Cloud-Images/x86_64/Images/"
-sg releng "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora-Cloud*$VERSION-$DATE\.x86_64.qcow2 $FINALDEST/Cloud-Images/x86_64/Images/"
-sg releng "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora-Cloud*$VERSION-$DATE\.x86_64.*.box $FINALDEST/Cloud-Images/x86_64/Images/"
-sg releng "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora-Docker*-$VERSION-$DATE*tar.xz $FINALDEST//Docker/x86_64/"
+sg releng-team "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora-Cloud*$VERSION-$DATE\.i386.raw.xz $FINALDEST/Cloud-Images/i386/Images/"
+sg releng-team "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora-Cloud*$VERSION-$DATE\.i386.qcow2 $FINALDEST/Cloud-Images/i386/Images/"
+sg releng-team "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora-Cloud*$VERSION-$DATE\.x86_64.raw.xz $FINALDEST/Cloud-Images/x86_64/Images/"
+sg releng-team "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora-Cloud*$VERSION-$DATE\.x86_64.qcow2 $FINALDEST/Cloud-Images/x86_64/Images/"
+sg releng-team "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora-Cloud*$VERSION-$DATE\.x86_64.*.box $FINALDEST/Cloud-Images/x86_64/Images/"
+sg releng-team "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora-Docker*-$VERSION-$DATE*tar.xz $FINALDEST//Docker/x86_64/"
 
 
 
 send_fedmsg "${fedmsg_json_start}" ${BRANCH} cloudimg-checksum.start
 pushd $FINALDEST/Cloud-Images
-for arch in i386 x86_64; do pushd $arch/Images; sg releng "sha256sum --tag -b *qcow2 *raw.xz *box>  Fedora-Cloud-Images-$arch-$VERSION-CHECKSUM"; popd; done
+for arch in i386 x86_64; do pushd $arch/Images; sg releng-team "sha256sum --tag -b *qcow2 *raw.xz *box>  Fedora-Cloud-Images-$arch-$VERSION-CHECKSUM"; popd; done
 popd
 
 pushd $FINALDEST/Docker/x86_64
-sg releng "sha256sum --tag -b *tar.xz>  Fedora-Docker-x86_64-$VERSION-CHECKSUM"
+sg releng-team "sha256sum --tag -b *tar.xz>  Fedora-Docker-x86_64-$VERSION-CHECKSUM"
 popd
 send_fedmsg "${fedmsg_json_done}" ${BRANCH} cloudimg-checksum.done
 
@@ -118,10 +118,10 @@ send_fedmsg "${fedmsg_json_done}" ${BRANCH} cloudimg-checksum.done
 
 send_fedmsg "${fedmsg_json_start}" ${BRANCH} cloudimg-staging.start
 # stage the composed tree to final locateion
-sg releng "mkdir $MIRRORDEST"
-sg releng "chmod 700 $MIRRORDEST"
-for type in Cloud_Atomic Docker Cloud-Images; do sg releng "rsync -avhH $FINALDEST/$type/ $MIRRORDEST/$type/"; done
-sg releng "chmod 755 $MIRRORDEST"
+sg releng-team "mkdir $MIRRORDEST"
+sg releng-team "chmod 700 $MIRRORDEST"
+for type in Cloud_Atomic Docker Cloud-Images; do sg releng-team "rsync -avhH $FINALDEST/$type/ $MIRRORDEST/$type/"; done
+sg releng-team "chmod 755 $MIRRORDEST"
 send_fedmsg "${fedmsg_json_done}" ${BRANCH} cloudimg-staging.done
 
 send_fedmsg "${fedmsg_json_done}" ${BRANCH} make-updates.done

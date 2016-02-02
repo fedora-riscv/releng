@@ -493,11 +493,11 @@ def sign_checksum_files(
             )
 
         if subprocess.call(
-            "sg releng 'mv {0} {1}'".format(signed_txt_path, cfile),
+            "sg releng-team 'mv {0} {1}'".format(signed_txt_path, cfile),
             shell=True
         ):
             log.error(
-                "sign_checksum_files: sg releng 'mv {0} {1}' FAILED".format(
+                "sign_checksum_files: sg releng-team 'mv {0} {1}' FAILED".format(
                     signed_txt_path,
                     cfile,
                 )

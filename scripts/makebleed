@@ -9,18 +9,18 @@ pushd $BLEEDDIR
 
 for pkg in $PKGS
 do
-  sg releng "koji download-build --key=34ec9cba $pkg"
+  sg releng-team "koji download-build --key=34ec9cba $pkg"
 done
 
-sg releng "mv *src.rpm SRPMS/;mv *i686.rpm i386/ ; mv *x86_64.rpm x86_64/; mv *armv7hl.rpm armhfp/"
+sg releng-team "mv *src.rpm SRPMS/;mv *i686.rpm i386/ ; mv *x86_64.rpm x86_64/; mv *armv7hl.rpm armhfp/"
 
-sg releng "cp *noarch.rpm armhfp/ &&cp *noarch.rpm i386/ && mv *noarch.rpm x86_64/"
+sg releng-team "cp *noarch.rpm armhfp/ &&cp *noarch.rpm i386/ && mv *noarch.rpm x86_64/"
 
 for dir in armhfp i386 x86_64 SRPMS
 do
- sg releng "createrepo --update -d $dir"
+ sg releng-team "createrepo --update -d $dir"
 done
 
-sg releng "rsync -avhH --delete $BLEEDDIR /mnt/fedora_koji/koji/mash/bleed/"
+sg releng-team "rsync -avhH --delete $BLEEDDIR /mnt/fedora_koji/koji/mash/bleed/"
 
 popd
