@@ -70,18 +70,36 @@ kojisession = koji.ClientSession('http://koji.fedoraproject.org/kojihub')
 pkgs = kojisession.listPackages(buildtag, inherited=True)
 
 # reduce the list to those that are not blocked and sort by package name
+pkgs = sorted([pkg for pkg in pkgs if not pkg['blocked']],
+              key=operator.itemgetter('package_name'))
 
 print 'Checking %s packages...' % len(pkgs)
 
 # Loop over each package
 for pkg in pkgs:
-    name = pkg
+    name = pkg['package_name']
+    id = pkg['package_id']
 
     # some package we just dont want to ever rebuild
     if name in pkg_skip_list:
         print 'Skipping %s, package is explicitely skipped'
         continue
 
+    # Query to see if a build has already been attempted
+    # this version requires newer koji:
+    builds = kojisession.listBuilds(id, createdAfter=epoch)
+    newbuild = False
+    # Check the builds to make sure they were for the target we care about
+    for build in builds:
+        buildtarget = kojisession.getTaskInfo(build['task_id'],
+                                   request=True)['request'][1]
+        if buildtarget == target or buildtarget in targets:
+            # We've already got an attempt made, skip.
+            newbuild = True
+            break
+    if newbuild:
+        print 'Skipping %s, already attempted.' % name
+        continue
 
     # Check out git
     fedpkgcmd = ['fedpkg', 'clone', name]
