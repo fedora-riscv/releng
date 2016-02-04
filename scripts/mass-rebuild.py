@@ -26,7 +26,7 @@ workdir = os.path.expanduser('~/massbuild')
 enviro = os.environ
 target = 'f24-rebuild'
 
-pkg_skip_list = ['shim', 'shim-signed', 'kernel', 'grub2', 'openh264']
+pkg_skip_list = ['shim', 'shim-signed', 'kernel', 'linux-firmware', 'grub2', 'openh264']
 
 # Define functions
 
