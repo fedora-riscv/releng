@@ -480,7 +480,7 @@ def sign_checksum_files(
                 cfile
             ),
             "&&",
-            "chgrp releng {0}".format(signed_txt_path),
+            "chgrp releng-team {0}".format(signed_txt_path),
             "&&",
             "chmod 664 {0}".format(signed_txt_path),
         ]
