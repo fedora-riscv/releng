@@ -272,7 +272,7 @@ def orphan_packages(branch=RAWHIDE_RELEASE["branch"]):
         return orphans
     else:
         pkgdbresponse = pkgdb.get_packages(
-            "", orphaned=True, branches=branch, page="all")
+            "*", orphaned=True, branches=branch, page="all")
         pkgs = pkgdbresponse["packages"]
         for p in pkgs:
             orphans[p["name"]] = p
