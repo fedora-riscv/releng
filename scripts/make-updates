@@ -15,6 +15,7 @@ KICKSTARTS=/srv/pungi/spin-kickstarts/
 ATOMIC=/srv/pungi/fedora-atomic/
 ATOMICDEST=/srv/pungi/atomic/
 MIRRORDEST=/pub/alt/atomic/testing/$VERSION-$DATE/
+PUBLICDEST="https://dl.fedoraproject.org$MIRRORDEST"
 SHORTCOMPOSE=$(echo $COMPOSE|sed -e 's|_RC||g')
 SHORTVERSION=$VERSION
 [ -z "$COMPOSE" ] && {
@@ -25,7 +26,9 @@ SHORTVERSION=$VERSION
 FEDMSG_MODNAME="compose"
 FEDMSG_CERTPREFIX="releng"
 fedmsg_json_start=$(printf '{"log": "start", "branch": "%s"}' "${BRANCH}")
+fedmsg_json_start_loc=$(printf '{"log": "start", "branch": "%s", "location": "%s"}' "${BRANCH}" "${PUBLICDEST}")
 fedmsg_json_done=$(printf '{"log": "done", "branch": "%s"}' "${BRANCH}")
+fedmsg_json_done_loc=$(printf '{"log": "done", "branch": "%s", "location": "%s"}' "${BRANCH}" "${PUBLICDEST}")
 . ./scripts/fedmsg-functions.sh
 
 FULLPATH=$(pwd)
@@ -116,12 +119,12 @@ send_fedmsg "${fedmsg_json_done}" ${BRANCH} cloudimg-checksum.done
 
 
 
-send_fedmsg "${fedmsg_json_start}" ${BRANCH} cloudimg-staging.start
+send_fedmsg "${fedmsg_json_start_loc}" ${BRANCH} cloudimg-staging.start
 # stage the composed tree to final locateion
 sg releng-team "mkdir $MIRRORDEST"
 sg releng-team "chmod 700 $MIRRORDEST"
 for type in Cloud_Atomic Docker Cloud-Images; do sg releng-team "rsync -avhH $FINALDEST/$type/ $MIRRORDEST/$type/"; done
 sg releng-team "chmod 755 $MIRRORDEST"
-send_fedmsg "${fedmsg_json_done}" ${BRANCH} cloudimg-staging.done
+send_fedmsg "${fedmsg_json_done_loc}" ${BRANCH} cloudimg-staging.done
 
 send_fedmsg "${fedmsg_json_done}" ${BRANCH} make-updates.done
