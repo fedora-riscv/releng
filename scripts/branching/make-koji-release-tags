@@ -13,7 +13,7 @@ s390_arches=s390x,s390
 for arch in primary arm ppc s390
 do
 
-arches=$(echo $arch)_arches
+arches=$(echo "$arch"_arches)
 
 if [ "$arch" == "primary" ]; then
 kojicli=koji
@@ -21,14 +21,14 @@ else
 kojicli=$arch-koji
 fi
 
-$kojicli add-tag --parent f$OLDRELEASE-updates f$RELEASE
+$kojicli clone-tag  f$OLDRELEASE f$RELEASE
 $kojicli add-tag --parent f$RELEASE f$RELEASE-updates
 $kojicli add-tag --parent f$RELEASE-updates f$RELEASE-updates-candidate
 $kojicli add-tag --parent f$RELEASE-updates f$RELEASE-updates-testing
 $kojicli add-tag --parent f$RELEASE-updates-testing f$RELEASE-updates-testing-pending
 $kojicli add-tag --parent f$RELEASE-updates f$RELEASE-updates-pending
 $kojicli add-tag --parent f$RELEASE-updates f$RELEASE-override
-$kojicli add-tag --parent f$RELEASE-override --arches=$arches f$RELEASE-build
+$kojicli add-tag --parent f$RELEASE-override --arches=$(echo \$"$arches") f$RELEASE-build
 $kojicli edit-tag --perm=fedora-override f$RELEASE-override
 $kojicli edit-tag --perm=admin f$RELEASE-updates
 $kojicli edit-tag --perm=admin f$RELEASE-updates-testing
