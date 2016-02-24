@@ -137,13 +137,13 @@ like before, make the following edit in puppet in a clone:
     +        {'name': 'Fedora 20', 'tag': 'f20-updates'},
     +        {'name': 'Fedora 20', 'tag': 'f20'},
     +        {'name': 'Fedora 20 Testing', 'tag': 'f20-updates-testing'},
-     
+
              {'name': 'Fedora 19', 'tag': 'f19-updates'},
              {'name': 'Fedora 19', 'tag': 'f19'},
     @@ -13,10 +17,6 @@ tags = ({'name': 'Rawhide', 'tag': 'f20'},
              {'name': 'Fedora 17', 'tag': 'f17'},
              {'name': 'Fedora 17 Testing', 'tag': 'f17-updates-testing'},
-     
+
     -        {'name': 'Fedora 16', 'tag': 'f16-updates'},
     -        {'name': 'Fedora 16', 'tag': 'f16'},
     -        {'name': 'Fedora 16 Testing', 'tag': 'f16-updates-testing'},
@@ -198,7 +198,7 @@ email address).
 Koji
 ----
 The koji build system needs to have some tag/target work done to handle builds
-from the new branch and to update where builds from master go. See the 
+from the new branch and to update where builds from master go. See the
 :ref:`section on Koji in the Adding Build Targets SOP <adding_build_targets_koji>`
 for details.
 
@@ -233,7 +233,7 @@ file used to generate the nightly spin ISO's.
 Comps
 -----
 A new comps file needs to be created for the next fedora release (the one after
-what we just branched for). 
+what we just branched for).
 
 Please see :doc:`sop_updating_comps`
 
@@ -248,7 +248,7 @@ actually be done and pushed just before the branch event.
 MirrorManager
 -------------
 Mirror manager will have to be updated so that the `dnf`_/`yum`_ repo
-redirections are going to the right places. 
+redirections are going to the right places.
 
 .. note::
     FIXME Link to MM SOP ... exists?
@@ -301,11 +301,11 @@ Consider Before Running
 .. _pkgdb configuration file:
     https://infrastructure.fedoraproject.org/infra/ansible/roles/pkgdb2/templates/pkgdb2.cfg
 .. _File a Taskotron ticket:
-    https://phab.qadevel.cloud.fedoraproject.org/maniphest/task/create/?projects=PHID-PROJ-prgpoumlmfdczdr4dyv3
+    https://phab.qadevel.cloud.fedoraproject.org/maniphest/task/edit/form/default/?title=release%20is%20EOL&priority=80&tags=libtaskotron
 .. _Bodhi SOP: https://infrastructure.fedoraproject.org/infra/docs/bodhi.rst
 .. _spin: http://spins.fedoraproject.org
 .. _dnf: https://fedoraproject.org/wiki/Dnf
 .. _yum: https://fedoraproject.org/wiki/Yum
 .. _spin-kickstarts: https://fedorahosted.org/spin-kickstarts/
-.. _file a rel-eng ticket: 
-    https://fedorahosted.org/rel-eng/newticket?summary=Update%20nightly%20spin%20kickstart&type=task&component=production&priority=critical&milestone=Hot%20issues&cc=kevin 
+.. _file a rel-eng ticket:
+    https://fedorahosted.org/rel-eng/newticket?summary=Update%20nightly%20spin%20kickstart&type=task&component=production&priority=critical&milestone=Hot%20issues&cc=kevin

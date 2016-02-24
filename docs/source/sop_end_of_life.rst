@@ -181,4 +181,4 @@ Consider Before Running
 .. _cold undead hands:
     https://git.fedorahosted.org/cgit/badges.git/tree/rules/you-can-pry-it-from-my-cold-undead-hands.yml
 .. _File Taskotron ticket:
-    https://phab.qadevel.cloud.fedoraproject.org/maniphest/task/create/?projects=PHID-PROJ-prgpoumlmfdczdr4dyv3 
+    https://phab.qadevel.cloud.fedoraproject.org/maniphest/task/edit/form/default/?title=release%20is%20EOL&priority=80&tags=libtaskotron
