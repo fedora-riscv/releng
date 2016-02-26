@@ -29,7 +29,7 @@ targets = ['f24-boost','f23-boost']
 branches = ['master', 'f23']
 enviro['CVS_RSH'] = 'ssh' # use ssh for cvs
 
-pkg_skip_list = ['shim', 'shim-signed', 'kernel', 'grub2', 'gcc', 'glibc']
+pkg_skip_list = ['fedora-release', 'fedora-repos', 'generic-release', 'redhat-rpm-config', 'shim', 'shim-signed', 'kernel', 'grub2', 'gcc', 'glibc']
 
 # Define functions
 
