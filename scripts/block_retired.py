@@ -115,7 +115,7 @@ def get_retired_packages(branch="master", staging=False):
 
     try:
         retiredresponse = pkgdb.get_packages(
-            "", branches=branch, page="all", status="Retired")
+            branches=branch, page="all", status="Retired")
     except pkgdb2client.PkgDBException as e:
         if "No packages found for these parameters" not in str(e):
             raise
