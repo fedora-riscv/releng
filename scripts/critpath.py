@@ -25,21 +25,21 @@ base_arches = ('armhfp', 'i386', 'x86_64')
 known_arches = base_arches + ('armv7hl','i586','i686')
 fedora_baseurl = 'http://dl.fedoraproject.org/pub/fedora/linux/'
 releasepath = {
-    'devel': 'development/rawhide/$basearch/os/',
-    'rawhide': 'development/rawhide/$basearch/os/'
+    'devel': 'development/rawhide/Everything/$basearch/os/',
+    'rawhide': 'development/rawhide/Everything/$basearch/os/'
 }
 updatepath = {
     'devel': '',
     'rawhide': ''
 }
 
-for r in ['12', '13', '14', '15', '16', '17', '18', '19', '20', '21']: # 13, 14, ...
+for r in ['12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23']: # 13, 14, ...
     releasepath[r] = 'releases/%s/Everything/$basearch/os/' % r
     updatepath[r] = 'updates/%s/$basearch/' % r
 
 # Branched Fedora goes here
-branched = '22'
-releasepath['branched'] = 'development/%s/$basearch/os' % branched
+branched = '24'
+releasepath['branched'] = 'development/%s/Everything/$basearch/os' % branched
 updatepath['branched'] = ''
 
 # blacklists
