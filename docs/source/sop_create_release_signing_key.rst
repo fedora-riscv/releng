@@ -79,7 +79,7 @@ following:
 
 #. Wait a while for entropy.  This can take several minutes.
 #. Grant key access to Fedora Account holders who will be signing packages and
-   protect it with a temporary a passphrase.  For example, ``CHANGEME``
+   protect it with a temporary a passphrase.  For example, ``CHANGEME.``
 
    ::
 

@@ -13,10 +13,10 @@
 import koji
 import os
 
-tag = 'f23'
-
+tag = 'f25'
+oldtag = 'f24'
 # Create a koji session
-kojisession = koji.ClientSession('https://koji.fedoraproject.org/kojihub')
+kojisession = koji.ClientSession('http://ppc.koji.fedoraproject.org/kojihub')
 
 # Log into koji
 clientcert = os.path.expanduser('~/.fedora.cert')
@@ -32,7 +32,7 @@ for build in builds:
     tagged.append(build['nvr'])
 
 # Get all builds tagged to the tag including inherited builds
-allbuilds = kojisession.listTagged(tag, latest=True, inherit=True)
+allbuilds = kojisession.listTagged(oldtag, latest=True, inherit=True)
 
 # Isolate all the inherited builds
 tagbuilds = []
