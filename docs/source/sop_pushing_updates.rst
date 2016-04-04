@@ -47,7 +47,7 @@ Get a list of packages to push
 ::
 
     $ cd /var/cache/sigul
-    $ sudo -u masher bodhi-push --releases '23 22 21 5 6 7' --username <yourusername>
+    $ sudo -u apache bodhi-push --releases '23 22 21 5 6 7' --username <yourusername>
     <enter your password+2factorauth, then your fas password>
 
 You can say 'n' to the push at this point if you wish to sign packages (see
@@ -68,7 +68,7 @@ frozen):
 ::
 
     $ cd /var/cache/sigul
-    $ sudo -u masher bodhi-push --releases 23 --request=testing \
+    $ sudo -u apache bodhi-push --releases 23 --request=testing \
         --username <username>
 
 Then
@@ -76,7 +76,7 @@ Then
 ::
 
     $ cd /var/cache/sigul
-    $ sudo -u masher bodhi-push --releases '22 21 5 6 7' --username <username>
+    $ sudo -u apache bodhi-push --releases '22 21 5 6 7' --username <username>
 
 Pushing Stable updates during freeze
 ------------------------------------
@@ -87,7 +87,7 @@ will file a ticket with the nvrs to push
 ::
 
     $ cd /var/cache/sigul
-    $ sudo -u masher bodhi-push --builds '<nvr1> <nvr2> ...' --username <username>
+    $ sudo -u apache bodhi-push --builds '<nvr1> <nvr2> ...' --username <username>
 
 
 Sign the packages
@@ -182,7 +182,7 @@ time
 
 ::
 
-    $ sudo -u masher bodhi-push --resume
+    $ sudo -u apache bodhi-push --resume
 
 Bodhi will ask you which push(es) you want to resume.
 
