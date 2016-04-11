@@ -177,6 +177,6 @@ Indices and tables
 
 .. _branched: https://fedoraproject.org/wiki/Releases/Branched
 .. _kanban board:
-    http://taiga.cloud.fedoraproject.org/project/acarter-fedora-docker-atomic-tooling/kanban
+    http://taiga.fedorainfracloud.org/project/acarter-fedora-docker-atomic-tooling/kanban
 .. _String Freeze Policy:
     https://fedoraproject.org/wiki/Software_String_Freeze_Policy
