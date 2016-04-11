@@ -55,7 +55,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Fedora Release Engineering'
-copyright = u'2015, Red Hat, Inc. and others'
+copyright = u'2015-2016, Red Hat, Inc. and others, content licensed under: https://creativecommons.org/licenses/by-sa/3.0/'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
