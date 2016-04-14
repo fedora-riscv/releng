@@ -29,12 +29,12 @@ if [ "$COMPOSE" == "nightly" ]; then
     atomicurl=http://kojipkgs.fedoraproject.org/mash/atomic/$VERSION/
     REPOS="--repo=$url"
 elif [ "$COMPOSE" == "updates" ]; then
-    url=http://infrastructure.fedoraproject.org/pub/fedora/linux/releases/$VERSION/Cloud/\$arch/os/
+    url=http://kojipkgs.fedoraproject.org/pub/fedora/linux/releases/$VERSION/Cloud/\$arch/os/
     if [ "$VERSION" -gt "21" ]; then
         # we moved where we put the cloud install tree in f22
-        url=http://infrastructure.fedoraproject.org/pub/alt/releases/$VERSION/Cloud/\$arch/os/
+        url=http://kojipkgs.fedoraproject.org/pub/alt/releases/$VERSION/Cloud/\$arch/os/
     fi
-    updatesurl=http://infrastructure.fedoraproject.org/pub/fedora/linux/updates/$VERSION/\$arch/
+    updatesurl=http://kojipkgs.fedoraproject.org/pub/fedora/linux/updates/$VERSION/\$arch/
     atomicurl=http://kojipkgs.fedoraproject.org/mash/atomic/$VERSION/
     REPOS="--repo=$url --repo=$updatesurl"
     KSEXTRAARGS="-v F21"
