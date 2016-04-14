@@ -92,7 +92,7 @@ send_fedmsg "${fedmsg_json_done}" ${BRANCH} cloudimg-build.done
 
 sg releng-team "mkdir -p $FINALDEST"
 pushd $FINALDEST/
-sg releng-team "mkdir -p Cloud-Images/i386/Images Cloud-Images/x86_64/Images Docker/x86_64"
+sg releng-team "mkdir -p Cloud-Images/i386/Images Cloud-Images/x86_64/Images Docker/x86_64 Docker/armhfp"
 popd
 
 
@@ -103,7 +103,8 @@ sg releng-team "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/F
 sg releng-team "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora-Cloud*$VERSION-$DATE\.x86_64.raw.xz $FINALDEST/Cloud-Images/x86_64/Images/"
 sg releng-team "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora-Cloud*$VERSION-$DATE\.x86_64.qcow2 $FINALDEST/Cloud-Images/x86_64/Images/"
 sg releng-team "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora-Cloud*$VERSION-$DATE\.x86_64.*.box $FINALDEST/Cloud-Images/x86_64/Images/"
-sg releng-team "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora-Docker*-$VERSION-$DATE*tar.xz $FINALDEST//Docker/x86_64/"
+sg releng-team "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora-Docker*-$VERSION-$DATE*x86_64.tar.xz $FINALDEST//Docker/x86_64/"
+sg releng-team "sudo /usr/bin/cp -l /mnt/fedora_koji/koji/scratch/$USER/task_*/Fedora-Docker*-$VERSION-$DATE*armhfp.tar.xz $FINALDEST//Docker/armhfp/"
 
 
 
@@ -112,8 +113,8 @@ pushd $FINALDEST/Cloud-Images
 for arch in i386 x86_64; do pushd $arch/Images; sg releng-team "sha256sum --tag -b *qcow2 *raw.xz *box>  Fedora-Cloud-Images-$arch-$VERSION-CHECKSUM"; popd; done
 popd
 
-pushd $FINALDEST/Docker/x86_64
-sg releng-team "sha256sum --tag -b *tar.xz>  Fedora-Docker-x86_64-$VERSION-CHECKSUM"
+pushd $FINALDEST/Docker
+for arch in x86_64 armhfp; do pushd $arch; sg releng-team "sha256sum --tag -b *tar.xz>  Fedora-Docker-$arch-$VERSION-CHECKSUM"; popd; done
 popd
 send_fedmsg "${fedmsg_json_done}" ${BRANCH} cloudimg-checksum.done
 
