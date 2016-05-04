@@ -43,6 +43,7 @@ Standard Operating Procedures
 
     sop_adding_build_targets
     sop_adding_new_release_engineer
+    sop_adding_packages_compose_artifact
     sop_adding_side_build_targets
     sop_branch_freeze
     sop_branching
