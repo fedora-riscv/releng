@@ -450,6 +450,7 @@ class DepChecker(object):
             package = self.pkgdbinfo_queue.get()
             if package not in self.pkgdb_dict:
                 pkginfo = PKGDBInfo(package, branch)
+                #  sys.stderr.write("Got info for {} on {}, todo: {}\n".format(package, branch, self.pkgdbinfo_queue.qsize()))
                 self.pkgdb_dict[package] = pkginfo
             self.pkgdbinfo_queue.task_done()
 
@@ -472,7 +473,7 @@ class DepChecker(object):
         # dict for all dependent packages for each to-be-removed package
         dep_map = OrderedDict()
         for name in sorted(packages):
-            sys.stderr.write("Checking: {0}\n".format(name))
+            sys.stderr.write("Getting packages depending on: {0}\n".format(name))
             ignore = rpm_pkg_names
             dep_map[name] = OrderedDict()
             to_check = [name]
@@ -518,7 +519,7 @@ class DepChecker(object):
                 if not to_check:
                     break
             if not allow_more:
-                sys.stderr.write("More than {0} broken deps for package"
+                sys.stderr.write("More than {0} broken deps for package "
                                  "'{1}', dependency check not"
                                  " completed\n".format(max_deps, name))
 
