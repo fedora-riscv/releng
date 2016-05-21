@@ -450,10 +450,12 @@ class DepChecker(object):
             package = self.pkgdbinfo_queue.get()
             if package not in self.pkgdb_dict:
                 pkginfo = PKGDBInfo(package, branch)
+                #  sys.stderr.write("Got info for {} on {}, todo: {}\n".format(package, branch, self.pkgdbinfo_queue.qsize()))
                 self.pkgdb_dict[package] = pkginfo
             self.pkgdbinfo_queue.task_done()
 
     def recursive_deps(self, packages, max_deps=20):
+        incomplete = []
         # Start threads to get information about (co)maintainers for packages
         for i in range(0, 2):
             people_thread = Thread(target=self.pkgdb_worker)
@@ -472,7 +474,7 @@ class DepChecker(object):
         # dict for all dependent packages for each to-be-removed package
         dep_map = OrderedDict()
         for name in sorted(packages):
-            sys.stderr.write("Checking: {0}\n".format(name))
+            sys.stderr.write("Getting packages depending on: {0}\n".format(name))
             ignore = rpm_pkg_names
             dep_map[name] = OrderedDict()
             to_check = [name]
@@ -511,14 +513,22 @@ class DepChecker(object):
                     ignore.extend(new_names)
                     if allow_more:
                         to_check.extend(new_names)
-                        dep_count = len(set(dep_map[name].keys() + to_check))
+                        found_deps = dep_map[name].keys()
+                        dep_count = len(set(found_deps + to_check))
                         if dep_count > max_deps:
+                            todo_deps = max_deps - len(found_deps)
+                            if todo_deps < 0:
+                                todo_deps = 0
+                            incomplete.append(name)
+                            sys.stderr.write("Dep count is {}\n".format(dep_count))
+                            sys.stderr.write("incomplete is {}\n".format(incomplete))
+
                             allow_more = False
-                            to_check = to_check[0:max_deps]
+                            to_check = to_check[0:todo_deps]
                 if not to_check:
                     break
             if not allow_more:
-                sys.stderr.write("More than {0} broken deps for package"
+                sys.stderr.write("More than {0} broken deps for package "
                                  "'{1}', dependency check not"
                                  " completed\n".format(max_deps, name))
 
@@ -526,7 +536,7 @@ class DepChecker(object):
         self.pkgdbinfo_queue.join()
         sys.stderr.write("done\n")
         write_cache(self.pkgdb_dict, self.pkgdb_cache)
-        return dep_map
+        return dep_map, incomplete
 
     # This function was stolen from pungi
     def SRPM(self, package):
@@ -577,7 +587,7 @@ def maintainer_table(packages, pkgdb_dict):
     return table, affected_people
 
 
-def dependency_info(dep_map, affected_people, pkgdb_dict):
+def dependency_info(dep_map, affected_people, pkgdb_dict, incomplete):
     info = ""
     for package_name, subdict in dep_map.items():
         if subdict:
@@ -598,6 +608,8 @@ def dependency_info(dep_map, affected_people, pkgdb_dict):
                     provides = ", ".join(sorted(dependent_packages[dep]))
                     info += "\t\t%s requires %s\n" % (dep.nvra, provides)
                 info += "\n"
+	    if package_name in incomplete:
+	        info += "\tToo many dependencies for {}, not all listed here\n".format(package_name)
             info += "\n"
     return info
 
@@ -613,14 +625,14 @@ def maintainer_info(affected_people):
 
 
 def package_info(unblocked, dep_map, depchecker, orphans=None, failed=None,
-                 week_limit=6, release=""):
+                 week_limit=6, release="", incomplete=[]):
     info = ""
     pkgdb_dict = depchecker.pkgdb_dict
 
     table, affected_people = maintainer_table(unblocked, pkgdb_dict)
     info += table
     info += "\n\nThe following packages require above mentioned packages:\n"
-    info += dependency_info(dep_map, affected_people, pkgdb_dict)
+    info += dependency_info(dep_map, affected_people, pkgdb_dict, incomplete)
 
     info += "Affected (co)maintainers\n"
     info += maintainer_info(affected_people)
@@ -785,11 +797,11 @@ def main():
     sys.stderr.write('Calculating dependencies...')
     # Create yum object and depsolve out if requested.
     # TODO: add app args to either depsolve or not
-    dep_map = depchecker.recursive_deps(unblocked)
+    dep_map, incomplete = depchecker.recursive_deps(unblocked)
     sys.stderr.write('done\n')
     info, addresses = package_info(
         unblocked, dep_map, depchecker, orphans=orphans, failed=failed,
-        release=args.release)
+        release=args.release, incomplete=incomplete)
     text += "\n"
     text += info
     text += FOOTER
