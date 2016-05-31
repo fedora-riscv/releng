@@ -47,14 +47,14 @@ Get a list of packages to push
 ::
 
     $ cd /var/cache/sigul
-    $ sudo -u apache bodhi-push --releases '23 22 21 5 6 7' --username <yourusername>
+    $ sudo -u apache bodhi-push --releases '24 23 22 5 6 7' --username <yourusername>
     <enter your password+2factorauth, then your fas password>
 
 You can say 'n' to the push at this point if you wish to sign packages (see
 below). Or you can keep this request open in a window while you sign the
 packages, then come back and say y.
 
-List the releases above you wish to push from: 23 22 21 5 6 7, etc
+List the releases above you wish to push from: 24 23 22 5 6 7, etc
 
 You can also specify ``--request=testing`` to limit pushes. Valid types are
 ``testing`` or ``stable``.
@@ -68,7 +68,7 @@ frozen):
 ::
 
     $ cd /var/cache/sigul
-    $ sudo -u apache bodhi-push --releases 23 --request=testing \
+    $ sudo -u apache bodhi-push --releases 24 --request=testing \
         --username <username>
 
 Then
@@ -76,7 +76,7 @@ Then
 ::
 
     $ cd /var/cache/sigul
-    $ sudo -u apache bodhi-push --releases '22 21 5 6 7' --username <username>
+    $ sudo -u apache bodhi-push --releases '23 22 5 6 7' --username <username>
 
 Pushing Stable updates during freeze
 ------------------------------------
@@ -108,17 +108,17 @@ Here is another example, inside a loop:
 
 ::
 
-    for i in 23 22 21;
+    for i in 24 23 22;
     do
         NSS_HASH_ALG_SUPPORT=+MD5 ~/releng/scripts/sigulsign_unsigned.py \
             fedora-$i -v --write-all \
             --sigul-batch-size=25 $(cat /var/cache/sigul/{Stable,Testing}-F${i});
     done
 
-    for i in  7  6  5;
+    for i in 7 6 5;
     do
         NSS_HASH_ALG_SUPPORT=+MD5 ~/releng/scripts/sigulsign_unsigned.py \
-            epel-$i   -v --write-all \
+            epel-$i -v --write-all \
             --sigul-batch-size=25 $(cat /var/cache/sigul/{Stable,Testing}-*EL-${i});
     done
 
