@@ -15,6 +15,32 @@ polish mode.
 Action
 ======
 
+Dist-Git
+--------
+
+The default process when we create new branches is to have them point to the
+first commit ever in the repo, this is fine for any new branches but the ones
+creating during the mass-branching process.
+
+So the script that generates these branches must be adjsuted during the
+mass-branching to behave as desired and then put back to its default.
+
+On pkgs01 (or pkgs01.stg), edit the file
+``/usr/local/bin/pkgdb_sync_git_branches.py``
+
+::
+
+	 GIT_FOLDER = '/srv/git/repositories/'
+ 	
+	-MKBRANCH = '/usr/local/bin/mkbranch'
+	+#MKBRANCH = '/usr/local/bin/mkbranch'
+	+MKBRANCH = '/usr/local/bin/mkbranch_branching'
+	 SETUP_PACKAGE = '/usr/local/bin/setup_git_package'
+
+This will make the script calls ``/usr/local/bin/mkbranch_branching`` when
+creating the new branches.
+
+
 PackageDB
 ---------
 
@@ -22,74 +48,43 @@ Mass branching in the pkgdb is the first step. It should be done near the time
 that the scm branches are created so as not to confuse packagers.  However, it
 does not cause an outage so it could be done ahead of time.
 
-The action on pkgdb is in 3 steps:
+The action on pkgdb has been simplified to a single step:
 
-#. Edit the dist-tag of master collection] in PackageDB,
-#. Create the new collection via the `Admin interface of pkgdb`_, for Fedora
-   Branched the status should be set to ``Under Development`` until the `Final
-   Freeze`_ is reached. This allows to retire packages until then.
-#. Finally, on one of the pkgdb host (ie: pkgdb01 or pkgdb02 or pkgdb01.stg if
-   you want to try on staging first), call the script pkgdb2_branch.py:
+#. On one of the pkgdb host (ie: pkgdb01 or pkgdb02 or pkgdb01.stg if you want 
+   to try on staging first), call the script pkgdb2_branch.py:
 
    ::
 
-        sudo pkgdb2_branch.py f21 --user=<fas_user> --groups=<fas_group_allowed>
+        sudo pkgdb2_branch.py --user=<fas_user> --groups=<fas_group_allowed>  fXX
 
    ``fas_user`` corresponds to the FAS username of the admin doing the action.
 
    ``fas_group_allowed`` corresponds to a FAS group allowed to perform admin
    actions (ie: ADMIN_GROUP in the `pkgdb configuration file`_)
 
-The mass branch process starts on the server and will last for ~1h45
+   ``fXX`` is the new Fedora version (for example f25)
+
+The script will ask you for the new dist-tag for rawhide (.fcn+1) then ask you
+to create the new Fedora collection (Fn) in the database then actually start the
+branching process. This can take a little time dependending on the database size
+as well as the load on the database server.
 
 When the branching is finished, the email address defined at MAIL_ADMIN in the
 configuration file will receive an email that tells which were branched and
 which were unbranched.
 
 If something fails spectacularly, it is safe to try mass branching again at a
-later time.  If only a few cleanups a re needed it might be better to do that
-with the regular branch commands.
+later time, you may want to specify then ``--nocreate`` to skip the steps asking
+to update rawhide and create the new collection in the database.  If only a few
+cleanups a re needed it might be better to do that with the regular branch
+commands.
 
-Puppet
+
+Ansible
 -------
 
-.. note::
-    FIXME: This needs updating, puppet is no longer a thing in Fedora Infra
+A couple files in ansible need to be updated to be aware of a new branch.
 
-A couple files under puppet management need to be updated to be aware of a new branch.
-
-pkgdb2branch.py
-^^^^^^^^^^^^^^^
-
-This file is used by an scmadmin to read data from pkgdb and create branches
-in the source control.  Two parts need to be updated, one part that defines
-valid branches and what existing branch to create them from, and the other
-part defines a mapping of branch names in pkgdb to branch names in scm.
-
-On the puppet server in a clone edit the
-``modules/gitolite/files/distgit/pkgdb2branch.py`` file:
-
-::
-
-    diff --git a/modules/gitolite/files/distgit/pkgdb2branch.py b/modules/gitolite/file
-    index ce79467..c40e83c 100755
-    --- a/modules/gitolite/files/distgit/pkgdb2branch.py
-    +++ b/modules/gitolite/files/distgit/pkgdb2branch.py
-    @@ -29,14 +29,15 @@ BRANCHES = {'el4': 'master', 'el5': 'master', 'el6': 'f12',
-             'f11': 'master',
-             'f12': 'master',
-             'f13': 'master',
-    -        'f14': 'master'}
-    +        'f14': 'master',
-    +        'f15': 'master'}
-
-     # The branch names we get out of pkgdb have to be translated to git
-     GITBRANCHES = {'EL-4': 'el4', 'EL-5': 'el5', 'EL-6': 'el6', 'OLPC-2': 'olpc2',
-                    'FC-6': 'fc6', 'F-7': 'f7', 'F-8': 'f8', 'F-9': 'f9',
-                    'F-10': 'f10', 'OLPC-3': 'olpc3',
-                    'F-11': 'f11', 'F-12': 'f12', 'F-13': 'f13', 'f14': 'f14',
-    -               'devel': 'master'}
-    +               'f15': 'f15', 'devel': 'master'}
 
 genacls.pkgdb
 ^^^^^^^^^^^^^
@@ -98,37 +93,38 @@ The other file is ran by cron that will read data out of pkgdb and construct an
 ACL config file for our scm.  It has a section that lists active branches to
 deal with as pkgdb will provide data for all branches.
 
-Again on the puppet server in a clone:
-``modules/gitolite/files/distgit/genacls.pkgdb``
+In a clone of the ansible repository, edit the file:
+``roles/distgit/templates/genacls.pkgdb``
 
 ::
 
-    diff --git a/modules/gitolite/files/distgit/genacls.pkgdb b/modules/gitolite/files/
-    index e531dc2..07b2ba7 100755
-    --- a/modules/gitolite/files/distgit/genacls.pkgdb
-    +++ b/modules/gitolite/files/distgit/genacls.pkgdb
-    @@ -22,7 +22,7 @@ if __name__ == '__main__':
-         ACTIVE = {'OLPC-2': 'olpc2/', 'OLPC-3': 'olpc3/', 'EL-4': 'el4/',
-                   'EL-5': 'el5/', 'EL-6': 'el6/', 'F-11': 'f11/',
-                   'F-12': 'f12/', 'F-13': 'f13/', 'f14': 'f14/',
-    -              'devel': 'master'}
-    +              'f15': 'f15/', 'devel': 'master'}
+	diff --git a/roles/distgit/templates/genacls.pkgdb b/roles/distgit/templates/genacls.pkgdb
+	index b4b52f2..c65f118 100644
+	--- a/ roles/distgit/templates/genacls.pkgdb
+	+++ b/ roles/distgit/templates/genacls.pkgdb
+	@@ -38,6 +38,7 @@ if __name__ == '__main__':
+	         'F-11': 'f11', 'F-12': 'f12', 'F-13': 'f13', 'f14': 'f14', 'f15':
+	         'f15', 'f16': 'f16', 'f17': 'f17', 'f18': 'f18', 'f19': 'f19',
+	         'f20': 'f20', 'f21': 'f21', 'f22': 'f22', 'f23': 'f23', 'f24': 'f24',
+	+        'f25': 'f25',
+	         'devel': 'master', 'master': 'master'}
+	
+	     # Create a "regex"ish list 0f the reserved branches
 
-         # Create a "regex"ish list 0f the reserved branches
 
 fedora-packages
 ^^^^^^^^^^^^^^^
 
 There is a file in the fedora-packages webapp source that needs to be updated
 with new releases.  It tells fedora-packages what tags to ask koji about. Just
-like before, make the following edit in puppet in a clone:
+like before, make the following edit the ansible repo:
 
 ::
 
-    diff --git a/modules/packages/files/distmappings.py b/modules/packages/files/distmappings.py
+    diff --git a/roles/packages3/web/files/distmappings.py b/roles/packages3/web/files/distmappings.py
     index c72fd4b..b1fbaa5 100644
-    --- a/modules/packages/files/distmappings.py
-    +++ b/modules/packages/files/distmappings.py
+    --- a/roles/packages3/web/files/distmappings.py
+    +++ b/roles/packages3/web/files/distmappings.py
     @@ -1,5 +1,9 @@
      # Global list of koji tags we care about
     -tags = ({'name': 'Rawhide', 'tag': 'f20'},
@@ -154,40 +150,48 @@ like before, make the following edit in puppet in a clone:
 Push the changes
 ^^^^^^^^^^^^^^^^
 
-When done editing the files, commit and push them, then restart puppet on the
-scm server in order to get the new files in place.
+When done editing the files, commit, push and apply them via the corresponding
+ansible playbook:
+
+::
+
+	playbooks/groups/pkgs.yml -t distgit -t config
+    playbooks/groups/packages.yml -t packages/web
+
 
 SCM
 ---
 
 The following work is performed on pkgs01
 
-Make git branches
-^^^^^^^^^^^^^^^^^
-Run pkgdb2branch.py to branch the repos on the scm server.  The
-``--branch-for`` option was designed with this use case in mind:
 
-::
+Update ACLs and create the branches
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    ./pkgdb2branch.py --branch-for=f15
-
-If for some reason that doesn't work, you can try this alternative:
-
-::
-
-    cat pkglist.txt|./pkgdb2branch.py -c -
-
-where ``pkglist.txt`` is a list of all the packages to branch.
-
-Update ACLs
-^^^^^^^^^^^
-
-Although cron may have run, it is smart to manually run the cron job to make
-sure new ACLs are in place:
+Start manually the process to create the branches and update the ACLS:
 
 ::
 
     $ sudo -u jkeating /usr/local/bin/genacls.sh
+
+Undo change to the new branch process
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+As explained earlier, the process to create new branches in git repo differs
+during the mass-branching compared to the rest of the time. So let's undo the
+changes made to ``/usr/local/bin/pkgdb_sync_git_branches.py``
+
+::
+
+	 GIT_FOLDER = '/srv/git/repositories/'
+ 	 
+	-#MKBRANCH = '/usr/local/bin/mkbranch'
+	+MKBRANCH = '/usr/local/bin/mkbranch'
+	-MKBRANCH = '/usr/local/bin/mkbranch_branching'
+	 SETUP_PACKAGE = '/usr/local/bin/setup_git_package'
+ 	 
+	 THREADS = 20
+
 
 Taskotron
 ---------
@@ -195,12 +199,14 @@ Taskotron
 be added. (Log in to Phabricator using your FAS_account@fedoraproject.org
 email address).
 
+
 Koji
 ----
 The koji build system needs to have some tag/target work done to handle builds
 from the new branch and to update where builds from master go. See the
 :ref:`section on Koji in the Adding Build Targets SOP <adding_build_targets_koji>`
 for details.
+
 
 Fedora Release
 --------------
@@ -210,9 +216,11 @@ master.
 .. note::
     FIXME Link to fedora release bump SOP ... FIXME Does that SOP exist?
 
+
 Bodhi
 -----
 Bodhi needs to be turned on for the new branch. Instructions in the `Bodhi SOP`_
+
 
 Enable nightly branched compose
 -------------------------------
@@ -220,6 +228,7 @@ A cron job needs to be modified and turned on for the new branch.
 
 .. note::
     FIXME Link to nightly branched SOP ... Does that SOP exist?
+
 
 Update kickstart used by nightly live ISOs
 ------------------------------------------
@@ -230,12 +239,14 @@ repositories used by  `spin-kickstarts`_ need to be updated to use the branched
 repository.  Please `file a rel-eng ticket`_ to request updating the kickstart
 file used to generate the nightly spin ISO's.
 
+
 Comps
 -----
 A new comps file needs to be created for the next fedora release (the one after
 what we just branched for).
 
 Please see :doc:`sop_updating_comps`
+
 
 Mock
 ----
@@ -245,6 +256,7 @@ actually be done and pushed just before the branch event.
 .. note::
     FIXME Link to mock update SOP ... does that exist?
 
+
 MirrorManager
 -------------
 Mirror manager will have to be updated so that the `dnf`_/`yum`_ repo
@@ -253,33 +265,6 @@ redirections are going to the right places.
 .. note::
     FIXME Link to MM SOP ... exists?
 
-Getting a List of Unbranched Packages
-=====================================
-
-.. note::
-    FIXME: This section is deprecated and needs a replacement
-
-After mass branching you may want to run sanity checks to see if there were
-packages that weren't successfully branched.  There's a script on the cvs
-server that can help you do this.  The script needs to be run first on the
-cvs server and then on a machine with the kojiclient libraries installed
-(your local workstation should be fine.).
-
-
-On cvs1:
-
-::
-
-    CVSROOT=/pkgs/cvs cvs co CVSROOT
-    CVSROOT/admin/find-unbranched cvs F-12 > unbranched
-
-On your workstation:
-
-::
-
-    scp cvs1.fedoraproject.org:CVSROOT/admin/find-unbranched .
-    scp cvs1.fedoraproject.org:unbranched .
-    ./find-unbranched compare F-12 unbranched
 
 Update critpath
 ---------------
@@ -288,6 +273,7 @@ Packagedb has information about which packages are critpath and which are not.
 A script that reads the `dnf`_/`yum`_ repodata (critpath group in comps, and
 the package dependencies) is used to generate this.  Read
 :doc:`sop_update_critpath` for the steps to take.
+
 
 Consider Before Running
 =======================
