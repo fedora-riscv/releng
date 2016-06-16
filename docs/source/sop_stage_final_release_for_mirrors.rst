@@ -13,61 +13,21 @@ it is ready for release to the Fedora mirrors.
 
 Action
 ======
-#. Sign all ``CHECKSUM`` files:
+#. Gather the needed info for running the staging script:
+ Release Version: the numerical version number of the release ``24``
+ ComposeID: The ID of the Compose
+ Label: Compsoe label for the location in stage ``24_RC-1.2`` for example
+ Key: the name of teh release key ``fedora-24`` or ``fedora-24-secondary`` as examples
+ Prerelease: 0 or 1 sets if the release goes in test/ or not
+ Arch: <optional> For secondary arches, changes some internal locations
 
    ::
 
-        $ for checksum in $(find /mnt/fedora_koji/compose/23_Alpha_RC2/23_Alpha/ -name  *CHECKSUM);
-        do
-            cat $checksum >/tmp/sum && \
-                sigul sign-text -o /tmp/signed fedora-23 /tmp/sum && \
-                chmod 644 /tmp/signed && \
-                sg releng "mv /tmp/signed $checksum";
-        done
+        $ scripts/stage-release.sh 24 Fedora-24-20160614.0 24_RC-1.2 fedora-24 0 
 
-#. Prepare the master mirror by logging into releng2:
 
-   ::
-        $ ssh <fas-username>@gateway.fedoraproject.org
-        $ ssh releng2
+#. Sync the release to the Red Hat internal archive following internally documented
 
-   ::
-
-        $ sudo -u ftpsync mkdir -p /pub/fedora/linux/releases/13/{Fedora,Everything,Live}
-        $ sudo -u ftpsync chmod 700 /pub/fedora/linux/releases/13/
-
-#. Synchronize the ``Everything`` tree with the mirrors from releng2:
-
-   ::
-        $ sudo -u ftpsync rsync -rlptDHhv --progress --stats --exclude images/ - \
-            --exclude EFI --exclude isolinux --exclude .treeinfo \
-            --exclude .discinfo - --link-dest=/pub/fedora/linux/development/13/ \
-            /mnt/koji/mash/branched-20100518/13/ \
-            /pub/fedora/linux/releases/13/Everything/
-
-#. Synchronize the ``Fedora`` tree with the mirrors from releng2:
-
-   ::
-
-        $ sudo -u ftpsync rsync -rlptDHhv --progress --stats - \
-            --link-dest=/pub/fedora/linux/development/13/ \
-            jkeating@compose-x86-01:/srv/pungi/13.RC4/Fedora/ \ 
-            /pub/fedora/linux/releases/13/Fedora/
-
-#. Synchronize the Live images with the mirrors from releng2:
-
-   ::
-
-        $ sudo -u ftpsync rsync -rlptDHhv --progress --stats --exclude \*.log \
-            jkeating@compose-x86-01:/srv/pungi/live/Fedora-13-i686-Live{,-KDE}/ \
-            /pub/fedora/linux/releases/13/Live/i686/
-
-#. Change file permissionsOpen for mirrors (also known as the *mirror stage
-   bit flip*) on releng2:
-
-   ::
-
-        $ sudo -u ftpsync chmod 750 /pub/fedora/linux/releases/13
 
 Verification
 ============
