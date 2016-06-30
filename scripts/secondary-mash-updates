@@ -1,0 +1,58 @@
+#!/bin/bash
+# Copyright (C) 2016 Red Hat, Inc.
+# SPDX-License-Identifier:      GPL-2.0+
+set -x
+
+# basically gets called ./secondary-mash-updates <koji-instance> <rel-num> <is-testing-flag>
+ARCH=$1
+REL=$2
+TESTING=$3
+DATE=`date +%Y%m%d`
+MASHDIR=/mnt/koji/mash/updates/
+TMPDIR=`mktemp -d /tmp/$REL.$DATE.XXXX`
+
+if [ "$ARCH" = "arm" ]; then
+   arches="aarch64"
+elif [ "$ARCH" = "ppc" ]; then
+   arches="ppc64 ppc64le"
+elif [ "$ARCH" = "s390" ]; then
+   if [ "RELARCH" = "24" ]; then
+      arches="s390x"
+   else
+      arches="s390x s390"
+   fi
+fi
+
+mkdir $MASHDIR/$REL-updates-$DATE
+
+pushd $TMPDIR
+git clone https://pagure.io/fedora-comps.git && {
+    pushd fedora-comps
+    make comps-f$REL.xml
+    cp comps-f$REL.xml $MASHDIR/$REL-updates-$DATE
+    popd
+}
+popd
+
+if [ -z "$TESTING" ]; then
+mash $REL-updates -o $MASHDIR/$REL-updates-$DATE -f $MASHDIR/$REL-updates-$DATE/comps-f$REL.xml
+else
+mash $REL-updates-testing -o $MASHDIR/$REL-updates-$DATE -f $MASHDIR/$REL-updates-$DATE/comps-f$REL.xml
+fi
+
+# check exit status of mash (we don't rsync if mash doesn't exit 0)
+MASHSTATUS=$?
+if [ $MASHSTATUS = 0 ]; then
+
+for a in $arches;
+do
+if [ -z "$TESTING" ]; then
+  rsync -avhH --delete --delete-after $MASHDIR/$REL-updates-$DATE/$REL-updates/$a/ /pub/fedora-secondary/updates/$REL/$a/ --link-dest=/pub/fedora-secondary/updates/$REL/
+else
+  rsync -avhH --delete --delete-after $MASHDIR/$REL-updates-$DATE/$REL-updates-testing/$a/ /pub/fedora-secondary/updates/testing/$REL/$a/ --link-dest=/pub/fedora-secondary/updates/testing/$REL/
+fi
+done
+
+find $MASHDIR -xdev -depth -maxdepth 2 -mtime +14  -exec rm -rf {} \;
+
+fi
