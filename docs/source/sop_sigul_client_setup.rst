@@ -35,8 +35,8 @@ Prerequisites
    * ``~/.fedora-upload-ca.cert``
 
 #. Admin privileges on koji are required to write signatures.
-#. If you are running RHEL 6, add ``export NSS_HASH_ALG_SUPPORT=+MD5`` to your
-   ``~/.bashrc.``
+#. You may want to add ``export NSS_HASH_ALG_SUPPORT=+MD5`` to your
+   ``~/.bashrc.`` rather than to every command.
 
 Configuration
 =============
@@ -51,10 +51,10 @@ Configuration
 #. Assuming that you are running the sigul client within phx2, edit
    ``~/.sigul/client.conf`` to include the following lines: 
 
-   ::
-        [client]
-        bridge-hostname: sign-bridge1
-        server-hostname: sign-vault1
+::
+    [client]
+    bridge-hostname: sign-bridge1i
+    server-hostname: sign-vault1
 
 
 Configuration for Secondary Architectures
