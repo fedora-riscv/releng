@@ -287,7 +287,7 @@ Consider Before Running
 .. _pkgdb configuration file:
     https://infrastructure.fedoraproject.org/infra/ansible/roles/pkgdb2/templates/pkgdb2.cfg
 .. _File a Taskotron ticket:
-    https://phab.qadevel.cloud.fedoraproject.org/maniphest/task/edit/form/default/?title=release%20is%20EOL&priority=80&tags=libtaskotron
+    https://phab.qadevel.cloud.fedoraproject.org/maniphest/task/edit/form/default/?title=new%20release%20branched&priority=80&tags=libtaskotron
 .. _Bodhi SOP: https://infrastructure.fedoraproject.org/infra/docs/bodhi.rst
 .. _spin: http://spins.fedoraproject.org
 .. _dnf: https://fedoraproject.org/wiki/Dnf
