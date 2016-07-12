@@ -115,7 +115,7 @@ def construct_url(msg):
 
     Takes an autocloud fedmsg message and returns the image name and final url.
     """
-    dest_dir = ATOMIC_STABLE_DESTINATION + 'compose/CloudImages/x86_64/images/'
+    dest_dir = ATOMIC_STABLE_DESTINATION + 'CloudImages/x86_64/images/'
     image_name = msg[u'msg'][u'compose_url'].split('/')[-1]
     image_url = dest_dir + image_name
     return image_name, image_url
@@ -349,11 +349,11 @@ def send_atomic_announce_email(
     for e_file in email_filelist:
         if "CHECKSUM" in e_file:
             released_checksums.append(
-                "https://alt.fedoraproject.org{0}".format(e_file)
+                "https://alt.fedoraproject.org{}".format(e_file)
             )
         else:
             released_artifacts.append(
-                "https://alt.fedoraproject.org{0}".format(e_file)
+                "https://alt.fedoraproject.org{}".format(e_file)
             )
 
     msg = MIMEMultipart()
@@ -371,7 +371,7 @@ Images can be found here:
     https://getfedora.org/en/cloud/download/atomic.html
 
 Respective signed CHECKSUM files can be found here:
-{0}
+{}
 
 Thank you,
 Fedora Release Engineering
@@ -390,7 +390,7 @@ Fedora Release Engineering
         s = smtplib.SMTP(sender_smtp)
         s.sendmail(sender_email, mail_receivers, msg.as_string())
     except smtplib.SMTPException, e:
-        print "ERROR: Unable to send email:\n{0}\n".format(e)
+        print "ERROR: Unable to send email:\n{}\n".format(e)
 
 
 def stage_atomic_release(
@@ -408,24 +408,25 @@ def stage_atomic_release(
 
     source_loc = os.path.join(compose_basedir, compose_id, "compose")
 
+    # FIXME - need sudo until pungi perms are fixed
     rsync_cmd = [
+        'sudo',
         'rsync -avhHP --delete-after',
-        '--link-dest={0}'.format(
+        '--link-dest={}'.format(
             os.path.join(
                 testing_basedir,
                 compose_id.split('-')[-1]
             )
         ),
-        "{0}/*".format(source_loc),
+        "{}/".format(source_loc),
         dest_dir
     ]
     # This looks silly but it gets everything properly split for
     # subprocess.call but keeps it from looking messy above.
     rsync_cmd = ' '.join(rsync_cmd).split()
-
     if subprocess.call(rsync_cmd):
         log.error(
-            "stage_atomic_release: rsync command failed: {0}".format(rsync_cmd)
+            "stage_atomic_release: rsync command failed: {}".format(rsync_cmd)
         )
         exit(3)
 
@@ -464,7 +465,7 @@ def sign_checksum_files(
                     break
         if already_signed:
             log.info(
-                "sign_checksum_files: {0} is already signed".format(cfile)
+                "sign_checksum_files: {} is already signed".format(cfile)
             )
             continue
 
@@ -472,31 +473,49 @@ def sign_checksum_files(
 
         # Basically all of this is ugly and I feel bad about it.
         sigulsign_cmd = [
-            "sigul sign-text -o {0} {1} {2}".format(
+            "sigul sign-text -o {} {} {}".format(
                 signed_txt_path,
                 key,
                 cfile
             ),
-            "&&",
-            "chgrp releng-team {0}".format(signed_txt_path),
-            "&&",
-            "chmod 664 {0}".format(signed_txt_path),
         ]
 
-        log.info("sign_checksum_files: Signing {0}".format(cfile))
+        log.info("sign_checksum_files: Signing {}".format(cfile))
         # This looks silly but it gets everything properly split for
         # subprocess.call but keeps it from looking messy above.
         sigulsign_cmd = ' '.join(sigulsign_cmd).split()
         while subprocess.call(sigulsign_cmd):
             log.warn(
-                "sigul command for {0} failed, retrying".format(cfile)
+                "sigul command for {} failed, retrying".format(cfile)
             )
 
         if subprocess.call(
-            "sg releng-team 'mv {0} {1}'".format(signed_txt_path, cfile).split()
+            "chgrp releng-team {}".format(signed_txt_path).split()
         ):
             log.error(
-                "sign_checksum_files: sg releng-team 'mv {0} {1}' FAILED".format(
+                "sign_checksum_files: chgrp releng-team {}".format(
+                    signed_txt_path
+                )
+            )
+            sys.exit(3)
+
+        if subprocess.call(
+            "chmod 664 {}".format(signed_txt_path).split()
+        ):
+            log.error(
+                "sign_checksum_files: chmod 644 {}".format(
+                    signed_txt_path
+                )
+            )
+            sys.exit(3)
+
+        # FIXME - need sudo until new pungi perms are sorted out
+        if subprocess.call(
+            #["sg", "releng-team", "'mv {} {}'".format(signed_txt_path, cfile)]
+            "sudo mv {} {}".format(signed_txt_path, cfile).split()
+        ):
+            log.error(
+                "sign_checksum_files: sudo sg releng-team 'mv {} {}' FAILED".format(
                     signed_txt_path,
                     cfile,
                 )
@@ -549,7 +568,7 @@ def prune_old_testing_composes(
             )
         except OSError, e:
             log.error(
-                "Error trying to remove directory: {0}\n{1}".format(
+                "Error trying to remove directory: {}\n{}".format(
                     testing_dir,
                     e
                 )
@@ -642,7 +661,7 @@ if __name__ == '__main__':
     log.info("Two Week Atomic Release Complete!")
 
     print("############REMINDER##########\n#\n#\n")
-    print("Reset the block-release value to false in {0}".format(
+    print("Reset the block-release value to false in {}".format(
         "https://pagure.io/mark-atomic-bad"
     ))
 
