@@ -122,6 +122,20 @@ Badges tasks
 
 * Update the `cold undead hands`_ badge.
 
+    * In order to do this, you need to be in the `sysadmin-badges` group and the
+      `gitbadges` group.  If you're not, just email those two groups at
+      `sysadmin-badges-members@fedoraproject.org` and
+      `gitbadges-members@fedoraproject.org`.  Tell them that they need to update
+      this badge and point them to these instructions.
+    * Clone the repo with `` $ git clone https://git.fedorahosted.org/git/badges.git``
+    * Edit `rules/you-can-pry-it-from-my-cold-undead-hands.yml` and add the EOL
+      release to the list in the trigger section on line 19.
+    * Push that back to fedorahosted.
+    * Push the rule change out live to our servers by logging into batcave and
+      running the `manual/push-badges.yml` playbook.
+      https://infrastructure.fedoraproject.org/cgit/ansible.git/tree/playbooks/manual/push-badges.yml
+    * All done.
+
 Cloud tasks
 -----------
 
