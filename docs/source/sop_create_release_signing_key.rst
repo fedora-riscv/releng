@@ -201,7 +201,7 @@ editing the rawhide.mash file and sending the patch to the mash upstream.
 
 ::
 
-    $ git clone https://git.fedorahosted.org/git/mash
+    $ git clone https://pagure.io/mash
     $ cd mash
     $ vim configs/rawhide.mash
     <add key to front of keys = line>

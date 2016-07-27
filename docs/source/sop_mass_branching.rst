@@ -234,10 +234,10 @@ Update kickstart used by nightly live ISOs
 ------------------------------------------
 
 On a nightly basis, a live ISO image is created for each `spin`_ and hosted at
-http://alt.fedoraproject.org/pub/alt/nightly-composes.  The `dnf`_/`yum`_
-repositories used by  `spin-kickstarts`_ need to be updated to use the branched
-repository.  Please `file a rel-eng ticket`_ to request updating the kickstart
-file used to generate the nightly spin ISO's.
+http://alt.fedoraproject.org/pub/fedora/linux/development/rawhide/Spins/. The
+`dnf`_/`yum`_ repositories used by  `spin-kickstarts`_ need to be updated to
+use the branched repository.  Please `file a rel-eng ticket`_ to request updating
+the kickstart file used to generate the nightly spin ISO's.
 
 
 Comps
@@ -292,6 +292,6 @@ Consider Before Running
 .. _spin: http://spins.fedoraproject.org
 .. _dnf: https://fedoraproject.org/wiki/Dnf
 .. _yum: https://fedoraproject.org/wiki/Yum
-.. _spin-kickstarts: https://fedorahosted.org/spin-kickstarts/
+.. _spin-kickstarts: https://pagure.io/fedora-kickstarts/
 .. _file a rel-eng ticket:
     https://fedorahosted.org/rel-eng/newticket?summary=Update%20nightly%20spin%20kickstart&type=task&component=production&priority=critical&milestone=Hot%20issues&cc=kevin

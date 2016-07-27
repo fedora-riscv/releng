@@ -222,10 +222,10 @@ bug or enhancement needed but are not tools that the Release Engineering team
 is extremely active in their continued upstream development and will defer to
 each upstream for recommended contributions workflow.
 
-* `fedpkg <https://fedorahosted.org/fedpkg/>`_ -
+* `fedpkg <https://pagure.io/fedpkg>`_ -
   command line utility for Fedora (and EPEL) developers. It interacts with
   dist-git, koji, rpmbuild, git, etc.
-* `rpkg <https://fedorahosted.org/rpkg>`_ -
+* `rpkg <https://pagure.io/rpkg>`_ -
   library for dealing with rpm packaging in a git source control (used by
   fedpkg)
 * `dist-git <https://github.com/release-engineering/dist-git>`_ -

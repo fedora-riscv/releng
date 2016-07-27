@@ -149,13 +149,13 @@ from `FreeBSD <http://freebsd.org>`_.
 .. _Branched: https://fedoraproject.org/wiki/Releases/Branched
 .. _mirrors: https://mirrors.fedoraproject.org/
 .. _Koji: https://fedoraproject.org/wiki/Koji
-.. _release engineering dashboard: https://apps.fedoraproject.org/releng-dash/
+.. _PDC: https://pdc.fedoraproject.org/
 .. _Fedora Release Life Cycle: https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
 .. _Fedora Documentation Project: https://fedoraproject.org/wiki/Docs_Project
 .. _bug needs to be filed:
     https://bugzilla.redhat.com/bugzilla/enter_bug.cgi?product=Fedora%20Documentation&op_sys=Linux&target_milestone=---&bug_status=NEW&version=devel&component=release-notes&rep_platform=All&priority=normal&bug_severity=normal&assigned_to=relnotes%40fedoraproject.org&cc=&estimated_time_presets=0.0&estimated_time=0.0&bug_file_loc=http%3A%2F%2F&short_desc=RELNOTES%20-%20Summarize%20the%20release%20note%20suggestion%2Fcontent&comment=Provide%20details%20here.%20%20Do%20not%20change%20the%20blocking%20bug.&status_whiteboard=&keywords=&issuetrackers=&dependson=&blocked=151189&ext_bz_id=0&ext_bz_bug_id=&data=&description=&contenttypemethod=list&contenttypeselection=text%2Fplain&contenttypeentry=&maketemplate=Remember%20values%20as%20bookmarkable%20template&form_name=enter_bug 
 .. _Fedora Mirror Admins: mailto:mirror-admin@fedoraproject.org
 .. _livemedia-creator: https://github.com/rhinstaller/lorax/blob/master/src/sbin/livemedia-creator
-.. _Pungi: https://fedorahosted.org/pungi
+.. _Pungi: https://pagure.io/pungi
 .. _livecd-tools: https://fedoraproject.org/wiki/FedoraLiveCD
 .. _Spins: https://spins.fedoraproject.org
