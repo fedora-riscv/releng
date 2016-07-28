@@ -44,13 +44,22 @@ creating the new branches.
 PackageDB
 ---------
 
-Mass branching in the pkgdb is the first step. It should be done near the time
-that the scm branches are created so as not to confuse packagers.  However, it
-does not cause an outage so it could be done ahead of time.
+Mass branching in the pkgdb is the first step. In pkgdb mass-branching is
+done via 2 SQL queries, the first one creates the new branch to all the
+packages, the second copies the ACLs from master to that new branch.
+The first query is pretty fast, the second slower. If people start changing
+ACLs on the new branch while the second query has not finished, that query
+will fail.
+
+So in order to prevent this, pkgdb's web UI needs to be stopped during the
+mass-branching. To do that, simply run the ansible playbook::
+
+    ansible-playbook /srv/web/infra/ansible/playbooks/manual/stop_pkgdb.yml
+
 
 The action on pkgdb has been simplified to a single step:
 
-#. On one of the pkgdb host (ie: pkgdb01 or pkgdb02 or pkgdb01.stg if you want 
+#. On one of the pkgdb host (ie: pkgdb01 or pkgdb02 or pkgdb01.stg if you want
    to try on staging first), call the script pkgdb2_branch.py:
 
    ::
@@ -147,6 +156,7 @@ like before, make the following edit the ansible repo:
              {'name': 'EPEL 6', 'tag': 'dist-6E-epel'},
              {'name': 'EPEL 6', 'tag': 'dist-6E-epel-testing'},
 
+
 Push the changes
 ^^^^^^^^^^^^^^^^
 
@@ -174,6 +184,7 @@ Start manually the process to create the branches and update the ACLS:
 
     $ sudo -u jkeating /usr/local/bin/genacls.sh
 
+
 Undo change to the new branch process
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -191,6 +202,15 @@ changes made to ``/usr/local/bin/pkgdb_sync_git_branches.py``
 	 SETUP_PACKAGE = '/usr/local/bin/setup_git_package'
  	 
 	 THREADS = 20
+
+
+Re-start pkgdb
+^^^^^^^^^^^^^^
+
+Once pkgdb has been branched and dist-git updated, you can restart pkgdb to
+do this, simply run the ansible playbook::
+
+    ansible-playbook /srv/web/infra/ansible/playbooks/manual/restart_pkgdb.yml
 
 
 Taskotron
