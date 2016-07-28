@@ -315,3 +315,53 @@ Consider Before Running
 .. _spin-kickstarts: https://fedorahosted.org/spin-kickstarts/
 .. _file a rel-eng ticket:
     https://fedorahosted.org/rel-eng/newticket?summary=Update%20nightly%20spin%20kickstart&type=task&component=production&priority=critical&milestone=Hot%20issues&cc=kevin
+
+
+Debug PkgDB
+===========
+
+Here are a few SQL queries that can be used to help debugging potential
+issues in the database of pkgdb:
+
+::
+
+    -- List all the collections (helps finding the identifier)
+    SELECT * FROM "Collection";
+
+    -- Check new ACLs
+    SELECT "PackageListingAcl".id, "PackageListingAcl".fas_name,
+           "PackageListingAcl".acl, "Package".name
+    FROM "PackageListing", "PackageListingAcl", "Package"
+    WHERE "PackageListing".collection_id = <clt_id>
+    AND "PackageListingAcl".packagelisting_id = "PackageListing".id
+    AND "Package".id = "PackageListing".package_id;
+
+
+    -- Remove the ACLs of a specified collection (most useful if someone messed
+    -- up with the ACLs in between creating the branch for the packages and
+    -- copying the ACLs from master to the new branch).
+    DELETE FROM "PackageListingAcl" WHERE "PackageListingAcl".id IN (
+      SELECT "PackageListingAcl".id
+      FROM "PackageListing", "PackageListingAcl"
+      WHERE "PackageListing".collection_id = <clt_id>
+      AND "PackageListingAcl".packagelisting_id = "PackageListing".id
+    );
+
+    -- Copy the ACLs from master (id=8) to the new collection (id=<clt_id>)
+    -- This is the query that is ran during the mass-branching, useful to keep
+    -- at hand if there is a need to run it manually.
+    -- /!\ NOTE: the last part (excluding the namespace) may need to be adjusted
+    --           depending on the configuration.
+    INSERT INTO "PackageListingAcl" (
+        fas_name, packagelisting_id, acl, status, date_created
+    )
+    SELECT "PackageListingAcl".fas_name, p2.id,
+           "PackageListingAcl".acl, "PackageListingAcl".status, '2016-07-26 15:20:32.00887'
+    FROM "PackageListing" as p1, "PackageListing" as p2, "PackageListingAcl",
+         "Package"
+    WHERE p1.collection_id = 8
+    AND p2.collection_id = <clt_id>
+    AND p1.package_id = p2.package_id
+    AND "PackageListingAcl".packagelisting_id = p1.id
+    AND "Package".id = p1.package_id
+    AND "Package".namespace != 'modules';
