@@ -150,6 +150,11 @@ Verification
 
     $ sudo journalctl -o short -u fedmsg-hub -l -f
 
+#. Check the processes
+
+   ::
+    $ ps axf|grep bodhi
+
 #. Watch for fedmsgs through the process. It will indicate what releases it's
    working on, etc. You may want to watch in ``#fedora-fedmsg``.
 
@@ -216,6 +221,16 @@ Common issues / problems with pushes
 * If the updates push fails with:
   ``"OSError: [Errno 39] Directory not empty: '/mnt/koji/mash/updates/*/../*.repocache/repodata/'``
   you need to restart fedmsg-hub on the backend and resume.
+
+* If the updates push fails with:
+  ``IOError: Cannot open /mnt/koji/mash/updates/epel7-160228.1356/../epel7.repocache/repodata/repomd.xml: File /mnt/koji/mash/updates/epel7-160228.1356/../epel7.repocache/repodata/repomd.xml doesn't exists or not a regular file``
+  This issue will be resolved with NFSv4, but in the mean time it can be worked around by removing the `.repocache` directory and resuming the push.
+  ``$ sudo rm -fr /mnt/koji/mash/updates/epel7.repocache``
+
+* If the Atomic OSTree compose fails with some sort of `Device or Resource busy` error, then run `mount` to see if there are any stray `tmpfs` mounts still active:  
+  ``tmpfs on /var/lib/mock/fedora-22-updates-testing-x86_64/root/var/tmp/rpm-ostree.bylgUq type tmpfs (rw,relatime,seclabel,mode=755)``
+  You can then
+  ``$ sudo umount /var/lib/mock/fedora-22-updates-testing-x86_64/root/var/tmp/rpm-ostree.bylgUq`` and resume the push.
 
 Other issues should be addressed by releng or bodhi developers in
 ``#fedora-releng``.
