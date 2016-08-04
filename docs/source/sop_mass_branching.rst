@@ -165,8 +165,8 @@ ansible playbook:
 
 ::
 
-	playbooks/groups/pkgs.yml -t distgit -t config
-    playbooks/groups/packages.yml -t packages/web
+    sudo rbac-playbook playbooks/groups/pkgs.yml -t distgit -t config
+    sudo rbac-playbook playbooks/groups/packages.yml -t packages/web
 
 
 SCM
@@ -182,7 +182,7 @@ Start manually the process to create the branches and update the ACLS:
 
 ::
 
-    $ sudo -u jkeating /usr/local/bin/genacls.sh
+    $ sudo /usr/local/bin/genacls.sh
 
 
 Undo change to the new branch process
