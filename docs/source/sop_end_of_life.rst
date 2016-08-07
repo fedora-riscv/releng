@@ -43,46 +43,10 @@ Koji tasks
 
 Bodhi tasks
 -----------
-* In puppet, set the push scripts to not push the old release:
-
+* Run the following end of life script from bodhi backend
   ::
+    bodhi-manage-releases edit --name F21 --state archived
 
-    diff --git a/configs/system/fedora-updates-push
-    b/configs/system/fedora-updates-push
-    index 2c05334..39e25f7 100755
-    --- a/configs/system/fedora-updates-push
-    +++ b/configs/system/fedora-updates-push
-    @@ -3,7 +3,7 @@
-     SOURCE=/mnt/koji/mash/updates
-     DEST=/pub/fedora/linux/updates/
-
-    -for rel in 11 12 13; do
-    +for rel in 12 13; do
-
-     rsync -rlptDvHh --delay-updates $RSYNC_OPTS --exclude "repodata/*" \
-             $SOURCE/f$rel-updates/ $DEST/$rel/ &>/dev/null
-    @@ -11,7 +11,7 @@ rsync -rlptDvHh --delay-updates $RSYNC_OPTS --delete
-    --delete-after \
-             $SOURCE/f$rel-updates/ $DEST/$rel/ &>/dev/null
-
-     done
-    -for rel in 11 12 13; do
-    +for rel in 12 13; do
-
-     rsync -rlptDvHh --delay-updates $RSYNC_OPTS --exclude "repodata/*" \
-             $SOURCE/f$rel-updates-testing/ $DEST/testing/$rel/ &>/dev/null
-
-* Take a bodhi database snapshot for good measure
-
-  ::
-
-    [masher@releng04 bodhi]$ bodhi-pickledb save
-
-* Remove all updates and comments associated with the release
-
-  ::
-
-    [masher@releng04 bodhi]$ bodhi-rmrelease F19
 
 PackageDB
 ---------
@@ -162,13 +126,25 @@ Final announcement
 Announcement content
 ^^^^^^^^^^^^^^^^^^^^
 
+
+* As of the <eol_date>, Fedora X has reached its end of life for
+  updates and support. No further updates, including security updates,
+  will be available for Fedora X. A previous reminder was sent on 
+  <announcement_daet> [0]. Fedora X+1 will continue to receive updates until
+  approximately one month after the release of Fedora X+3. The
+  maintenance schedule of Fedora releases is documented on the Fedora
+  Project wiki [1]. The Fedora Project wiki also contains instructions
+  [2] on how to upgrade from a previous release of Fedora to a version
+  receiving updates.
+
+  <your_name>.
+
+  [0]<url to the announcement from announce@lists.fedoraproject.org list>
+  [1]https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle#Maintenance_Schedule
+  [2]https://getfedora.org/
+
 .. note::
-    FIXME: This needs updating, that URL is a dead link
-
-* Consider this [http://www.openoffice.org/servlets/ReadMsg?list=announce&msgNo=407
-  EOL announcement] from openoffice.org
-
-    * Note FAQ
+       All dates should follow xxth of month year format.(Example: 19th of July 2016)
 
 Update eol wiki page
 ^^^^^^^^^^^^^^^^^^^^
