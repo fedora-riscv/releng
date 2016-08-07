@@ -165,8 +165,8 @@ ansible playbook:
 
 ::
 
-    sudo rbac-playbook playbooks/groups/pkgs.yml -t distgit -t config
-    sudo rbac-playbook playbooks/groups/packages.yml -t packages/web
+    sudo rbac-playbook groups/pkgs.yml -t distgit -t config
+    sudo rbac-playbook groups/packages.yml -t packages/web
 
 
 SCM
