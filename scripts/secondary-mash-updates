@@ -40,7 +40,7 @@ else
 mash $REL-updates-testing -o $MASHDIR/$REL-updates-$DATE -f $MASHDIR/$REL-updates-$DATE/comps-f$REL.xml
 fi
 
-# check exit status of mash (we don't rsync if mash doesn't exit 0)
+# check exit status of mash (we don't rsync/hardlink/update file list if mash doesn't exit 0)
 MASHSTATUS=$?
 if [ $MASHSTATUS = 0 ]; then
 
@@ -52,6 +52,11 @@ else
   rsync -avhH --delete --delete-after $MASHDIR/$REL-updates-$DATE/$REL-updates-testing/$a/ /pub/fedora-secondary/updates/testing/$REL/$a/ --link-dest=/pub/fedora-secondary/updates/testing/$REL/
 fi
 done
+
+hardlink -cvv /pub/fedora-secondary/updates/$REL/ /pub/fedora-secondary/updates/testing/$REL/
+
+# lock needs to be on NFS as we run it from different compose boxes for each secondary arch
+/usr/local/bin/update-fullfiletimelist -l /pub/fedora-secondary/update-fullfiletimelist.lock -t /pub fedora-secondary
 
 find $MASHDIR -xdev -depth -maxdepth 2 -mtime +14  -exec rm -rf {} \;
 
