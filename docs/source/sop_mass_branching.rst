@@ -268,15 +268,6 @@ what we just branched for).
 Please see :doc:`sop_updating_comps`
 
 
-Mock
-----
-Mock needs to be updated to have configs for the new branch.  This should
-actually be done and pushed just before the branch event.
-
-.. note::
-    FIXME Link to mock update SOP ... does that exist?
-
-
 MirrorManager
 -------------
 Mirror manager will have to be updated so that the `dnf`_/`yum`_ repo
