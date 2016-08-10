@@ -19,6 +19,7 @@
 #   3 - subcommand failed, error message will be logged.
 #
 #
+# NOTE: This is bad and I feel bad for having written it, here there be dragons
 
 import os
 import sys
@@ -218,7 +219,6 @@ def get_latest_successful_autocloud_test_info(
         url2image = lambda s: s.split('/')[-1]
         image2release = lambda s: int(s.split('.')[0].split('-')[-1])
 
-
         for good_compose in MARK_ATOMIC_GOOD_COMPOSES:
             good_compose_date = str(image2release(good_compose))
             release_window = datetime.datetime.strptime(good_compose_date, "%Y%m%d")
@@ -271,12 +271,29 @@ def get_latest_successful_autocloud_test_info(
 
     autocloud_info = {}
 
-    if atomic_qcow2:
-        image_name, image_url = construct_url(atomic_qcow2[0])
+    # Yet another hack because AutoCloud still doesn't give us this information
+    # even though the rewrite was supposed to
+    extract_compose_id = lambda x: x[u'msg']['compose_id']
+    qcow2_composes = map(extract_compose_id, atomic_qcow2)
+    vagrant_libvirt_composes = map(extract_compose_id, atomic_vagrant_libvirt)
+    vagrant_vbox_composes = map(extract_compose_id, atomic_vagrant_vbox)
+    compose = [c for c in qcow2_composes
+               if c in vagrant_vbox_composes
+               and c in vagrant_libvirt_composes][0]
+
+    # sc = successful compose because we've now coorelated the data to a single
+    #       compose that's successful across all images
+    sc_qcow2 = [i for i in atomic_qcow2 if i[u'msg'][u'compose_id'] == compose]
+    sc_vagrant_libvirt = [i for i in atomic_vagrant_libvirt if i[u'msg'][u'compose_id'] == compose]
+    sc_vagrant_vbox = [i for i in atomic_vagrant_vbox if i[u'msg'][u'compose_id'] == compose]
+
+
+    if sc_qcow2:
+        image_name, image_url = construct_url(sc_qcow2[0])
         autocloud_info["atomic_qcow2"] = {
-            "compose_id": atomic_qcow2[0][u'msg'][u'compose_id'],
-            "name": atomic_qcow2[0][u'msg'][u'image_name'],
-            "release": atomic_qcow2[0][u'msg'][u'release'],
+            "compose_id": sc_qcow2[0][u'msg'][u'compose_id'],
+            "name": sc_qcow2[0][u'msg'][u'image_name'],
+            "release": sc_qcow2[0][u'msg'][u'release'],
             "image_name": image_name,
             "image_url": image_url,
         }
@@ -285,29 +302,29 @@ def get_latest_successful_autocloud_test_info(
         #         the qcow2 is made of so only qcow2 is tested and infers the
         #         success of both qcow2 and raw.xz
         autocloud_info["atomic_raw"] = {
-            "compose_id": atomic_qcow2[0][u'msg'][u'compose_id'],
-            "name": atomic_qcow2[0][u'msg'][u'image_name'] + '-Raw',
-            "release": atomic_qcow2[0][u'msg'][u'release'],
+            "compose_id": sc_qcow2[0][u'msg'][u'compose_id'],
+            "name": sc_qcow2[0][u'msg'][u'image_name'] + '-Raw',
+            "release": sc_qcow2[0][u'msg'][u'release'],
             "image_name": image_name.replace('qcow2', 'raw.xz'),    # HACK
             "image_url": image_url.replace('qcow2', 'raw.xz'),      # HACK
         }
 
-    if atomic_vagrant_libvirt:
+    if sc_vagrant_libvirt:
         image_name, image_url = construct_url(atomic_vagrant_libvirt[0])
         autocloud_info["atomic_vagrant_libvirt"] = {
-            "compose_id": atomic_vagrant_libvirt[0][u'msg'][u'compose_id'],
-            "name": atomic_vagrant_libvirt[0][u'msg'][u'image_name'],
-            "release": atomic_vagrant_libvirt[0][u'msg'][u'release'],
+            "compose_id": sc_vagrant_libvirt[0][u'msg'][u'compose_id'],
+            "name": sc_vagrant_libvirt[0][u'msg'][u'image_name'],
+            "release": sc_vagrant_libvirt[0][u'msg'][u'release'],
             "image_name": image_name,
             "image_url": image_url,
         }
 
-    if atomic_vagrant_vbox:
+    if sc_vagrant_vbox:
         image_name, image_url = construct_url(atomic_vagrant_vbox[0])
         autocloud_info["atomic_vagrant_virtualbox"] = {
-            "compose_id": atomic_vagrant_vbox[0][u'msg'][u'compose_id'],
-            "name": atomic_vagrant_vbox[0][u'msg'][u'image_name'],
-            "release": atomic_vagrant_vbox[0][u'msg'][u'release'],
+            "compose_id": sc_vagrant_vbox[0][u'msg'][u'compose_id'],
+            "name": sc_vagrant_vbox[0][u'msg'][u'image_name'],
+            "release": sc_vagrant_vbox[0][u'msg'][u'release'],
             "image_name": image_name,
             "image_url": image_url,
         }
