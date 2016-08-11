@@ -17,36 +17,36 @@ Action
 
    ::
 
-        $ git clone ssh://git.fedorahosted.org/git/comps
+        $ git clone ssh://git@pagure.io/fedora-comps.git
 
 #. Create the new comps file for next release:
 
    ::
 
-        $ cp comps-f14.xml.in comps-f15.xml.in
+        $ cp comps-f24.xml.in comps-f25.xml.in
 
 #. Edit Makefile to update comps-rawhide target
 
    ::
 
-        - -comps-rawhide: comps-f14.xml
-        - -       @mv comps-f14.xml comps-rawhide.xml
-        +comps-rawhide: comps-f15.xml
-        +       @mv comps-f15.xml comps-rawhide.xml
+        - -comps-rawhide: comps-f24.xml
+        - -       @mv comps-f24.xml comps-rawhide.xml
+        +comps-rawhide: comps-f25.xml
+        +       @mv comps-f25.xml comps-rawhide.xml
 
 #. Add the new comps file to source control:
 
    ::
 
-        $ git add comps-f15.xml.in
+        $ git add comps-f25.xml.in
 
 #. Edit the list of translated comps files in po/POTFILES.in to reflect
    currently supported releases.
 
    ::
 
-        -comps-f12.xml
-        +comps-f15.xml
+        -comps-f22.xml
+        +comps-f25.xml
 
 #. Send it up:
 
