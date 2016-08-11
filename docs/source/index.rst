@@ -19,6 +19,7 @@ Contents:
     philosophy
     contributing
     troubleshooting
+    architecture
     sop
 
 
