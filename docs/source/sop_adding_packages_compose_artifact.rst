@@ -23,7 +23,7 @@ available at install time. This is a vast sub-set of the whole of the Fedora
 Package Collection and it is the pool of possible packages that is available to
 end users who choose to customize their install from the `Anaconda`_ installer.
 It is also the pool of possible packages that is available to the
-`spin-kickstarts`_ kickstart files that are used to generate various components
+`fedora-kickstarts`_ kickstart files that are used to generate various components
 of the compose via `pungi`_ which then produces the Release Artifacts.
 
 The Install Tree itself is defined by the `comps`_ groups so in order to add a
@@ -41,11 +41,11 @@ to target. For example, if we were to target Fedora 25 we would edit
 modified based on the `How to edit comps`_ procedure.
 
 If the package that was added is a part of a pre-existing comps group that is
-already used in the target Release Artifact's `spin-kickstarts`_ kickstart file
+already used in the target Release Artifact's `fedora-kickstarts`_ kickstart file
 then we are done.
 
 However, if there is a new comps group added then we need to include that new
-comps group in the respective `spin-kickstarts`_ kickstart file similar to the
+comps group in the respective `fedora-kickstarts`_ kickstart file similar to the
 following.
 
 ::
@@ -74,10 +74,10 @@ Consider Before Running
 
 .. _pagure: https://pagure.io/
 .. _pungi: https://pagure.io/pungi
-.. _comps: https://fedorahosted.org/comps/
+.. _comps: https://pagure.io/fedora-comps
 .. _Anaconda: https://fedoraproject.org/wiki/Anaconda
 .. _Fedora Pungi Configs: https://pagure.io/pungi-fedora
-.. _spin-kickstarts: https://fedorahosted.org/spin-kickstarts/
+.. _fedora-kickstarts: https://pagure.io/fedora-kickstarts
 .. _here: https://pagure.io/pungi-fedora/blob/master/f/variants-fedora.xml
 .. _Fedora Product Definition Center: https://pdc.fedoraproject.org/compose/
 .. _this HowTo:
