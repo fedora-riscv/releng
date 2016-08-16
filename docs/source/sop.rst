@@ -56,6 +56,7 @@ Standard Operating Procedures
     sop_end_of_life
     sop_package_announce_update
     sop_mass_branching
+    sop_bodhi_activation
     sop_mass_rebuild
     sop_multi_boot_media
     sop_package_blocking
