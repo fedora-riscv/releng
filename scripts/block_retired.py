@@ -17,8 +17,8 @@ from autosigner import SubjectSMTPHandler
 
 
 log = logging.getLogger(__name__)
-RETIRING_BRANCHES = ["el5", "el6", "epel7", "f24", "master"]
-PROD_ONLY_BRANCHES = ["el5", "el6", "epel7", "f24", "master"]
+RETIRING_BRANCHES = ["el5", "el6", "epel7", "f25", "master"]
+PROD_ONLY_BRANCHES = ["el5", "el6", "epel7", "f25", "master"]
 
 PRODUCTION_PKGDB = "https://admin.fedoraproject.org/pkgdb"
 STAGING_PKGDB = "https://admin.stg.fedoraproject.org/pkgdb"
