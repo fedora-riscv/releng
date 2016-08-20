@@ -64,20 +64,20 @@ EPEL7_RELEASE = dict(
 )
 
 RAWHIDE_RELEASE = dict(
-    repo='https://kojipkgs.fedoraproject.org/compose/rawhide/latest-Fedora-/'
+    repo='https://kojipkgs.fedoraproject.org/compose/rawhide/latest-Fedora-Rawhide/'
           'compose/Everything/i386/os',
     source_repo='https://kojipkgs.fedoraproject.org/compose/rawhide/'
-                'latest-Fedora-/compose/Everything/source/tree/',
+                'latest-Fedora-Rawhide/compose/Everything/source/tree/',
     tag='f26',
     branch='master',
     mailto='devel@lists.fedoraproject.org',
 )
 
 BRANCHED_RELEASE = dict(
-    repo='https://kojipkgs.fedoraproject.org/compose/branched/latest-Fedora-/'
+    repo='https://kojipkgs.fedoraproject.org/compose/branched/latest-Fedora-25/'
          'compose/Everything/i386/os',
     source_repo='https://kojipkgs.fedoraproject.org/compose/branched/'
-                'latest-Fedora-/compose/Everything/source/tree/',
+                'latest-Fedora-25/compose/Everything/source/tree/',
     tag='f25',
     branch='f25',
     mailto='devel@lists.fedoraproject.org',
