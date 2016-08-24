@@ -110,20 +110,18 @@ Here is another example, inside a loop:
 
     for i in 24 23 22;
     do
-        NSS_HASH_ALG_SUPPORT=+MD5 ~/releng/scripts/sigulsign_unsigned.py \
+        ~/releng/scripts/sigulsign_unsigned.py \
             fedora-$i -v --write-all \
             --sigul-batch-size=25 $(cat /var/cache/sigul/{Stable,Testing}-F${i});
     done
 
     for i in 7 6 5;
     do
-        NSS_HASH_ALG_SUPPORT=+MD5 ~/releng/scripts/sigulsign_unsigned.py \
+        ~/releng/scripts/sigulsign_unsigned.py \
             epel-$i -v --write-all \
             --sigul-batch-size=25 $(cat /var/cache/sigul/{Stable,Testing}-*EL-${i});
     done
 
-* You may need to add ``NSS_HASH_ALG_SUPPORT=+MD5`` before
-  ``sigulsign_unsigned`` (or add it to your ~/.bashrc).
 
 * If signing process struggles to finish, then consider adjusting the
   ``--sigul-batch-size=N`` to ``1``, which is more resilient but much slower.
