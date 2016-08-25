@@ -60,8 +60,8 @@ ATOMIC_EMAIL_RECIPIENTS = [
 # Full path will be:
 #   /pub/alt/stage/$VERSION-$DATE/$IMAGE_TYPE/x86_64/[Images|os]/
 # http://dl.fedoraproject.org/pub/alt/atomic/stable/
-ATOMIC_TESTING_BASEDIR = "/pub/alt/atomic/testing/"
-ATOMIC_STABLE_DESTINATION = "/pub/alt/atomic/stable/"
+ATOMIC_LINKDEST = "/pub/alt/atomic/testing/"
+ATOMIC_STABLE_BASEDIR = "/pub/alt/atomic/stable/"
 
 # the modname gets used to construct the fully qualified topic, like
 # 'org.fedoraproject.prod.releng.blahblahblah'
@@ -116,7 +116,9 @@ def construct_url(msg):
 
     Takes an autocloud fedmsg message and returns the image name and final url.
     """
-    dest_dir = ATOMIC_STABLE_DESTINATION + 'CloudImages/x86_64/images/'
+    dest_dir = ATOMIC_STABLE_BASEDIR \
+                + msg[u'msg'][u'compose_id'] \
+                + 'CloudImages/x86_64/images/'
     image_name = msg[u'msg'][u'compose_url'].split('/')[-1]
     image_url = dest_dir + image_name
     return image_name, image_url
@@ -390,6 +392,9 @@ Images can be found here:
 Respective signed CHECKSUM files can be found here:
 {}
 
+For direct download, the "latest" target is always available here:
+https://download.fedoraproject.org/pub/alt/atomic/stable/latest/
+
 Thank you,
 Fedora Release Engineering
             """.format(
@@ -410,11 +415,74 @@ Fedora Release Engineering
         print "ERROR: Unable to send email:\n{}\n".format(e)
 
 
+def pre_stage_latest(compose_id, compose_basedir):
+    """
+    pre_stage_latest
+
+        Copy the latest successful compose to the "latest" dir, rename
+        things that need renaming
+
+    :param compose_id: str, the compose id
+    :param compose_basedir: str, path to the base directory of the compose
+    """
+
+    short_compose = compose_id.split("-")[-1]
+
+    source_dir = os.path.join(compose_basedir, compose_id)
+    latest_dir = os.path.join(compose_basedir, "latest-stable")
+
+    # FIXME - need sudo until pungi perms are fixed
+    latest_cp_cmd = "sudo cp -r {} {}".format(source_dir, latest_dir)
+    if subprocess.call(latest_cp_cmd.split()):
+        log.error(
+            "pre_stage_latest: cp command failed: {}".format(latest_cp_cmd)
+        )
+        exit(3)
+
+    # Rename all artifacts in the compose from *short_compose* to *latest*
+    for full_dir_path, _, short_names in \
+            os.walk(os.path.join(compose_basedir, "latest-stable")):
+        if short_names:
+            for short_name in short_names:
+                if short_compose in short_name:
+                    #FIXME - need sudo until pungi perms are fixed
+                    mv_cmd = "sudo mv {} {}".format(
+                        os.path.join(full_dir_path, short_name),
+                        os.path.join(
+                            full_dir_path,
+                            short_name.replace(
+                                short_compose,
+                                "latest"
+                            ),
+                        )
+                    )
+                    if subprocess.call(mv_cmd.split()):
+                        log.error(
+                            "pre_stage_latest: mv command failed: {}".format(mv_cmd)
+                        )
+                        exit(3)
+                if "CHECKSUM" in short_name:
+                    # Edit the names in the checksum files
+                    # FIXME - don't sed this once the perms on pungi are fixed, we can just do
+                    #         it in python without the subprocess call
+                    sed_cmd = [
+                        'sudo',
+                        'sed',
+                        '-i',
+                        r's/{}/latest/g'.format(short_compose),
+                        os.path.join(full_dir_path, short_name)
+                    ]
+                    if subprocess.call(sed_cmd.split()):
+                        log.error(
+                            "pre_stage_latest: sed command failed: {}".format(sed_cmd)
+                        )
+                        exit(3)
+
 def stage_atomic_release(
         compose_id,
         compose_basedir=COMPOSE_BASEDIR,
-        testing_basedir=ATOMIC_TESTING_BASEDIR,
-        dest_dir=ATOMIC_STABLE_DESTINATION):
+        dest_base_dir=ATOMIC_STABLE_BASEDIR,
+        link_dest=ATOMIC_LINKDEST):
     """
     stage_atomic_release
 
@@ -424,6 +492,7 @@ def stage_atomic_release(
     """
 
     source_loc = os.path.join(compose_basedir, compose_id, "compose")
+    dest_dir = os.path.join(dest_base_dir, compose_id)
 
     # FIXME - need sudo until pungi perms are fixed
     rsync_cmd = [
@@ -431,7 +500,7 @@ def stage_atomic_release(
         'rsync -avhHP --delete-after',
         '--link-dest={}'.format(
             os.path.join(
-                testing_basedir,
+                link_dest,
                 compose_id.split('-')[-1]
             )
         ),
@@ -447,6 +516,27 @@ def stage_atomic_release(
         )
         exit(3)
 
+    # Now update the "latest" links
+    latest_dest_dir = os.path.join(dest_base_dir, "latest")
+    # FIXME - need sudo until pungi perms are fixed
+    latest_rsync_cmd = [
+        'sudo',
+        'rsync -avhHP --delete-after',
+        '--link-dest={}'.format(
+            os.path.join(
+                source_loc,
+                compose_id.split('-')[-1]
+            )
+        ),
+        "{}/".format(source_loc),
+        latest_dest_dir
+    ]
+    latest_rsync_cmd = ' '.join(rsync_cmd).split()
+    if subprocess.call(rsync_cmd):
+        log.error(
+            "stage_atomic_release: rsync command failed: {}".format(rsync_cmd)
+        )
+        exit(3)
 
 def sign_checksum_files(
         key,
@@ -567,30 +657,47 @@ def fedmsg_publish(topic, msg):
         pass
 
 
-def prune_old_testing_composes(
-        prune_limit=ATOMIC_COMPOSE_PERSIST_LIMIT,
-        prune_base_dir=ATOMIC_TESTING_BASEDIR):
+def prune_old_composes(prune_base_dir, prune_limit):
     """
-    prune_old_testing_composes
+    prune_old_composes
 
         Clean up old testing composes from /pub/alt/
+
+    :param prune_base_dir: str, path to base diretory needing pruning
+    :param prune_limit: int, the number of composes that should be kept,
+                        pruning all others.
     """
 
     prune_candidate_dirs = os.listdir(prune_base_dir)
 
-    for testing_dir in prune_candidate_dirs[prune_limit:]:
-        try:
-            shutil.rmtree(
-                os.path.join(prune_base_dir, testing_dir)
-            )
-        except OSError, e:
-            log.error(
-                "Error trying to remove directory: {}\n{}".format(
-                    testing_dir,
-                    e
-                )
-            )
+    # Sort then reverse so we can slice the list from [0:prune_limit]
+    prune_candidate_dirs.sort()
+    prune_candidate_dirs.reverse()
 
+    for candidate_dir in prune_candidate_dirs[0:prune_limit]:
+        #try:
+        #    shutil.rmtree(
+        #        os.path.join(prune_base_dir, candidate_dir)
+        #    )
+        #except OSError, e:
+        #    log.error(
+        #        "Error trying to remove directory: {}\n{}".format(
+        #            candidate_dir,
+        #            e
+        #        )
+        #    )
+
+        #FIXME - need to do this with sudo until pungi perms are fixed
+        prune_cmd = "sudo rm -fr {}".format(
+            os.path.join(
+                prune_base_dir,
+                candidate_dir
+            )
+        )
+        if subprocess.call(prune_cmd.split()):
+            log.error(
+                "prune_old_composes: command failed: {}".format(prune_cmd)
+            )
 
 if __name__ == '__main__':
 
@@ -641,11 +748,20 @@ if __name__ == '__main__':
     log.info("Extracting compose_id from tested autocloud data")
     compose_id = tested_autocloud_info['atomic_qcow2']['compose_id']
 
-    log.info("Signing image metadata")
+    log.info("Signing image metadata - compose")
     sign_checksum_files(
         pargs.key,
         os.path.join(COMPOSE_BASEDIR, compose_id),
     )
+
+    log.info("Signing image metadata - latest")
+    sign_checksum_files(
+        pargs.key,
+        os.path.join(COMPOSE_BASEDIR, "latest"),
+    )
+
+    log.info("Pre-Staging latest content")
+    pre_stage_latest(compose_id, COMPOSE_BASEDIR)
 
     log.info("Staging release content in /pub/alt/atomic/stable/")
     stage_atomic_release(compose_id)
@@ -659,7 +775,8 @@ if __name__ == '__main__':
     log.info("Sending Two Week Atomic announcement email")
     # Find all the Atomic images and CHECKSUM files to include in the email
     email_filelist = []
-    for full_dir_path, _, short_names in os.walk(ATOMIC_STABLE_DESTINATION):
+    for full_dir_path, _, short_names in \
+            os.walk(os.join(ATOMIC_STABLE_BASEDIR, compose_id)):
         for sname in fnmatch.filter(short_names, '*Atomic*'):
             email_filelist.append(
                 os.path.join(
@@ -673,7 +790,7 @@ if __name__ == '__main__':
     send_atomic_announce_email(set(email_filelist))
 
     log.info("Pruning old Atomic test composes")
-    prune_old_testing_composes()
+    prune_old_composes(ATOMIC_STABLE_BASEDIR, 2)
 
     log.info("Two Week Atomic Release Complete!")
 
