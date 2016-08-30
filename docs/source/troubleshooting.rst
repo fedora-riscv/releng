@@ -116,7 +116,97 @@ output in a while. This should provide you all the infromation needed to debug
 and/or diagnose further. When in doubt, as in ``#fedora-releng`` on
 ``irc.freenode.net``.
 
+Docker Layered Image Build Service
+==================================
+
+The `Docker Layered Image Build Service`_ is built using a combination of
+technologies such as `OpenShift`_, `osbs-client`_, and the
+`koji-containerbuild`_ plugin that when combined are often refered to as an
+OpenShift Build Service instance (OSBS). Something to note is that `OpenShift`_
+is a `kubernetes`_ distribution with many features built on top of `kubernetes`_
+such as the `build primitive`_ that is used as the basis for the build service.
+This information will hopefully shed light on some of the terminology and
+commands used below.
+
+There are a few "common" scenarios in which build may fail or hang that will
+need some sort of inspection of the build system.
+
+Build Appears to stall after being scheduled
+--------------------------------------------
+
+In the event that a build scheduled through koji appears to be stalled and is
+not in a ``free`` state (i.e. - has been scheduled). An administrator will need
+to ssh into ``osbs-master01`` or ``osbs-master01.stg`` (depending stage vs
+production) and inspect the build itself.
+
+::
+
+    $ oc status
+    In project default on server https://10.5.126.216:8443
+
+    svc/kubernetes - 172.30.0.1 ports 443, 53, 53
+
+    bc/cockpit-f24 custom build of git://....
+      build #8 succeeded 7 weeks ago
+      build #9 failed 33 minutes ago
+
+    $ oc describe build/cockpit-f24-9
+    # lots of output about status of the specific build
+
+    $ oc logs build/cockpit-f24-9
+    # extremely verbose logs, these should in normal circumstances be found in
+    # the koji build log post build
+
+The information found in the commands above will generally identify the issue.
+
+Build fails but there's no log output in the Koji Task
+------------------------------------------------------
+
+Sometimes there is a communications issue between Koji and OSBS which cause for
+a failure to be listed in Koji but without all the logs. These can be diagnosed
+by checking the ``kojid`` logs on the Koji builder listed in the task output.
+
+For example:
+
+::
+
+    $ fedpkg container-build
+    Created task: 90123598
+    Task info: http://koji.stg.fedoraproject.org/koji/taskinfo?taskID=90123598
+    Watching tasks (this may be safely interrupted)...
+    90123598 buildContainer (noarch): free
+    90123598 buildContainer (noarch): free -> open (buildvm-04.stg.phx2.fedoraproject.org)
+      90123599 createContainer (x86_64): free
+      90123599 createContainer (x86_64): free -> open (buildvm-02.stg.phx2.fedoraproject.org)
+      90123599 createContainer (x86_64): open (buildvm-02.stg.phx2.fedoraproject.org) -> closed
+      0 free  1 open  1 done  0 failed
+    90123598 buildContainer (noarch): open (buildvm-04.stg.phx2.fedoraproject.org) -> FAILED: Fault: <Fault 2001: 'Image build failed. OSBS build id: cockpit-f24-9'>
+      0 free  0 open  1 done  1 failed
+
+    90123598 buildContainer (noarch) failed
+
+In this example the buildContiner task was scheduled and ran on
+``buildvm-04.stg`` with the actual createContainer task being on
+``buildvm-02.stg``, and ``buildvm-02.stg`` is where we're going to want to begin
+looking for failures to communicate with OSBS as this is the point of contact
+with the external system.
+
+Logs can be found in ``/var/log/kojid.log`` or if necessary, check the koji hub
+in question. Generally, you will want to start with the first point of contact
+with OSBS and "work your way back" so in the above example you would first check
+``buildvm-02.stg``, then move on to ``buildvm-04.stg`` if nothing useful was
+found in the logs of the previous machine, and again move on to the koji hub if
+neither of the builder machines involved provided useful log information.
+
 .. _tmux: https://tmux.github.io/
+.. _kubernetes: http://kubernetes.io/
+.. _OpenShift: https://www.openshift.org/
 .. _screen: https://www.gnu.org/software/screen/
+.. _osbs-client: https://github.com/projectatomic/osbs-client
+.. _build primitive: https://docs.openshift.org/latest/dev_guide/builds.html
+.. _koji-containerbuild:
+    https://github.com/release-engineering/koji-containerbuild
 .. _releng-cron mailing list archives:
     https://lists.fedoraproject.org/archives/list/releng-cron@lists.fedoraproject.org/
+.. _Docker Layered Image Build Service:
+    https://fedoraproject.org/wiki/Changes/Layered_Docker_Image_Build_Service
