@@ -310,7 +310,7 @@ def get_latest_successful_autocloud_test_info(
         }
 
     if sc_vagrant_libvirt:
-        image_name, image_url = construct_url(atomic_vagrant_libvirt[0])
+        image_name, image_url = construct_url(sc_vagrant_libvirt[0])
         autocloud_info["atomic_vagrant_libvirt"] = {
             "compose_id": sc_vagrant_libvirt[0][u'msg'][u'compose_id'],
             "name": sc_vagrant_libvirt[0][u'msg'][u'image_name'],
@@ -320,7 +320,7 @@ def get_latest_successful_autocloud_test_info(
         }
 
     if sc_vagrant_vbox:
-        image_name, image_url = construct_url(atomic_vagrant_vbox[0])
+        image_name, image_url = construct_url(sc_vagrant_vbox[0])
         autocloud_info["atomic_vagrant_virtualbox"] = {
             "compose_id": sc_vagrant_vbox[0][u'msg'][u'compose_id'],
             "name": sc_vagrant_vbox[0][u'msg'][u'image_name'],
