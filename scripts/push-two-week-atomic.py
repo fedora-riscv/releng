@@ -414,70 +414,6 @@ Fedora Release Engineering
     except smtplib.SMTPException, e:
         print "ERROR: Unable to send email:\n{}\n".format(e)
 
-
-def pre_stage_latest(compose_id, compose_basedir):
-    """
-    pre_stage_latest
-
-        Copy the latest successful compose to the "latest" dir, rename
-        things that need renaming
-
-    :param compose_id: str, the compose id
-    :param compose_basedir: str, path to the base directory of the compose
-    """
-
-    short_compose = compose_id.split("-")[-1]
-
-    source_dir = os.path.join(compose_basedir, compose_id)
-    latest_dir = os.path.join(compose_basedir, "latest-stable")
-
-    # FIXME - need sudo until pungi perms are fixed
-    latest_cp_cmd = "sudo cp -r {} {}".format(source_dir, latest_dir)
-    if subprocess.call(latest_cp_cmd.split()):
-        log.error(
-            "pre_stage_latest: cp command failed: {}".format(latest_cp_cmd)
-        )
-        exit(3)
-
-    # Rename all artifacts in the compose from *short_compose* to *latest*
-    for full_dir_path, _, short_names in \
-            os.walk(os.path.join(compose_basedir, "latest-stable")):
-        if short_names:
-            for short_name in short_names:
-                if short_compose in short_name:
-                    #FIXME - need sudo until pungi perms are fixed
-                    mv_cmd = "sudo mv {} {}".format(
-                        os.path.join(full_dir_path, short_name),
-                        os.path.join(
-                            full_dir_path,
-                            short_name.replace(
-                                short_compose,
-                                "latest"
-                            ),
-                        )
-                    )
-                    if subprocess.call(mv_cmd.split()):
-                        log.error(
-                            "pre_stage_latest: mv command failed: {}".format(mv_cmd)
-                        )
-                        exit(3)
-                if "CHECKSUM" in short_name:
-                    # Edit the names in the checksum files
-                    # FIXME - don't sed this once the perms on pungi are fixed, we can just do
-                    #         it in python without the subprocess call
-                    sed_cmd = [
-                        'sudo',
-                        'sed',
-                        '-i',
-                        r's/{}/latest/g'.format(short_compose),
-                        os.path.join(full_dir_path, short_name)
-                    ]
-                    if subprocess.call(sed_cmd.split()):
-                        log.error(
-                            "pre_stage_latest: sed command failed: {}".format(sed_cmd)
-                        )
-                        exit(3)
-
 def stage_atomic_release(
         compose_id,
         compose_basedir=COMPOSE_BASEDIR,
@@ -510,28 +446,6 @@ def stage_atomic_release(
     # This looks silly but it gets everything properly split for
     # subprocess.call but keeps it from looking messy above.
     rsync_cmd = ' '.join(rsync_cmd).split()
-    if subprocess.call(rsync_cmd):
-        log.error(
-            "stage_atomic_release: rsync command failed: {}".format(rsync_cmd)
-        )
-        exit(3)
-
-    # Now update the "latest" links
-    latest_dest_dir = os.path.join(dest_base_dir, "latest")
-    # FIXME - need sudo until pungi perms are fixed
-    latest_rsync_cmd = [
-        'sudo',
-        'rsync -avhHP --delete-after',
-        '--link-dest={}'.format(
-            os.path.join(
-                source_loc,
-                compose_id.split('-')[-1]
-            )
-        ),
-        "{}/".format(source_loc),
-        latest_dest_dir
-    ]
-    latest_rsync_cmd = ' '.join(rsync_cmd).split()
     if subprocess.call(rsync_cmd):
         log.error(
             "stage_atomic_release: rsync command failed: {}".format(rsync_cmd)
@@ -753,15 +667,6 @@ if __name__ == '__main__':
         pargs.key,
         os.path.join(COMPOSE_BASEDIR, compose_id),
     )
-
-    log.info("Signing image metadata - latest")
-    sign_checksum_files(
-        pargs.key,
-        os.path.join(COMPOSE_BASEDIR, "latest"),
-    )
-
-    log.info("Pre-Staging latest content")
-    pre_stage_latest(compose_id, COMPOSE_BASEDIR)
 
     log.info("Staging release content in /pub/alt/atomic/stable/")
     stage_atomic_release(compose_id)
