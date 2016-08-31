@@ -116,11 +116,13 @@ def construct_url(msg):
 
     Takes an autocloud fedmsg message and returns the image name and final url.
     """
-    dest_dir = ATOMIC_STABLE_BASEDIR \
-                + msg[u'msg'][u'compose_id'] \
-                + 'CloudImages/x86_64/images/'
+    dest_dir = os.path.join(
+        ATOMIC_STABLE_BASEDIR,
+        msg[u'msg'][u'compose_id'],
+        'CloudImages/x86_64/images/'
+    )
     image_name = msg[u'msg'][u'compose_url'].split('/')[-1]
-    image_url = dest_dir + image_name
+    image_url = os.path.join(dest_dir, image_name)
     return image_name, image_url
 
 
