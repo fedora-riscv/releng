@@ -30,12 +30,12 @@ On pkgs01 (or pkgs01.stg), edit the file
 
 ::
 
-	 GIT_FOLDER = '/srv/git/repositories/'
- 	
-	-MKBRANCH = '/usr/local/bin/mkbranch'
-	+#MKBRANCH = '/usr/local/bin/mkbranch'
-	+MKBRANCH = '/usr/local/bin/mkbranch_branching'
-	 SETUP_PACKAGE = '/usr/local/bin/setup_git_package'
+     GIT_FOLDER = '/srv/git/repositories/'
+
+    -MKBRANCH = '/usr/local/bin/mkbranch'
+    +#MKBRANCH = '/usr/local/bin/mkbranch'
+    +MKBRANCH = '/usr/local/bin/mkbranch_branching'
+     SETUP_PACKAGE = '/usr/local/bin/setup_git_package'
 
 This will make the script calls ``/usr/local/bin/mkbranch_branching`` when
 creating the new branches.
@@ -107,18 +107,18 @@ In a clone of the ansible repository, edit the file:
 
 ::
 
-	diff --git a/roles/distgit/templates/genacls.pkgdb b/roles/distgit/templates/genacls.pkgdb
-	index b4b52f2..c65f118 100644
-	--- a/ roles/distgit/templates/genacls.pkgdb
-	+++ b/ roles/distgit/templates/genacls.pkgdb
-	@@ -38,6 +38,7 @@ if __name__ == '__main__':
-	         'F-11': 'f11', 'F-12': 'f12', 'F-13': 'f13', 'f14': 'f14', 'f15':
-	         'f15', 'f16': 'f16', 'f17': 'f17', 'f18': 'f18', 'f19': 'f19',
-	         'f20': 'f20', 'f21': 'f21', 'f22': 'f22', 'f23': 'f23', 'f24': 'f24',
-	+        'f25': 'f25',
-	         'devel': 'master', 'master': 'master'}
-	
-	     # Create a "regex"ish list 0f the reserved branches
+    diff --git a/roles/distgit/templates/genacls.pkgdb b/roles/distgit/templates/genacls.pkgdb
+    index b4b52f2..c65f118 100644
+    --- a/ roles/distgit/templates/genacls.pkgdb
+    +++ b/ roles/distgit/templates/genacls.pkgdb
+    @@ -38,6 +38,7 @@ if __name__ == '__main__':
+             'F-11': 'f11', 'F-12': 'f12', 'F-13': 'f13', 'f14': 'f14', 'f15':
+             'f15', 'f16': 'f16', 'f17': 'f17', 'f18': 'f18', 'f19': 'f19',
+             'f20': 'f20', 'f21': 'f21', 'f22': 'f22', 'f23': 'f23', 'f24': 'f24',
+    +        'f25': 'f25',
+             'devel': 'master', 'master': 'master'}
+
+         # Create a "regex"ish list 0f the reserved branches
 
 
 fedora-packages
@@ -194,14 +194,14 @@ changes made to ``/usr/local/bin/pkgdb_sync_git_branches.py``
 
 ::
 
-	 GIT_FOLDER = '/srv/git/repositories/'
- 	 
-	-#MKBRANCH = '/usr/local/bin/mkbranch'
-	+MKBRANCH = '/usr/local/bin/mkbranch'
-	-MKBRANCH = '/usr/local/bin/mkbranch_branching'
-	 SETUP_PACKAGE = '/usr/local/bin/setup_git_package'
- 	 
-	 THREADS = 20
+     GIT_FOLDER = '/srv/git/repositories/'
+
+    -#MKBRANCH = '/usr/local/bin/mkbranch'
+    +MKBRANCH = '/usr/local/bin/mkbranch'
+    -MKBRANCH = '/usr/local/bin/mkbranch_branching'
+     SETUP_PACKAGE = '/usr/local/bin/setup_git_package'
+
+     THREADS = 20
 
 
 Re-start pkgdb
@@ -317,25 +317,25 @@ issues in the database of pkgdb:
 ::
 
     -- List all the collections (helps finding the identifier)
-    SELECT * FROM "Collection";
+    SELECT * FROM collection;
 
     -- Check new ACLs
-    SELECT "PackageListingAcl".id, "PackageListingAcl".fas_name,
-           "PackageListingAcl".acl, "Package".name
-    FROM "PackageListing", "PackageListingAcl", "Package"
-    WHERE "PackageListing".collection_id = <clt_id>
-    AND "PackageListingAcl".packagelisting_id = "PackageListing".id
-    AND "Package".id = "PackageListing".package_id;
+    SELECT package_listing_acl".id, package_listing_acl.fas_name,
+           package_listing_acl.acl, package.name
+    FROM package_listing, package_listing_acl, package
+    WHERE package_listing.collection_id = <clt_id>
+    AND package_listing_acl.packagelisting_id = package_listing.id
+    AND package.id = package_listing.package_id;
 
 
     -- Remove the ACLs of a specified collection (most useful if someone messed
     -- up with the ACLs in between creating the branch for the packages and
     -- copying the ACLs from master to the new branch).
-    DELETE FROM "PackageListingAcl" WHERE "PackageListingAcl".id IN (
-      SELECT "PackageListingAcl".id
-      FROM "PackageListing", "PackageListingAcl"
-      WHERE "PackageListing".collection_id = <clt_id>
-      AND "PackageListingAcl".packagelisting_id = "PackageListing".id
+    DELETE FROM package_listing_acl WHERE package_listing_acl.id IN (
+      SELECT package_listing_acl.id
+      FROM package_listing, package_listing_acl
+      WHERE package_listing.collection_id = <clt_id>
+      AND package_listing_acl.packagelisting_id = package_listing.id
     );
 
     -- Copy the ACLs from master (id=8) to the new collection (id=<clt_id>)
@@ -343,16 +343,17 @@ issues in the database of pkgdb:
     -- at hand if there is a need to run it manually.
     -- /!\ NOTE: the last part (excluding the namespace) may need to be adjusted
     --           depending on the configuration.
-    INSERT INTO "PackageListingAcl" (
+    INSERT INTO package_listing_acl (
         fas_name, packagelisting_id, acl, status, date_created
     )
-    SELECT "PackageListingAcl".fas_name, p2.id,
-           "PackageListingAcl".acl, "PackageListingAcl".status, '2016-07-26 15:20:32.00887'
-    FROM "PackageListing" as p1, "PackageListing" as p2, "PackageListingAcl",
-         "Package"
+    SELECT package_listing_acl.fas_name, p2.id,
+           package_listing_acl.acl, package_listing_acl.status,
+           '2016-07-26 15:20:32.00887'
+    FROM package_listing as p1, package_listing as p2, package_listing_acl,
+         package
     WHERE p1.collection_id = 8
     AND p2.collection_id = <clt_id>
     AND p1.package_id = p2.package_id
-    AND "PackageListingAcl".packagelisting_id = p1.id
-    AND "Package".id = p1.package_id
-    AND "Package".namespace != 'modules';
+    AND package_listing_acl.packagelisting_id = p1.id
+    AND package.id = p1.package_id
+    AND package.namespace != 'modules';
