@@ -16,6 +16,9 @@ keys = ['069C8460', '30C9ECF8',
         'f8df67e6', '1aca3465',
         'de7f38bd', 'a4d647e9',
         'fb4b18e6', 'ba094068',
+        '246110c1', 'efe550f5',
+        '95a43f54', 'a0a7badb',
+        '8e1431d5', 'a29cb19c',
         ]
 
 prefix = 'data/signed'
