@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#! /usr/bin/python -tt
 #
 # find_unblocked_orphans.py - A utility to find orphaned packages in pkgdb
 #                             that are unblocked in koji and to show what
@@ -64,8 +64,8 @@ EPEL7_RELEASE = dict(
 )
 
 RAWHIDE_RELEASE = dict(
-    repo='https://kojipkgs.fedoraproject.org/compose/rawhide/latest-Fedora-Rawhide/'
-          'compose/Everything/i386/os',
+    repo='https://kojipkgs.fedoraproject.org/compose/rawhide/'
+         'latest-Fedora-Rawhide/compose/Everything/i386/os',
     source_repo='https://kojipkgs.fedoraproject.org/compose/rawhide/'
                 'latest-Fedora-Rawhide/compose/Everything/source/tree/',
     tag='f26',
@@ -74,8 +74,8 @@ RAWHIDE_RELEASE = dict(
 )
 
 BRANCHED_RELEASE = dict(
-    repo='https://kojipkgs.fedoraproject.org/compose/branched/latest-Fedora-25/'
-         'compose/Everything/i386/os',
+    repo='https://kojipkgs.fedoraproject.org/compose/branched/'
+         'latest-Fedora-25/compose/Everything/i386/os',
     source_repo='https://kojipkgs.fedoraproject.org/compose/branched/'
                 'latest-Fedora-25/compose/Everything/source/tree/',
     tag='f25',
@@ -450,7 +450,8 @@ class DepChecker(object):
             package = self.pkgdbinfo_queue.get()
             if package not in self.pkgdb_dict:
                 pkginfo = PKGDBInfo(package, branch)
-                #  sys.stderr.write("Got info for {} on {}, todo: {}\n".format(package, branch, self.pkgdbinfo_queue.qsize()))
+                #  sys.stderr.write("Got info for {} on {}, todo: {}\n".format(
+                #      package, branch, self.pkgdbinfo_queue.qsize()))
                 self.pkgdb_dict[package] = pkginfo
             self.pkgdbinfo_queue.task_done()
 
@@ -474,7 +475,8 @@ class DepChecker(object):
         # dict for all dependent packages for each to-be-removed package
         dep_map = OrderedDict()
         for name in sorted(packages):
-            sys.stderr.write("Getting packages depending on: {0}\n".format(name))
+            sys.stderr.write(
+                "Getting packages depending on: {0}\n".format(name))
             ignore = rpm_pkg_names
             dep_map[name] = OrderedDict()
             to_check = [name]
@@ -520,8 +522,10 @@ class DepChecker(object):
                             if todo_deps < 0:
                                 todo_deps = 0
                             incomplete.append(name)
-                            sys.stderr.write("Dep count is {}\n".format(dep_count))
-                            sys.stderr.write("incomplete is {}\n".format(incomplete))
+                            sys.stderr.write(
+                                "Dep count is {}\n".format(dep_count))
+                            sys.stderr.write(
+                                "incomplete is {}\n".format(incomplete))
 
                             allow_more = False
                             to_check = to_check[0:todo_deps]
@@ -608,8 +612,9 @@ def dependency_info(dep_map, affected_people, pkgdb_dict, incomplete):
                     provides = ", ".join(sorted(dependent_packages[dep]))
                     info += "\t\t%s requires %s\n" % (dep.nvra, provides)
                 info += "\n"
-	    if package_name in incomplete:
-	        info += "\tToo many dependencies for {}, not all listed here\n".format(package_name)
+        if package_name in incomplete:
+            info += "\tToo many dependencies for {}, ".format(package_name)
+            info += "not all listed here\n".format(package_name)
             info += "\n"
     return info
 
