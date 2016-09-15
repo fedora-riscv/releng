@@ -706,11 +706,16 @@ def package_info(unblocked, dep_map, depchecker, orphans=None, failed=None,
                     reverse_deps.setdefault(depender, []).append(package)
                 stale_breaking = stale_breaking.union(
                     set(dep_map[package].keys()))
-            for depender, provider in reverse_deps.items():
+            for depender, providers in reverse_deps.items():
                 sys.stderr.write("fedretire --orphan-dependent {} "
                                  "--branch {} -- {}\n".format(
-                                     " ".join(provider), branch, depender
+                                     " ".join(providers), branch, depender
                                  ))
+                for providingpkg in providers:
+                    sys.stderr.write(
+                        "fedretire --orphan --branch {} -- {}\n".format(
+                            branch, providingpkg)
+                    )
             info += wrap_and_format(
                 "Packages depending on packages orphaned{} for more than "
                 "{} weeks".format(release_text, week_limit),
