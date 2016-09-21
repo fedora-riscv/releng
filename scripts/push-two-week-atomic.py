@@ -603,34 +603,35 @@ def prune_old_composes(prune_base_dir, prune_limit):
 
     prune_candidate_dirs = os.listdir(prune_base_dir)
 
-    # Sort then reverse so we can slice the list from [0:prune_limit]
-    prune_candidate_dirs.sort()
-    prune_candidate_dirs.reverse()
+    if len(prune_candidate_dirs) > 2:
+        # Sort then reverse so we can slice the list from [0:prune_limit]
+        prune_candidate_dirs.sort()
+        prune_candidate_dirs.reverse()
 
-    for candidate_dir in prune_candidate_dirs[0:prune_limit]:
-        #try:
-        #    shutil.rmtree(
-        #        os.path.join(prune_base_dir, candidate_dir)
-        #    )
-        #except OSError, e:
-        #    log.error(
-        #        "Error trying to remove directory: {}\n{}".format(
-        #            candidate_dir,
-        #            e
-        #        )
-        #    )
+        for candidate_dir in prune_candidate_dirs[0:prune_limit]:
+            #try:
+            #    shutil.rmtree(
+            #        os.path.join(prune_base_dir, candidate_dir)
+            #    )
+            #except OSError, e:
+            #    log.error(
+            #        "Error trying to remove directory: {}\n{}".format(
+            #            candidate_dir,
+            #            e
+            #        )
+            #    )
 
-        #FIXME - need to do this with sudo until pungi perms are fixed
-        prune_cmd = "sudo rm -fr {}".format(
-            os.path.join(
-                prune_base_dir,
-                candidate_dir
+            #FIXME - need to do this with sudo until pungi perms are fixed
+            prune_cmd = "sudo rm -fr {}".format(
+                os.path.join(
+                    prune_base_dir,
+                    candidate_dir
+                )
             )
-        )
-        if subprocess.call(prune_cmd.split()):
-            log.error(
-                "prune_old_composes: command failed: {}".format(prune_cmd)
-            )
+            if subprocess.call(prune_cmd.split()):
+                log.error(
+                    "prune_old_composes: command failed: {}".format(prune_cmd)
+                )
 
 if __name__ == '__main__':
 
@@ -700,7 +701,7 @@ if __name__ == '__main__':
     # Find all the Atomic images and CHECKSUM files to include in the email
     email_filelist = []
     for full_dir_path, _, short_names in \
-            os.walk(os.join(ATOMIC_STABLE_BASEDIR, compose_id)):
+            os.walk(os.path.join(ATOMIC_STABLE_BASEDIR, compose_id)):
         for sname in fnmatch.filter(short_names, '*Atomic*'):
             email_filelist.append(
                 os.path.join(
