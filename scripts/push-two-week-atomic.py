@@ -394,8 +394,25 @@ Images can be found here:
 Respective signed CHECKSUM files can be found here:
 {}
 
-For direct download, the "latest" target is always available here:
-https://download.fedoraproject.org/pub/alt/atomic/stable/latest/
+For direct download, the "latest" targets are always available here:
+    https://getfedora.org/atomic_qcow2_latest
+    https://getfedora.org/atomic_raw_latest
+    https://getfedora.org/atomic_vagrant_libvirt_latest
+    https://getfedora.org/atomic_vagrant_virtualbox_latest
+
+Filename fetching URLs are available here:
+    https://getfedora.org/atomic_qcow2_latest_filename
+    https://getfedora.org/atomic_raw_latest_filename
+    https://getfedora.org/atomic_vagrant_libvirt_latest_filename
+    https://getfedora.org/atomic_vagrant_virtualbox_latest_filename
+
+For more information about the latest targets, please reference the Fedora
+Cloud Wiki space.
+
+    https://fedoraproject.org/wiki/Cloud#Quick_Links
+
+Do note that it can take some of the mirrors up to 12 hours to "check-in" at
+their own discretion.
 
 Thank you,
 Fedora Release Engineering
