@@ -1,0 +1,38 @@
+#!/bin/bash
+
+TARGET=f26-build
+DATE=$(date  "+%Y%m%d-%k-%M")
+COMPOSEDIR=/mnt/koji/compose/cd/
+
+mkdir $COMPOSEDIR/logs/$DATE/
+
+pushd $COMPOSEDIR
+rm -rf fedora-atomic
+git clone https://pagure.io/fedora-atomic.git
+pushd fedora-atomic
+sed -i -e 's|^mirrorlist.*$|baseurl=https://kojipkgs.fedoraproject.org/repos/rawhide/latest/$basearch/|g' fedora-rawhide.repo
+popd
+
+
+for arch in x86_64 aarch64 armhfp
+do
+   ARCHLOG=$COMPOSEDIR/logs/$DATE/$arch/
+   mkdir $ARCHLOG
+   ln -T -f -s $ARCHLOG $COMPOSEDIR/log-latest
+   if [ "$arch" == "aarch64" ]; then
+      sed -i -e 's|"grub2", ||g' fedora-atomic/*json
+   fi
+   if [ "$arch" == "armhfp" ]; then
+      sed -i -e '/grub2/d' fedora-atomic/*json
+      sed -i -e 's/"efibootmgr", "shim",/"extlinux-bootloader",/g' fedora-atomic/*json
+      sed -i -e 's/"atomic-devmode",//g' fedora-atomic/*json
+   fi
+   koji runroot --new-chroot --use-shell --task-id --channel-override=compose --package=pungi --package=ostree --package=rpm-ostree --mount=/mnt/koji/compose/cd/ --mount=/mnt/koji/atomic-cd/ $TARGET $arch 'rm -f /var/lib/rpm/__db*; rm -rf /var/cache/yum/*; set -x; pungi-make-ostree --log-dir=/mnt/koji/compose/cd/log-latest/ --treefile=/mnt/koji/compose/cd/fedora-atomic/fedora-atomic-docker-host.json /mnt/koji/atomic-cd/' >$ARCHLOG/koji-task.log
+   rm -f $COMPOSEDIR/log-latest
+done
+
+# keep only the last weeks worth of ostree commits
+ostree prune --repo=/mnt/koji/atomic-cd/ --keep-younger-than="7 days ago" --refs-only
+
+# keep a weeks worth of logs
+find $COMPOSEDIR/logs/  -xdev -depth -maxdepth 2 -mtime +7  -exec rm -rf {} \;
