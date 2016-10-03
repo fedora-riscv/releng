@@ -24,79 +24,88 @@ Layered Image Build Service Architecture
     | +--------------------------+ |
     | |PDC Integration           | |
     | +--------------------------+ |
-    | |Taskotron                 | |
-    | +--------------------------+ |
-    | |fedmsg   Handlers         | |
+    | |New Hotness               | |
     | +--------------------------+ |
     | |Other???                  | |
     | +--------------------------+ |
-    |  Magical Future CI/AutoTest  |
+    |  Magical Future              |
     |                              |
     +------------------------------+
 
-                                            +----------------+
-                                            |  Fedora        |
-                                            |  Layered Image |
-                                            |  Maintainers   |
-                                            |                |
-                                            |                |
-                                            +-------+--------+
-                                                    |
-                                                    V
-                                            +-------+--------------+
-                                            |                      |
-                                            | +------------------+ |
-                                            | |Dockerfile        | |
-                                            | +------------------+ |
-                                            | |App "init" scripts| |
-                                            | +------------------+ |
-                                            | |Docs              | |
-                                            | +------------------+ |
-                                            |  DistGit             |
-                                            |                      |
-                                            +-----------+----------+
-           +------------------+                         |
-           |Fedora            |                         |
-           |Users/Contributors|                         |
-           +--------+---------+                         |
-                    ^                                   |
-                    |                                   |
-                    |                                   |
-                    |                                   |
-                    |                                   |
-    +---------------+-----------+                       |
-    |                           |                       |
-    | +----------------------+  |                       +---------------+
-    | |Intermediate Docker   |  |                                       |
-    | |Images for OSBS Builds|  |                                       |
-    | +----------------------+  |        +--------------------------+   |
-    | |Layered Images        |  |        |                          |   |
+
+
+           +------------------+
+           |Fedora            |
+           |Users/Contributors|
+           +--------+---------+
+                    ^
+                    |                                   +----------------+
+                    |                                   |  Fedora        |
+            +-------+-----------+                       |  Layered Image |
+            | Fedora Production |                       |  Maintainers   |
+            | Docker Registry   |                       |                |
+            +-------------------+                       +-------+--------+
+                    ^                                           |
+                    |                                           V
+                    |                       +-------------------+--+
+        +-----------+------------+          |                      |
+        |   RelEng Automation    |          | +------------------+ |
+        |      (Release)         |          | |Dockerfile        | |
+        +-----------+------------+          | +------------------+ |
+                    ^                       | |App "init" scripts| |
+                    |                       | +------------------+ |
+                    |                       | |Docs              | |
+          +---------+------------+          | +------------------+ |
+          | Taskotron            |          |  DistGit             |
+          | Automated QA         |          |                      |
+          +---------+-------+----+          +-----------+----------+
+                    ^       ^                           |
+                    |       |                           |
+                    |       |                           |
+                    |       |                           |
+                    |       +-------------------+       |
+                    |                           |       |
+             [docker images]                    |       |
+                    |                           |       |
+                    |                       [fedmsg]    |
+    +---------------+-----------+               |       |
+    |                           |               |       +---------------+
+    | +----------------------+  |               |                       |
+    | |Intermediate Docker   |  |        +------+-------------------+   |
+    | |Images for OSBS Builds|  |        |                          |   |
     | +----------------------+  |        | +----------------------+ |   |
-    | |Pulp/Pulp|Crane       |  |        | |containerbuild plugin | |   |
+    | |Layered Images        |  |        | |containerbuild plugin | |   |
     | +----------------------+  |        | +----------------------+ |   |
     | |docker|distribution   |  |        | |rpmbuilds             | |   |
     | +----------------------+  |        | +----------------------+ |   |
     |  Registry                 |        |  koji                    |   |
     |                           |        |                          |   |
     +-----+----+----------------+        +-----+---+----+-----------+   |
-          |    ^                               |   ^    ^               |
-          |    |                               |   |    |               |
-          |    |   +---------------------------+   |    |               |
-          |    |   |                               |    |               |
-          |    |   |   +---------------------------+    |               |
-          |    |   |   |                                |               |
-          |    |   |   |                                |               |
-          V    |   V   |                                |               |
-       +--+----+---+---+---+                            |               |
-       |                   |             +--------------+--------+      |
-       | +--------------+  |             |fedpkg container build +<-----+
-       | |OpenShift v3  |  |             +-----------------------+
+          |    ^                               |   ^        ^           |
+          |    |                               |   |        |           |
+          |    |   +---------------------------+   |        |           |
+          |    |   |       [osbs-client api]       |        |           |
+          |    |   |   +---------------------------+        |           |
+          |    |   |   |                                    |           |
+          |    |   |   |                                    |           |
+          V    |   V   |                                    |           |
+       +--+----+---+---+---+                                |           V
+       |                   |                        +-------------------+---+
+       | +--------------+  |                        |fedpkg container-build +
+       | |OpenShift v3  |  |                        +-----------------------+
        | +--------------+  |
        | |Atomic Reactor|  |
        | +--------------+  |
        |  OSBS             |
        |                   |
        +-------------------+
+
+
+    [--------------------- Robosignatory ------------------------------------]
+    [ Every time an image is tagged or changes names, Robosignatory signs it ]
+    [                                                                        ]
+    [ NOTE: It's injection points in the diagram are ommitted for brevity    ]
+    [------------------------------------------------------------------------]
 
 
 Layered Image Build System Components
@@ -115,19 +124,37 @@ The main aspects of the Layered Image Build System are:
 
   * docker-distribution
 
+* Taskotron
+* fedmsg
+* RelEng Automation
+
 
 The build system is setup such that Fedora Layered Image maintainers will submit
 a build to Koji via the ``fedpkg container-build`` command a ``docker``
 namespace within `DistGit`_. This will trigger the build to be scheduled in
 `OpenShift`_ via `osbs-client`_ tooling, this will create a custom
 `OpenShift Build`_ which will use the pre-made buildroot Docker image that we
-have created. The `atomic-reactor`_ utility will run within the buildroot and
-prep the build container where the actual build action will execute, it will
-also maintain uploading the `Content Generator`_ metadata back to `Koji`_ and
-upload the built image to the candidate docker registry. This will run on a
-host with iptables rules restricting access to the docker bridge, this is how we
-will further limit the access of the buildroot to the outside world verifying
-that all sources of information come from Fedora.
+have created. The `Atomic Reactor`_ (``atomic-reactor``) utility will run within
+the buildroot and prep the build container where the actual build action will
+execute, it will also maintain uploading the `Content Generator`_ metadata back
+to `Koji`_ and upload the built image to the candidate docker registry. This
+will run on a host with iptables rules restricting access to the docker bridge,
+this is how we will further limit the access of the buildroot to the outside
+world verifying that all sources of information come from Fedora.
+
+Completed layered image builds are hosted in a candidate docker registry which
+is then used to pull the image and perform tests with `Taskotron`_. The
+taskotron tests are triggered by a `fedmsg`_ message that is emitted from
+`Koji`_ once the build is complete. Once the test is complete, taskotron will
+send fedmsg which is then caught by the `RelEng Automation` Engine that will run
+the Automatic Release tasks in order to push the layered image into a stable
+docker registry in the production space for end users to consume.
+
+Note that every time the layered image tagged to a new registry, ultimately
+changing it's name, `Robosignatory`_ will automatically sign the new image. This
+will also occur as part of the Automated Release process as the image will be
+tagged from the candidate docker registry into the production docker registry in
+order to "graduate" the image to stable.
 
 Koji
 ----
@@ -181,34 +208,75 @@ The `docker-distribution`_ registry is considered the Docker upstream "v2
 registry" such that it was used by upstream to implement the new version 2
 specification of the docker-registry.
 
-pulp-crane
-~~~~~~~~~~
+Fedora Production Registry
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. note:: At this time Pulp/Crane is still future work as part of the `Fedora
-          Docker Registry`_ Change.
+Implementation details of this are still unknown at the time of this writing and
+will be updated at a later date. For the current status and implementation notes
+please visit the `FedoraDockerRegistry`_ page.
 
-Crane, `pulp-crane`_, is a small read-only web application that provides enough
-of the docker registry API to support "docker pull". Crane does not serve the
-actual image files, but instead serves 302 redirects to some other location
-where files are being served. A base file location URL can be specified
-per-repository.
+Taskotron
+---------
 
-This functionality allows for the Crane endpoint to be used as the entry into
-the `Fedora Mirror Network`_.
+`Taskotron`_ is an automated task execution framework, written on top of
+`buildbot`_ that currently executes many Fedora automated QA tasks and we will
+be adding the Layered Image automated QA tasks. The tests themselves will be
+held in DistGit and maintained by the Layered Image maintainers.
 
+RelEng Automation
+-----------------
 
+`RelEng Automation`_ is an ongoing effort to automate as much of the RelEng
+process as possible by using `Ansible`_ and being driven by `fedmsg`_ via
+`Loopabull`_ to execute Ansible Playbooks based on fedmsg events.
 
+Robosignatory
+-------------
 
+`Robosignatory`_ is a fedmsg consumer that automatically signs artifacts and
+will be used to automatically sign docker layered images for verification by
+client tools as well as end users.
+
+Future Integrations
+-------------------
+
+In the future various other components of the `Fedora Infrastructure`_
+will likely be incorporated.
+
+PDC
+~~~
+
+`PDC`_ is Fedora's implementation of `Product Definition Center`_ which allows
+Fedora to maintain a database of each Compose and all of it's contents in a way
+that can be queried and used to make decisions in a programatic way.
+
+The New Hotness
+~~~~~~~~~~~~~~~
+
+`The New Hotness`_ is a `fedmsg`_ consumer that listens to
+release-monitoring.org and files bugzilla bugs in response (to notify packagers
+that they can update their packages).
+
+.. _Ansible: http://ansible.com/
+.. _buildbot: http://buildbot.net/
 .. _kubernetes: http://kubernetes.io/
+.. _PDC: https://pdc.fedoraproject.org/
+.. _fedmsg: http://www.fedmsg.com/en/latest/
 .. _Koji: https://fedoraproject.org/wiki/Koji
 .. _Docker: https://github.com/docker/docker/
 .. _pulp-crane: https://github.com/pulp/crane
 .. _OpenShift: https://www.openshift.org/
+.. _Robosignatory: https://pagure.io/robosignatory
 .. _OpenShift Origin V3: https://www.openshift.org/
+.. _Taskotron: https://taskotron.fedoraproject.org/
 .. _docker-registry: https://docs.docker.com/registry/
+.. _Loopabull: https://github.com/maxamillion/loopabull
+.. _RelEng Automation: https://pagure.io/releng-automation
 .. _osbs-client: https://github.com/projectatomic/osbs-client
 .. _docker-distribution: https://github.com/docker/distribution/
 .. _Atomic Reactor: https://github.com/projectatomic/atomic-reactor
+.. _The New Hotness: https://github.com/fedora-infra/the-new-hotness
+.. _Fedora Infrastructure: https://fedoraproject.org/wiki/Infrastructure
 .. _koji-containerbuild:
     https://github.com/release-engineering/koji-containerbuild
 .. _Fedora Mirror Network:
@@ -223,3 +291,7 @@ the `Fedora Mirror Network`_.
     https://docs.openshift.org/latest/dev_guide/builds.html
 .. _Content Generator:
     https://fedoraproject.org/wiki/Koji/ContentGenerators
+.. _FedoraDockerRegistry:
+    https://fedoraproject.org/wiki/Changes/FedoraDockerRegistry
+.. _Product Definition Center:
+    https://github.com/product-definition-center/product-definition-center
