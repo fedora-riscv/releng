@@ -8,7 +8,7 @@ mkdir $COMPOSEDIR/logs/$DATE/
 
 pushd $COMPOSEDIR
 rm -rf fedora-atomic
-git clone https://pagure.io/fedora-atomic.git
+git clone -q https://pagure.io/fedora-atomic.git
 pushd fedora-atomic
 sed -i -e 's|^mirrorlist.*$|baseurl=https://kojipkgs.fedoraproject.org/repos/rawhide/latest/$basearch/|g' fedora-rawhide.repo
 popd
@@ -32,7 +32,7 @@ do
 done
 
 # keep only the last weeks worth of ostree commits
-ostree prune --repo=/mnt/koji/atomic-cd/ --keep-younger-than="7 days ago" --refs-only
+ostree prune --repo=/mnt/koji/atomic-cd/ --keep-younger-than="7 days ago" --refs-only > $COMPOSEDIR/logs/$DATE/ostree-prune.log
 
 # keep a weeks worth of logs
 find $COMPOSEDIR/logs/  -xdev -depth -maxdepth 2 -mtime +7  -exec rm -rf {} \;
