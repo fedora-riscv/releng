@@ -155,6 +155,8 @@ if __name__ == '__main__':
                       help="URL to repos")
     parser.add_option("--srpm", action='store_true', default=False,
                       help="Output source RPMS instead of binary RPMS (for pkgdb)")
+    parser.add_option("--nosecarch", action='store_true', default=False,
+                      help="Not to run for secondary architectures")
     (opt, args) = parser.parse_args()
     if (len(args) != 1) or (args[0] not in releases):
         parser.error("must choose a release from the list: %s" % releases)
@@ -179,7 +181,10 @@ if __name__ == '__main__':
         if arch in primary_arches:
             opt.url = fedora_baseurl
         else:
-            opt.url = fedora_secondaryurl
+            if opt.nosecarch:
+                continue
+            else:
+                opt.url = fedora_secondaryurl
         print "Expanding critical path for %s" % arch
         (my, cachedir) = setup_yum(url = opt.url, release=release, arch=arch)
         pkgs = expand_critpath(my, critpath_groups)
