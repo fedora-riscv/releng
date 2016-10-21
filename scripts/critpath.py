@@ -22,8 +22,11 @@ critpath_groups = [
     '@critical-path-xfce'
 ]
 base_arches = ('armhfp', 'i386', 'x86_64')
+primary_arches=('armhfp', 'x86_64')
+secondary_arches=('i386','aarch64','ppc64','ppc64le','s390x')
 known_arches = base_arches + ('armv7hl','i586','i686')
 fedora_baseurl = 'http://dl.fedoraproject.org/pub/fedora/linux/'
+fedora_secondaryurl = 'http://dl.fedoraproject.org/pub/fedora-secondary/'
 releasepath = {
     'devel': 'development/rawhide/Everything/$basearch/os/',
     'rawhide': 'development/rawhide/Everything/$basearch/os/'
@@ -33,12 +36,12 @@ updatepath = {
     'rawhide': ''
 }
 
-for r in ['12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23']: # 13, 14, ...
+for r in ['12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24']: # 13, 14, ...
     releasepath[r] = 'releases/%s/Everything/$basearch/os/' % r
     updatepath[r] = 'updates/%s/$basearch/' % r
 
 # Branched Fedora goes here
-branched = '24'
+branched = '25'
 releasepath['branched'] = 'development/%s/Everything/$basearch/os' % branched
 updatepath['branched'] = ''
 
@@ -173,6 +176,10 @@ if __name__ == '__main__':
     # Do the critpath expansion for each arch
     critpath = set()
     for arch in check_arches:
+        if arch in primary_arches:
+            opt.url = fedora_baseurl
+        else:
+            opt.url = fedora_secondaryurl
         print "Expanding critical path for %s" % arch
         (my, cachedir) = setup_yum(url = opt.url, release=release, arch=arch)
         pkgs = expand_critpath(my, critpath_groups)
