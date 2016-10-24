@@ -21,10 +21,8 @@ critpath_groups = [
     '@critical-path-gnome', '@critical-path-kde', '@critical-path-lxde',
     '@critical-path-xfce'
 ]
-base_arches = ('armhfp', 'i386', 'x86_64')
 primary_arches=('armhfp', 'x86_64')
 secondary_arches=('i386','aarch64','ppc64','ppc64le','s390x')
-known_arches = base_arches + ('armv7hl','i586','i686')
 fedora_baseurl = 'http://dl.fedoraproject.org/pub/fedora/linux/'
 fedora_secondaryurl = 'http://dl.fedoraproject.org/pub/fedora-secondary/'
 releasepath = {
@@ -127,7 +125,7 @@ def setup_yum(url=None, release=None, arch=None):
         arch = basearch
     elif arch != basearch:
         # try to force yum to use the supplied arch rather than the host arch
-        fakearch = {'i386':'i686',  'x86_64':'x86_64',  'ppc':'ppc64', 'armhfp':'armv7hl', 'aarch64':'aarch64', 'ppc64le':'ppc64', 's390x':'s390x'}
+        fakearch = {'i386':'i686',  'x86_64':'x86_64', 'ppc64':'ppc64', 'ppc':'ppc64', 'armhfp':'armv7hl', 'aarch64':'aarch64', 'ppc64le':'ppc64', 's390x':'s390x'}
         my.preconf.arch = fakearch[arch]
     my.conf.cachedir = cachedir
     my.conf.installroot = cachedir
@@ -147,8 +145,10 @@ if __name__ == '__main__':
     parser = optparse.OptionParser(usage="%%prog [options] [%s]" % '|'.join(releases))
     parser.add_option("--nvr", action='store_true', default=False,
                       help="output full NVR instead of just package name")
-    parser.add_option("-a", "--arches", default=','.join(base_arches),
+    parser.add_option("-a", "--arches", default=','.join(primary_arches),
                       help="arches to evaluate (%default)")
+    parser.add_option("-s", "--secarches", default=','.join(secondary_arches),
+                      help="secondary arches to evaluate (%default)")
     parser.add_option("-o", "--output", default="critpath.txt",
                       help="name of file to write critpath list (%default)")
     parser.add_option("-u", "--url", default=fedora_baseurl,
@@ -167,6 +167,7 @@ if __name__ == '__main__':
     # Sanity checking done, set some variables
     release = args[0]
     check_arches = opt.arches.split(',')
+    secondary_check_arches = opt.secarches.split(',')
     if opt.nvr and opt.srpm:
         print "ERROR: --nvr and --srpm are mutually exclusive"
         sys.exit(1)
@@ -177,14 +178,16 @@ if __name__ == '__main__':
 
     # Do the critpath expansion for each arch
     critpath = set()
-    for arch in check_arches:
-        if arch in primary_arches:
+    for arch in check_arches+secondary_check_arches:
+        if arch in check_arches:
             opt.url = fedora_baseurl
-        else:
+        elif arch in secondary_check_arches:
             if opt.nosecarch:
                 continue
             else:
                 opt.url = fedora_secondaryurl
+        else:
+            raise Exception('Invalid architecture')
         print "Expanding critical path for %s" % arch
         (my, cachedir) = setup_yum(url = opt.url, release=release, arch=arch)
         pkgs = expand_critpath(my, critpath_groups)
