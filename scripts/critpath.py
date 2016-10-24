@@ -22,9 +22,9 @@ critpath_groups = [
     '@critical-path-xfce'
 ]
 primary_arches=('armhfp', 'x86_64')
-secondary_arches=('i386','aarch64','ppc64','ppc64le','s390x')
+alternate_arches=('i386','aarch64','ppc64','ppc64le','s390x')
 fedora_baseurl = 'http://dl.fedoraproject.org/pub/fedora/linux/'
-fedora_secondaryurl = 'http://dl.fedoraproject.org/pub/fedora-secondary/'
+fedora_alternateurl = 'http://dl.fedoraproject.org/pub/fedora-secondary/'
 releasepath = {
     'devel': 'development/rawhide/Everything/$basearch/os/',
     'rawhide': 'development/rawhide/Everything/$basearch/os/'
@@ -147,16 +147,16 @@ if __name__ == '__main__':
                       help="output full NVR instead of just package name")
     parser.add_option("-a", "--arches", default=','.join(primary_arches),
                       help="Primary arches to evaluate (%default)")
-    parser.add_option("-s", "--secarches", default=','.join(secondary_arches),
-                      help="secondary arches to evaluate (%default)")
+    parser.add_option("-s", "--altarches", default=','.join(alternate_arches),
+                      help="Alternate arches to evaluate (%default)")
     parser.add_option("-o", "--output", default="critpath.txt",
                       help="name of file to write critpath list (%default)")
     parser.add_option("-u", "--url", default=fedora_baseurl,
                       help="URL to repos")
     parser.add_option("--srpm", action='store_true', default=False,
                       help="Output source RPMS instead of binary RPMS (for pkgdb)")
-    parser.add_option("--nosecarch", action='store_true', default=False,
-                      help="Not to run for secondary architectures")
+    parser.add_option("--noaltarch", action='store_true', default=False,
+                      help="Not to run for alternate architectures")
     (opt, args) = parser.parse_args()
     if (len(args) != 1) or (args[0] not in releases):
         parser.error("must choose a release from the list: %s" % releases)
@@ -167,7 +167,7 @@ if __name__ == '__main__':
     # Sanity checking done, set some variables
     release = args[0]
     check_arches = opt.arches.split(',')
-    secondary_check_arches = opt.secarches.split(',')
+    alternate_check_arches = opt.secarches.split(',')
     if opt.nvr and opt.srpm:
         print "ERROR: --nvr and --srpm are mutually exclusive"
         sys.exit(1)
@@ -178,14 +178,14 @@ if __name__ == '__main__':
 
     # Do the critpath expansion for each arch
     critpath = set()
-    for arch in check_arches+secondary_check_arches:
+    for arch in check_arches+alternate_check_arches:
         if arch in check_arches:
             opt.url = fedora_baseurl
-        elif arch in secondary_check_arches:
-            if opt.nosecarch:
+        elif arch in alternate_check_arches:
+            if opt.noaltarch:
                 continue
             else:
-                opt.url = fedora_secondaryurl
+                opt.url = fedora_alternateurl
         else:
             raise Exception('Invalid architecture')
         print "Expanding critical path for %s" % arch
