@@ -146,7 +146,7 @@ if __name__ == '__main__':
     parser.add_option("--nvr", action='store_true', default=False,
                       help="output full NVR instead of just package name")
     parser.add_option("-a", "--arches", default=','.join(primary_arches),
-                      help="arches to evaluate (%default)")
+                      help="Primary arches to evaluate (%default)")
     parser.add_option("-s", "--secarches", default=','.join(secondary_arches),
                       help="secondary arches to evaluate (%default)")
     parser.add_option("-o", "--output", default="critpath.txt",
