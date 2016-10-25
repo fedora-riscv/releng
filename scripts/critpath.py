@@ -152,7 +152,9 @@ if __name__ == '__main__':
     parser.add_option("-o", "--output", default="critpath.txt",
                       help="name of file to write critpath list (%default)")
     parser.add_option("-u", "--url", default=fedora_baseurl,
-                      help="URL to repos")
+                      help="URL to Primary repos")
+    parser.add_option("-r", "--alturl", default=fedora_alternateurl,
+                      help="URL to Alternate repos")
     parser.add_option("--srpm", action='store_true', default=False,
                       help="Output source RPMS instead of binary RPMS (for pkgdb)")
     parser.add_option("--noaltarch", action='store_true', default=False,
@@ -167,7 +169,7 @@ if __name__ == '__main__':
     # Sanity checking done, set some variables
     release = args[0]
     check_arches = opt.arches.split(',')
-    alternate_check_arches = opt.secarches.split(',')
+    alternate_check_arches = opt.altarches.split(',')
     if opt.nvr and opt.srpm:
         print "ERROR: --nvr and --srpm are mutually exclusive"
         sys.exit(1)
@@ -180,16 +182,16 @@ if __name__ == '__main__':
     critpath = set()
     for arch in check_arches+alternate_check_arches:
         if arch in check_arches:
-            opt.url = fedora_baseurl
+            url=opt.url
         elif arch in alternate_check_arches:
             if opt.noaltarch:
                 continue
             else:
-                opt.url = fedora_alternateurl
+                url = opt.alturl
         else:
             raise Exception('Invalid architecture')
         print "Expanding critical path for %s" % arch
-        (my, cachedir) = setup_yum(url = opt.url, release=release, arch=arch)
+        (my, cachedir) = setup_yum(url = url, release=release, arch=arch)
         pkgs = expand_critpath(my, critpath_groups)
         print "%u packages for %s" % (len(pkgs), arch)
         if opt.nvr:
