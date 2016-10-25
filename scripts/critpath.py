@@ -21,9 +21,10 @@ critpath_groups = [
     '@critical-path-gnome', '@critical-path-kde', '@critical-path-lxde',
     '@critical-path-xfce'
 ]
-base_arches = ('armhfp', 'i386', 'x86_64')
-known_arches = base_arches + ('armv7hl','i586','i686')
+primary_arches=('armhfp', 'x86_64')
+alternate_arches=('i386','aarch64','ppc64','ppc64le','s390x')
 fedora_baseurl = 'http://dl.fedoraproject.org/pub/fedora/linux/'
+fedora_alternateurl = 'http://dl.fedoraproject.org/pub/fedora-secondary/'
 releasepath = {
     'devel': 'development/rawhide/Everything/$basearch/os/',
     'rawhide': 'development/rawhide/Everything/$basearch/os/'
@@ -33,12 +34,12 @@ updatepath = {
     'rawhide': ''
 }
 
-for r in ['12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23']: # 13, 14, ...
+for r in ['12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24']: # 13, 14, ...
     releasepath[r] = 'releases/%s/Everything/$basearch/os/' % r
     updatepath[r] = 'updates/%s/$basearch/' % r
 
 # Branched Fedora goes here
-branched = '24'
+branched = '25'
 releasepath['branched'] = 'development/%s/Everything/$basearch/os' % branched
 updatepath['branched'] = ''
 
@@ -124,7 +125,7 @@ def setup_yum(url=None, release=None, arch=None):
         arch = basearch
     elif arch != basearch:
         # try to force yum to use the supplied arch rather than the host arch
-        fakearch = {'i386':'i686',  'x86_64':'x86_64',  'ppc':'ppc64', 'armhfp':'armv7hl'}
+        fakearch = {'i386':'i686', 'i386':'i586', 'x86_64':'x86_64', 'ppc64':'ppc64', 'ppc':'ppc64', 'armhfp':'armv7hl', 'aarch64':'aarch64', 'ppc64le':'ppc64', 's390x':'s390x'}
         my.preconf.arch = fakearch[arch]
     my.conf.cachedir = cachedir
     my.conf.installroot = cachedir
@@ -144,14 +145,20 @@ if __name__ == '__main__':
     parser = optparse.OptionParser(usage="%%prog [options] [%s]" % '|'.join(releases))
     parser.add_option("--nvr", action='store_true', default=False,
                       help="output full NVR instead of just package name")
-    parser.add_option("-a", "--arches", default=','.join(base_arches),
-                      help="arches to evaluate (%default)")
+    parser.add_option("-a", "--arches", default=','.join(primary_arches),
+                      help="Primary arches to evaluate (%default)")
+    parser.add_option("-s", "--altarches", default=','.join(alternate_arches),
+                      help="Alternate arches to evaluate (%default)")
     parser.add_option("-o", "--output", default="critpath.txt",
                       help="name of file to write critpath list (%default)")
     parser.add_option("-u", "--url", default=fedora_baseurl,
-                      help="URL to repos")
+                      help="URL to Primary repos")
+    parser.add_option("-r", "--alturl", default=fedora_alternateurl,
+                      help="URL to Alternate repos")
     parser.add_option("--srpm", action='store_true', default=False,
                       help="Output source RPMS instead of binary RPMS (for pkgdb)")
+    parser.add_option("--noaltarch", action='store_true', default=False,
+                      help="Not to run for alternate architectures")
     (opt, args) = parser.parse_args()
     if (len(args) != 1) or (args[0] not in releases):
         parser.error("must choose a release from the list: %s" % releases)
@@ -162,6 +169,7 @@ if __name__ == '__main__':
     # Sanity checking done, set some variables
     release = args[0]
     check_arches = opt.arches.split(',')
+    alternate_check_arches = opt.altarches.split(',')
     if opt.nvr and opt.srpm:
         print "ERROR: --nvr and --srpm are mutually exclusive"
         sys.exit(1)
@@ -172,9 +180,18 @@ if __name__ == '__main__':
 
     # Do the critpath expansion for each arch
     critpath = set()
-    for arch in check_arches:
+    for arch in check_arches+alternate_check_arches:
+        if arch in check_arches:
+            url=opt.url
+        elif arch in alternate_check_arches:
+            if opt.noaltarch:
+                continue
+            else:
+                url = opt.alturl
+        else:
+            raise Exception('Invalid architecture')
         print "Expanding critical path for %s" % arch
-        (my, cachedir) = setup_yum(url = opt.url, release=release, arch=arch)
+        (my, cachedir) = setup_yum(url = url, release=release, arch=arch)
         pkgs = expand_critpath(my, critpath_groups)
         print "%u packages for %s" % (len(pkgs), arch)
         if opt.nvr:
