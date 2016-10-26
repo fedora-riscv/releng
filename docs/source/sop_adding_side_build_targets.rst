@@ -57,7 +57,7 @@ For EL7 we would do the following:
 
 ::
 
-    koji add-tag epel7-xfce48 --parent=epel7 --arches=i686,x86_64,ppc64,ppc64le
+    koji add-tag epel7-xfce48 --parent=epel7-build --arches=aarch64,x86_64,ppc64,ppc64le
     koji add-target epel7-xfce48 epel7-xfce48
 
 A Fedora example would be:
