@@ -21,13 +21,10 @@ this list should be updated periodically.
 Action
 ======
 
-#. Checkout the releng git repo:
+#. Release engineering scripts for updating critpath live in the `releng git 
+   repository`_. 
 
-   ::
-
-        git clone git://git.fedorahosted.org/git/releng
-
-#. Check the script to see if the list of releases needs to be updated:
+#. Check the critpath.py script to see if the list of releases needs to be updated:
 
    ::
 
@@ -45,10 +42,12 @@ Action
 
 #. Run the script with the release to generate info for (for a release that's
    hit final, this is the release number example: "17".  For branched, it's
-   "branched"):
+   "branched"). The script excludes alternate arches. In order to provide 
+   alternate arches use --altarches option.
 
    ::
-        ./critpath.py --srpm -o critpath.txt branched
+
+        ./critpath.py --srpm --noaltarch -o critpath.txt branched
 
 #. Run the update script to add that to the pkgdb:
 
@@ -61,3 +60,5 @@ Action
    critpath.txt is the file that the output of critpath.py went into.  The
    script will prompt for your FAS password to verify your identity with the
    pkgdb.
+
+.. _releng git repository: https://pagure.io/releng
