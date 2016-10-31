@@ -42,12 +42,11 @@ Action
 
 #. Run the script with the release to generate info for (for a release that's
    hit final, this is the release number example: "17".  For branched, it's
-   "branched"). The script excludes alternate arches. In order to provide 
-   alternate arches use --altarches option.
+   "branched").
 
    ::
 
-        ./critpath.py --srpm --noaltarch -o critpath.txt branched
+        ./critpath.py --srpm -o critpath.txt branched
 
 #. Run the update script to add that to the pkgdb:
 
