@@ -198,6 +198,64 @@ with OSBS and "work your way back" so in the above example you would first check
 found in the logs of the previous machine, and again move on to the koji hub if
 neither of the builder machines involved provided useful log information.
 
+Build fails because it can't get to a network resource
+------------------------------------------------------
+
+Sometimes there is a situation where the firewall rules get messed up on one of
+the OpenShift Nodes in the environment. This can cause output similar to the
+following:
+
+::
+
+    $ fedpkg container-build --scratch
+    Created task: 90066343
+    Task info: http://koji.stg.fedoraproject.org/koji/taskinfo?taskID=90066343
+    Watching tasks (this may be safely interrupted)...
+    90066343 buildContainer (noarch): free
+    90066343 buildContainer (noarch): free -> open (buildvm-03.stg.phx2.fedoraproject.org)
+      90066344 createContainer (x86_64): open (buildvm-04.stg.phx2.fedoraproject.org)
+      90066344 createContainer (x86_64): open (buildvm-04.stg.phx2.fedoraproject.org) -> FAILED: Fault: <Fault 2001: "Image build failed. Error in plugin distgit_fetch_artefacts: OSError(2, 'No such file or directory'). OSBS build id: scratch-20161102132628">
+      0 free  1 open  0 done  1 failed
+    90066343 buildContainer (noarch): open (buildvm-03.stg.phx2.fedoraproject.org) -> closed
+      0 free  0 open  1 done  1 failed
+
+
+If we go to the OSBS Master and run the following commands, we will see the root
+symptom:
+
+::
+
+    # oc logs build/scratch-20161102132628
+    Error from server: Get https://osbs-node02.stg.phx2.fedoraproject.org:10250/containerLogs/default/scratch-20161102132628-build/custom-build: dial tcp 10.5.126.213:10250: getsockopt: no route to host
+
+    # ping 10.5.126.213
+    PING 10.5.126.213 (10.5.126.213) 56(84) bytes of data.
+    64 bytes from 10.5.126.213: icmp_seq=1 ttl=64 time=0.299 ms
+    64 bytes from 10.5.126.213: icmp_seq=2 ttl=64 time=0.299 ms
+    64 bytes from 10.5.126.213: icmp_seq=3 ttl=64 time=0.253 ms
+    64 bytes from 10.5.126.213: icmp_seq=4 ttl=64 time=0.233 ms
+    ^C
+    --- 10.5.126.213 ping statistics ---
+    4 packets transmitted, 4 received, 0% packet loss, time 3073ms
+    rtt min/avg/max/mdev = 0.233/0.271/0.299/0.028 ms
+
+    # http get 10.5.126.213:10250
+
+    http: error: ConnectionError: HTTPConnectionPool(host='10.5.126.213', port=10250): Max retries exceeded with url: / (Caused by NewConnectionError('<requests.packages.urllib3.connection.HTTPConnection object at 0x7fdab064b320>: Failed to establish a new connection: [Errno 113] No route to host',)) while doing GET request to URL: http://10.5.126.213:10250/
+
+
+In the above output, we can see that we do actually have network connectivity to
+the Node but we can not connect to the OpenShift service that should be
+listening on port ``10250``.
+
+To fix this, you need to ssh into the OpenShift Node that you can't connect to
+via port ``10250`` and run the following commands. This should resolve the
+issue.
+
+::
+
+    iptables -F && iptables -t nat -F && systemctl restart docker && systemctl restart origin-node
+
 .. _tmux: https://tmux.github.io/
 .. _kubernetes: http://kubernetes.io/
 .. _OpenShift: https://www.openshift.org/
