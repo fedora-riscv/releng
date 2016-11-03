@@ -395,12 +395,14 @@ Respective signed CHECKSUM files can be found here:
 {}
 
 For direct download, the "latest" targets are always available here:
+    https://getfedora.org/atomic_iso_latest
     https://getfedora.org/atomic_qcow2_latest
     https://getfedora.org/atomic_raw_latest
     https://getfedora.org/atomic_vagrant_libvirt_latest
     https://getfedora.org/atomic_vagrant_virtualbox_latest
 
 Filename fetching URLs are available here:
+    https://getfedora.org/atomic_iso_latest_filename
     https://getfedora.org/atomic_qcow2_latest_filename
     https://getfedora.org/atomic_raw_latest_filename
     https://getfedora.org/atomic_vagrant_libvirt_latest_filename
