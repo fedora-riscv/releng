@@ -50,6 +50,7 @@ done
 
 sudo -u ftpsync scripts/build_composeinfo $DESTDIR/$RELPREFIX$RELEASEVER/
 sudo -u ftpsync scripts/build_composeinfo $ALTDESTDIR/$RELPREFIX$RELEASEVER/
+sudo scripts/build_composeinfo $BASE$RELEASEVER/$COMPOSEID/compose/
 
 sudo -u ftpsync chmod 750 $DESTDIR/$RELPREFIX$RELEASEVER/
 sudo -u ftpsync chmod 750 $ALTDESTDIR/$RELPREFIX$RELEASEVER/
