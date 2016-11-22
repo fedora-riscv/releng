@@ -60,7 +60,6 @@ ATOMIC_EMAIL_RECIPIENTS = [
 # Full path will be:
 #   /pub/alt/stage/$VERSION-$DATE/$IMAGE_TYPE/x86_64/[Images|os]/
 # http://dl.fedoraproject.org/pub/alt/atomic/stable/
-ATOMIC_LINKDEST = "/pub/alt/atomic/testing/"
 ATOMIC_STABLE_BASEDIR = "/pub/alt/atomic/stable/"
 
 # the modname gets used to construct the fully qualified topic, like
@@ -102,7 +101,7 @@ DATAGREPPER_URL = "https://apps.fedoraproject.org/datagrepper/raw"
 # delta = 2 weeks in seconds
 DATAGREPPER_DELTA = 1209600
 # category to filter on from datagrepper
-DATAGREPPER_TOPIC = "org.fedoraproject.prod.autocloud.image.success"
+DATAGREPPER_TOPIC = "org.fedoraproject.prod.autocloud.compose.complete"
 
 
 SIGUL_SIGNED_TXT_PATH = "/tmp/signed"
@@ -116,15 +115,15 @@ def construct_url(msg):
 
     Takes an autocloud fedmsg message and returns the image name and final url.
     """
-    dest_dir = os.path.join(
-        ATOMIC_STABLE_BASEDIR,
-        msg[u'msg'][u'compose_id'],
-        'CloudImages/x86_64/images/'
-    )
-    image_name = msg[u'msg'][u'compose_url'].split('/')[-1]
-    image_url = os.path.join(dest_dir, image_name)
-    return image_name, image_url
+    iul = msg[u'image_url'].split('/')
 
+    # This isn't used in the path for the destination dir, it's in there twice
+    iul.remove('compose')
+    iul.remove('compose')
+
+    image_name = iul[-1]
+    image_url = os.path.join(ATOMIC_STABLE_BASEDIR, '/'.join(iul[4:]))
+    return image_name, image_url
 
 def get_latest_successful_autocloud_test_info(
         release,
@@ -161,177 +160,92 @@ def get_latest_successful_autocloud_test_info(
             params=dict(page=rpage, **request_params)
         ).json()[u'raw_messages']
 
-    # FIXME - I would like to find a good way to extract the types from the
-    #         datagrepper query instead of specifying each artifact
-    atomic_qcow2 = [
-        s for s in autocloud_data
-        if s[u'msg'][u'status'] == u'success'
-        and fnmatch.fnmatch(s[u'msg'][u'image_name'], u'Fedora-Atomic-*')
-        and s[u'msg'][u'type'] == u"qcow2"
-        and not compose_manually_marked_bad(s[u'msg'][u'compose_id'])
-    ]
 
-    atomic_vagrant_libvirt = [
-        s for s in autocloud_data
-        if s[u'msg'][u'status'] == u'success'
-        and fnmatch.fnmatch(s[u'msg'][u'image_name'], u'Fedora-Atomic-*')
-        and s[u'msg'][u'type'] == u"vagrant-libvirt"
-        and not compose_manually_marked_bad(s[u'msg'][u'compose_id'])
-    ]
-
-    atomic_vagrant_vbox = [
-        s for s in autocloud_data
-        if s[u'msg'][u'status'] == u'success'
-        and fnmatch.fnmatch(s[u'msg'][u'image_name'], u'Fedora-Atomic-*')
-        and s[u'msg'][u'type'] == u"vagrant-virtualbox"
-        and not compose_manually_marked_bad(s[u'msg'][u'compose_id'])
-    ]
-
-    # HACK
+    # List comprehension that will return a list of compose information from
+    # AutoCloud (the [u'msg'] payload of autocloud.compose.complete fedmsg)
+    # such that the following criteria are true:
     #
-    # Handle manually marked "good" builds that were false positives in
-    # AutoCloud
-    if MARK_ATOMIC_GOOD_COMPOSES:
-        release_cycle_time = time.time() - DATAGREPPER_DELTA
-        atomic_qcow2_failed = [
-            s for s in autocloud_data
-            if s[u'msg'][u'status'] == u'failed'
-            and fnmatch.fnmatch(s[u'msg'][u'image_name'], u'Fedora-Atomic-*')
-            and s[u'msg'][u'type'] == u"qcow2"
-            and not compose_manually_marked_bad(s[u'msg'][u'compose_id'])
-        ]
+    #   - Is an Atomic compose (i.e. 'Atomic' is in the compose id)
+    #   - No compose artifacts failed the tests
+    #   - This is the current Fedora release we want
+    #
+    #   OR:
+    #       - This compose was manually marked good
+    candidate_composes = [
+        compose[u'msg'] for compose in autocloud_data
+            if u'Atomic' in compose[u'msg'][u'id']
+                and compose[u'msg'][u'results'][u'failed'] == 0
+                and compose[u'msg'][u'release'] == str(release)
+                or compose[u'msg'][u'id'] in MARK_ATOMIC_GOOD_COMPOSES
+    ]
 
-        atomic_vagrant_libvirt_failed = [
-            s for s in autocloud_data
-            if s[u'msg'][u'status'] == u'failed'
-            and fnmatch.fnmatch(s[u'msg'][u'image_name'], u'Fedora-Atomic-*')
-            and s[u'msg'][u'type'] == u"vagrant-libvirt"
-            and not compose_manually_marked_bad(s[u'msg'][u'compose_id'])
-        ]
+    filtered_composes = list(candidate_composes)
+    for compose in candidate_composes:
+        if compose_manually_marked_bad(compose[u'id']):
+            filtered_composes.remove(compose)
 
-        atomic_vagrant_vbox_failed = [
-            s for s in autocloud_data
-            if s[u'msg'][u'status'] == u'failed'
-            and fnmatch.fnmatch(s[u'msg'][u'image_name'], u'Fedora-Atomic-*')
-            and s[u'msg'][u'type'] == u"vagrant-virtualbox"
-            and not compose_manually_marked_bad(s[u'msg'][u'compose_id'])
-        ]
-
-        # Define some helpers to deal with some of this badness
-        # Thanks to Ralph(threebean) for the suggestion/patch to try and
-        # bring sanity to chaos
-        url2image = lambda s: s.split('/')[-1]
-        image2release = lambda s: int(s.split('.')[0].split('-')[-1])
-
-        for good_compose in MARK_ATOMIC_GOOD_COMPOSES:
-            good_compose_date = str(image2release(good_compose))
-            release_window = datetime.datetime.strptime(good_compose_date, "%Y%m%d")
-
-            if time.mktime(release_window.timetuple()) > release_cycle_time:
-
-                # NOTE: By appending, we won't override an "organically"
-                #       passed test from AutoCloud because the selector
-                #       below gets index 0 of the different atomic_ lists
-                #
-                #       We then insert at index 0 when the manually entered
-                #       successful build is newer than the latest
-                #       "organically" passed test
-
-                # check against atomic_qcow2
-                for check_build in atomic_qcow2_failed:
-                    if good_compose == url2image(check_build[u'msg'][u'compose_id']):
-                        if len(atomic_qcow2) > 0:
-                            candidate = url2image(atomic_qcow2[0][u'msg'][u'compose_url'])
-                            if image2release(candidate) < image2release(good_compose):
-                                atomic_qcow2.insert(0, check_build)
-                            else:
-                                atomic_qcow2.append(check_build)
-                        else:
-                            atomic_qcow2.append(check_build)
-
-                # check against vagrant_libvirt
-                for check_build in atomic_vagrant_libvirt_failed:
-                    if good_compose == url2image(check_build[u'msg'][u'compose_url']):
-                        if len(atomic_vagrant_libvirt) > 0:
-                            candidate = url2image(atomic_vagrant_libvirt[0][u'msg'][u'compose_url'])
-                            if image2release(candidate) < image2release(good_compose):
-                                atomic_vagrant_libvirt.insert(0, check_build)
-                            else:
-                                atomic_vagrant_libvirt.append(check_build)
-                        else:
-                            atomic_vagrant_libvirt.append(check_build)
-
-                # check against vagrant_vbox
-                for check_build in atomic_vagrant_vbox_failed:
-                    if good_compose == url2image(check_build[u'msg'][u'compose_url']):
-                        if len(atomic_vagrant_vbox) > 0:
-                            candidate = url2image(atomic_vagrant_vbox[0][u'msg'][u'compose_url'])
-                            if image2release(candidate) < image2release(good_compose):
-                                atomic_vagrant_vbox.insert(0, check_build)
-                            else:
-                                atomic_vagrant_vbox.append(check_build)
-                        else:
-                            atomic_vagrant_vbox.append(check_build)
+    # sc = successful compose
+    sc = filtered_composes[0]
 
     autocloud_info = {}
 
-    # Yet another hack because AutoCloud still doesn't give us this information
-    # even though the rewrite was supposed to
-    extract_compose_id = lambda x: x[u'msg']['compose_id']
-    qcow2_composes = map(extract_compose_id, atomic_qcow2)
-    vagrant_libvirt_composes = map(extract_compose_id, atomic_vagrant_libvirt)
-    vagrant_vbox_composes = map(extract_compose_id, atomic_vagrant_vbox)
-    compose = [c for c in qcow2_composes
-               if c in vagrant_vbox_composes
-               and c in vagrant_libvirt_composes][0]
+    # qcow2 image
+    qcow_msg = [
+        sc[u'results'][u'artifacts'][img] for img in sc[u'results'][u'artifacts']
+            if sc[u'results'][u'artifacts'][img][u'family'] == u'Atomic'
+            and sc[u'results'][u'artifacts'][img][u'type'] == u'qcow2'
+    ][0]
+    image_name, image_url = construct_url(qcow_msg)
+    autocloud_info["atomic_qcow2"] = {
+        "compose_id": sc[u'id'],
+        "name": qcow_msg[u'name'],
+        "release": sc[u'release'],
+        "image_name": image_name,
+        "image_url": image_url,
+    }
 
-    # sc = successful compose because we've now coorelated the data to a single
-    #       compose that's successful across all images
-    sc_qcow2 = [i for i in atomic_qcow2 if i[u'msg'][u'compose_id'] == compose]
-    sc_vagrant_libvirt = [i for i in atomic_vagrant_libvirt if i[u'msg'][u'compose_id'] == compose]
-    sc_vagrant_vbox = [i for i in atomic_vagrant_vbox if i[u'msg'][u'compose_id'] == compose]
+    # raw image
+    #
+    # FIXME - This is a bit of a hack right now, but the raw image is what
+    #         the qcow2 is made of so only qcow2 is tested and infers the
+    #         success of both qcow2 and raw.xz
+    autocloud_info["atomic_raw"] = {
+        "compose_id": sc[u'id'],
+        "name": qcow_msg[u'name'],
+        "release": sc[u'release'],
+        "image_name": image_name.replace('qcow2', 'raw.xz'),    # HACK
+        "image_url": image_url.replace('qcow2', 'raw.xz'),      # HACK
+    }
 
+    # vagrant libvirt image
+    vlibvirt_msg = [
+        sc[u'results'][u'artifacts'][img] for img in sc[u'results'][u'artifacts']
+            if sc[u'results'][u'artifacts'][img][u'family'] == u'Atomic'
+            and sc[u'results'][u'artifacts'][img][u'type'] == u'vagrant-libvirt'
+    ][0]
+    image_name, image_url = construct_url(vlibvirt_msg)
+    autocloud_info["atomic_vagrant_libvirt"] = {
+        "compose_id": sc[u'id'],
+        "name": vlibvirt_msg[u'name'],
+        "release": sc[u'release'],
+        "image_name": image_name,
+        "image_url": image_url,
+    }
 
-    if sc_qcow2:
-        image_name, image_url = construct_url(sc_qcow2[0])
-        autocloud_info["atomic_qcow2"] = {
-            "compose_id": sc_qcow2[0][u'msg'][u'compose_id'],
-            "name": sc_qcow2[0][u'msg'][u'image_name'],
-            "release": sc_qcow2[0][u'msg'][u'release'],
-            "image_name": image_name,
-            "image_url": image_url,
-        }
-
-        # FIXME - This is a bit of a hack right now, but the raw image is what
-        #         the qcow2 is made of so only qcow2 is tested and infers the
-        #         success of both qcow2 and raw.xz
-        autocloud_info["atomic_raw"] = {
-            "compose_id": sc_qcow2[0][u'msg'][u'compose_id'],
-            "name": sc_qcow2[0][u'msg'][u'image_name'] + '-Raw',
-            "release": sc_qcow2[0][u'msg'][u'release'],
-            "image_name": image_name.replace('qcow2', 'raw.xz'),    # HACK
-            "image_url": image_url.replace('qcow2', 'raw.xz'),      # HACK
-        }
-
-    if sc_vagrant_libvirt:
-        image_name, image_url = construct_url(sc_vagrant_libvirt[0])
-        autocloud_info["atomic_vagrant_libvirt"] = {
-            "compose_id": sc_vagrant_libvirt[0][u'msg'][u'compose_id'],
-            "name": sc_vagrant_libvirt[0][u'msg'][u'image_name'],
-            "release": sc_vagrant_libvirt[0][u'msg'][u'release'],
-            "image_name": image_name,
-            "image_url": image_url,
-        }
-
-    if sc_vagrant_vbox:
-        image_name, image_url = construct_url(sc_vagrant_vbox[0])
-        autocloud_info["atomic_vagrant_virtualbox"] = {
-            "compose_id": sc_vagrant_vbox[0][u'msg'][u'compose_id'],
-            "name": sc_vagrant_vbox[0][u'msg'][u'image_name'],
-            "release": sc_vagrant_vbox[0][u'msg'][u'release'],
-            "image_name": image_name,
-            "image_url": image_url,
-        }
+    # vagrant vbox image
+    vvbox_msg = [
+        sc[u'results'][u'artifacts'][img] for img in sc[u'results'][u'artifacts']
+            if sc[u'results'][u'artifacts'][img][u'family'] == u'Atomic'
+            and sc[u'results'][u'artifacts'][img][u'type'] == u'vagrant-virtualbox'
+    ][0]
+    image_name, image_url = construct_url(vvbox_msg)
+    autocloud_info["atomic_vagrant_virtualbox"] = {
+        "compose_id": sc[u'id'],
+        "name": vvbox_msg[u'name'],
+        "release": sc[u'release'],
+        "image_name": image_name,
+        "image_url": image_url,
+    }
 
     return autocloud_info
 
@@ -438,8 +352,7 @@ Fedora Release Engineering
 def stage_atomic_release(
         compose_id,
         compose_basedir=COMPOSE_BASEDIR,
-        dest_base_dir=ATOMIC_STABLE_BASEDIR,
-        link_dest=ATOMIC_LINKDEST):
+        dest_base_dir=ATOMIC_STABLE_BASEDIR):
     """
     stage_atomic_release
 
@@ -455,12 +368,7 @@ def stage_atomic_release(
     rsync_cmd = [
         'sudo',
         'rsync -avhHP --delete-after',
-        '--link-dest={}'.format(
-            os.path.join(
-                link_dest,
-                compose_id.split('-')[-1]
-            )
-        ),
+        '--exclude Cloud/',
         "{}/".format(source_loc),
         dest_dir
     ]
@@ -668,6 +576,10 @@ if __name__ == '__main__':
     tested_autocloud_info = get_latest_successful_autocloud_test_info(
         pargs.release
     )
+
+    # FIXME - DEBUGGING
+    log.info("{}\n{}".format("TESTED_AUTOCLOUD_INFO", json.dumps(tested_autocloud_info, indent=2)))
+
     log.info("Query to datagrepper complete")
     # If the dict is empty, there were no successful builds in the last two
     # weeks, error accordingly
@@ -716,8 +628,9 @@ if __name__ == '__main__':
 
     send_atomic_announce_email(set(email_filelist))
 
-    log.info("Pruning old Atomic test composes")
-    prune_old_composes(ATOMIC_STABLE_BASEDIR, 2)
+    # FIXME - The logic in this functioni is broken, leave it disabled for now
+    #log.info("Pruning old Atomic test composes")
+    #prune_old_composes(ATOMIC_STABLE_BASEDIR, 2)
 
     log.info("Two Week Atomic Release Complete!")
 
