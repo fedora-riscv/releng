@@ -108,7 +108,7 @@ by requesting them from Apple.
 #. Done
 
 Sign and DMG
-=============
+------------
 
 #. Open a terminal 
 #. cd to the root directory of the FMW project
