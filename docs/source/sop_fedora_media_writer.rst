@@ -65,7 +65,7 @@ Verification
 The FedoraMediaWriter-win32-<release_number>.exe is located under dist/win/ 
 directory.
 
-macOS:
+OS X:
 -----
 
 Build:
@@ -144,6 +144,19 @@ Sign and DMG
 
         hdiutil create -srcfolder "Fedora Media Writer.app"  -format UDCO -imagekey zlib-level=9 -scrub \
                        -volname FedoraMediaWriter-osx FedoraMediaWriter-osx-$(git  describe --tags).dmg
+
+Account Email(OS X)
+-------------------
+
+   ::
+        releng@fedoraproject.org
+
+Account Holders(OS X)
+---------------------
+
+#. Primary: Dennis Gilmore <dgilmore@redhat.com>
+#. Backup: Kevin Fenzi <kfenzi@redhat.com>
+#. Manager/bill-payer: Paul Frields <pfrields@redhat.com>
 
 Consider Before Running
 =======================
