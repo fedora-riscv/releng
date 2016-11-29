@@ -154,9 +154,9 @@ Account Email(OS X)
 Account Holders(OS X)
 ---------------------
 
-#. Primary: Dennis Gilmore <dgilmore@redhat.com>
-#. Backup: Kevin Fenzi <kfenzi@redhat.com>
-#. Manager/bill-payer: Paul Frields <pfrields@redhat.com>
+#. Primary: Dennis Gilmore(ausil)
+#. Backup: Kevin Fenzi(kevin)
+#. Manager/bill-payer: Paul Frields(pfrields)
 
 Consider Before Running
 =======================
