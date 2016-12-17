@@ -28,10 +28,6 @@ errors = {}
 status = 0
 rpmdict = {}
 unsigned = []
-# Should probably set these from a koji config file
-SERVERCA = os.path.expanduser('~/.fedora-server-ca.cert')
-CLIENTCA = os.path.expanduser('~/.fedora-upload-ca.cert')
-CLIENTCERT = os.path.expanduser('~/.fedora.cert')
 # Setup a dict of our key names as sigul knows them to the actual key ID
 # that koji would use. This information can also be obtained using
 # SigulHelper() instances
@@ -184,16 +180,15 @@ class KojiHelper(object):
     def __init__(self, arch=None):
         if arch:
             self.kojihub = \
-                'http://{arch}.koji.fedoraproject.org/kojihub'.format(
+                'https://{arch}.koji.fedoraproject.org/kojihub'.format(
                     arch=arch)
         else:
             self.kojihub = 'https://koji.fedoraproject.org/kojihub'
         self.serverca = os.path.expanduser('~/.fedora-server-ca.cert')
         self.clientca = os.path.expanduser('~/.fedora-upload-ca.cert')
         self.clientcert = os.path.expanduser('~/.fedora.cert')
-        self.kojisession = koji.ClientSession(self.kojihub)
-        self.kojisession.ssl_login(self.clientcert, self.clientca,
-                                   self.serverca)
+        self.kojisession = koji.ClientSession(self.kojihub, {'krb_rdns': False})
+        self.kojisession.krb_login()
 
     def listTagged(self, tag, inherit=False):
         """ Return list of SRPM NVRs for a tag
