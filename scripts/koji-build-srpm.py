@@ -21,6 +21,8 @@ import argparse
 
 # get architecture, tag/target and build from command line
 parser = argparse.ArgumentParser(description='Build srpm from primary koji in secondary koji.')
+parser.add_argument("--keytab", help="specify a Kerberos keytab to use")
+parser.add_argument("--principal", help="specify a Kerberos principal to use")
 parser.add_argument('--scratch', action='store_true', help='scratch build')
 parser.add_argument('--verbose', action='store_true', help='enables additional output, overrides --quiet')
 parser.add_argument('--quiet', action='store_true', help='suppresses non error related output')
@@ -37,6 +39,10 @@ PACKAGEURL = 'http://kojipkgs.fedoraproject.org/'
 SERVERCA = os.path.expanduser('~/.fedora-server-ca.cert')
 CLIENTCA = os.path.expanduser('~/.fedora-upload-ca.cert')
 CLIENTCERT = os.path.expanduser('~/.fedora.cert')
+
+session_opts = {}
+session_opts['krbservice'] = 'host'
+session_opts['krb_rdns'] = False
 
 if args.verbose:
     loglevel = logging.DEBUG
@@ -62,9 +68,15 @@ def _unique_path(prefix):
 
 # setup the koji session
 logging.info('Setting up koji session')
-localkojisession = koji.ClientSession(LOCALKOJIHUB)
+localkojisession = koji.ClientSession(LOCALKOJIHUB, session_opts)
 remotekojisession = koji.ClientSession(REMOTEKOJIHUB)
-localkojisession.ssl_login(CLIENTCERT, CLIENTCA, SERVERCA)
+if os.path.isfile(CLIENTCERT):
+    localckojisession.ssl_login(CLIENTCERT, CLIENTCA, SERVERCA)
+else:
+    if args.keytab and args.principal:
+        localkojisession.krb_login(principal=args.principal, keytab=args.keytab)
+    else:
+        localkojisession.krb_login()
 
 pg = progress.TextMeter()
 
