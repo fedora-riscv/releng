@@ -33,11 +33,6 @@ else:
 LOCALKOJIHUB = 'http://%s.koji.fedoraproject.org/kojihub' % (SECONDARY_ARCH)
 REMOTEKOJIHUB = 'http://koji.fedoraproject.org/kojihub'
 
-# Should probably set these from a koji config file
-SERVERCA = os.path.expanduser('~/.fedora-server-ca.cert')
-CLIENTCA = os.path.expanduser('~/.fedora-upload-ca.cert')
-CLIENTCERT = os.path.expanduser('~/.fedora.cert')
-
 def _rpmvercmp ((e1, v1, r1), (e2, v2, r2)):
     """find out which build is newer"""
     if e1 == "None":
@@ -76,7 +71,6 @@ def _countMissing (build):
     return cnt
 
 localkojisession = koji.ClientSession(LOCALKOJIHUB)
-
 remotekojisession = koji.ClientSession(REMOTEKOJIHUB)
 
 # package indexes
