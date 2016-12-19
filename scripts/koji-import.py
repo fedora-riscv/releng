@@ -20,6 +20,8 @@ import tempfile
 
 # get parameters from command line
 parser = argparse.ArgumentParser()
+parser.add_argument("--keytab", help="specify a Kerberos keytab to use")
+parser.add_argument("--principal", help="specify a Kerberos principal to use")
 parser.add_argument("--force", help="reimport a failed build", action="store_true")
 parser.add_argument("--verbose", help="be verbose during processing", action="store_true")
 parser.add_argument("arch", help="secondary arch koji where to import the builds")
@@ -35,6 +37,10 @@ PACKAGEURL = 'http://kojipkgs.fedoraproject.org/'
 SERVERCA = os.path.expanduser('~/.fedora-server-ca.cert')
 CLIENTCA = os.path.expanduser('~/.fedora-upload-ca.cert')
 CLIENTCERT = os.path.expanduser('~/.fedora.cert')
+
+session_opts = {}
+session_opts['krbservice'] = 'host'
+session_opts['krb_rdns'] = False
 
 workpath = tempfile.mkdtemp(prefix="koji-import.")
 
@@ -141,9 +147,15 @@ def importBuild(rpms, buildinfo, tag=None):
 
 # setup the koji session
 logging.info('Setting up koji session')
-localkojisession = koji.ClientSession(LOCALKOJIHUB)
+localkojisession = koji.ClientSession(LOCALKOJIHUB, session_opts)
 remotekojisession = koji.ClientSession(REMOTEKOJIHUB)
-localkojisession.ssl_login(CLIENTCERT, CLIENTCA, SERVERCA)
+if os.path.isfile(CLIENTCERT):
+    localckojisession.ssl_login(CLIENTCERT, CLIENTCA, SERVERCA)
+else:
+    if args.keytab and args.principal:
+        localkojisession.krb_login(principal=args.principal, keytab=args.keytab)
+    else:
+        localkojisession.krb_login()
 
 for build in args.build:
     buildinfo = remotekojisession.getBuild(build)
