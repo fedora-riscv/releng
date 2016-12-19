@@ -21,6 +21,8 @@ import argparse
 
 # get architecture and tags from command line
 parser = argparse.ArgumentParser()
+parser.add_argument("--keytab", help="specify a Kerberos keytab to use")
+parser.add_argument("--principal", help="specify a Kerberos principal to use")
 parser.add_argument("--dry-run", help="no changes will be made", action="store_true")
 parser.add_argument("arch", help="secondary arch to sync")
 parser.add_argument("tag", nargs="+", help="tag to sync")
@@ -30,6 +32,10 @@ args = parser.parse_args()
 SERVERCA = os.path.expanduser('~/.fedora-server-ca.cert')
 CLIENTCA = os.path.expanduser('~/.fedora-upload-ca.cert')
 CLIENTCERT = os.path.expanduser('~/.fedora.cert')
+
+session_opts = {}
+session_opts['krbservice'] = 'host'
+session_opts['krb_rdns'] = False
 
 def getTagged(kojisession, tag):
     tagged = [] # holding for blocked pkgs
@@ -58,8 +64,14 @@ def rpmvercmp ((e1, v1, r1), (e2, v2, r2)):
 print "=== Working on arch: %s ====" % args.arch
 # Create a koji session
 kojisession = koji.ClientSession('https://koji.fedoraproject.org/kojihub')
-seckojisession = koji.ClientSession('https://%s.koji.fedoraproject.org/kojihub' % args.arch)
-seckojisession.ssl_login(CLIENTCERT, CLIENTCA, SERVERCA)
+seckojisession = koji.ClientSession('https://%s.koji.fedoraproject.org/kojihub' % args.arch, session_opts)
+if os.path.isfile(CLIENTCERT):
+    seckojisession.ssl_login(CLIENTCERT, CLIENTCA, SERVERCA)
+else:
+    if args.keytab and args.principal:
+        seckojisession.krb_login(principal=args.principal, keytab=args.keytab)
+    else:
+        seckojisession.krb_login()
 
 for tag in args.tag:
     print "=== Working on tag: %s ====" % tag
