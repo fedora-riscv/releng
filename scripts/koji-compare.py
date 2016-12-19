@@ -30,8 +30,8 @@ else:
     exit(0)
 
 
-LOCALKOJIHUB = 'http://%s.koji.fedoraproject.org/kojihub' % (SECONDARY_ARCH)
-REMOTEKOJIHUB = 'http://koji.fedoraproject.org/kojihub'
+LOCALKOJIHUB = 'https://%s.koji.fedoraproject.org/kojihub' % (SECONDARY_ARCH)
+REMOTEKOJIHUB = 'https://koji.fedoraproject.org/kojihub'
 
 def _rpmvercmp ((e1, v1, r1), (e2, v2, r2)):
     """find out which build is newer"""
