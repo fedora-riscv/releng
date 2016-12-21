@@ -6,12 +6,12 @@ COMPOSEDIR=/mnt/koji/compose/cd/
 
 mkdir $COMPOSEDIR/logs/$DATE/
 
-pushd $COMPOSEDIR
+pushd $COMPOSEDIR >& /dev/null
 rm -rf fedora-atomic
 git clone -q https://pagure.io/fedora-atomic.git
-pushd fedora-atomic
+pushd fedora-atomic >& /dev/null
 sed -i -e 's|^mirrorlist.*$|baseurl=https://kojipkgs.fedoraproject.org/repos/rawhide/latest/$basearch/|g' fedora-rawhide.repo
-popd
+popd >& /dev/null
 
 
 for arch in x86_64 aarch64 armhfp
