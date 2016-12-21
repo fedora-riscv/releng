@@ -184,9 +184,6 @@ class KojiHelper(object):
                     arch=arch)
         else:
             self.kojihub = 'https://koji.fedoraproject.org/kojihub'
-        self.serverca = os.path.expanduser('~/.fedora-server-ca.cert')
-        self.clientca = os.path.expanduser('~/.fedora-upload-ca.cert')
-        self.clientcert = os.path.expanduser('~/.fedora.cert')
         self.kojisession = koji.ClientSession(self.kojihub, {'krb_rdns': False})
         self.kojisession.krb_login()
 

@@ -45,9 +45,6 @@ distronames = ['f20', 'f21', 'f22', 'f23']
 rawhide = 'f23'
 
 # koji setup
-auth_cert = os.path.expanduser('~/.fedora.cert')
-auth_ca = os.path.expanduser('~/.fedora-server-ca.cert')
-serverca = os.path.expanduser('~/.fedora-server-ca.cert')
 remote = koji.ClientSession('http://koji.fedoraproject.org/kojihub')
 
 # Configuration options below have been converted to use options. 
@@ -95,8 +92,8 @@ if testonly:
 # parse the koji-shadow config file, login to our koji:
 ks_config = ConfigParser.ConfigParser()
 ks_config.read(shadowconfig)
-local = koji.ClientSession(ks_config.get("main", "server"))
-local.ssl_login(auth_cert, auth_ca, serverca)
+local = koji.ClientSession(ks_config.get("main", "server"), {'krb_rdns': False})
+local.krb_login()
 
 # set up the queues
 buildqueue = deque()

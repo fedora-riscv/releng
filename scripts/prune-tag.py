@@ -21,10 +21,6 @@ builds = {}
 untag = []
 loglevel = ''
 KOJIHUB = 'https://koji.fedoraproject.org/kojihub'
-# Should probably set these from a koji config file
-SERVERCA = os.path.expanduser('~/.fedora-server-ca.cert')
-CLIENTCA = os.path.expanduser('~/.fedora-upload-ca.cert')
-CLIENTCERT = os.path.expanduser('~/.fedora.cert')
 # Setup a dict of our key names as sigul knows them to the actual key ID
 # that koji would use.  We should get this from sigul somehow.
 
@@ -60,8 +56,8 @@ tag = args[0]
 
 # setup the koji session
 logging.info('Setting up koji session')
-kojisession = koji.ClientSession(KOJIHUB)
-if not kojisession.ssl_login(CLIENTCERT, CLIENTCA, SERVERCA):
+kojisession = koji.ClientSession(KOJIHUB, {'krb_rdns': False})
+if not kojisession.krb_login():
     logging.error('Unable to log into koji')
     sys.exit(1)
 

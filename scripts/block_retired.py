@@ -26,11 +26,6 @@ STAGING_PKGDB = "https://admin.stg.fedoraproject.org/pkgdb"
 PRODUCTION_KOJI = "https://koji.fedoraproject.org/kojihub"
 STAGING_KOJI = "https://koji.stg.fedoraproject.org/kojihub"
 
-# Should probably set these from a koji config file
-SERVERCA = os.path.expanduser('~/.fedora-server-ca.cert')
-CLIENTCA = os.path.expanduser('~/.fedora-upload-ca.cert')
-CLIENTCERT = os.path.expanduser('~/.fedora.cert')
-
 
 class ReleaseMapper(object):
     BRANCHNAME = 0
@@ -84,8 +79,8 @@ def get_packages(tag, staging=False):
     Get a list of all blocked and unblocked packages in a branch.
     """
     url = PRODUCTION_KOJI if not staging else STAGING_KOJI
-    kojisession = koji.ClientSession(url)
-    kojisession.ssl_login(CLIENTCERT, CLIENTCA, SERVERCA)
+    kojisession = koji.ClientSession(url, {'krb_rdns': False})
+    kojisession.krb_login()
     pkglist = kojisession.listPackages(tagID=tag, inherited=True)
     blocked = []
     unblocked = []

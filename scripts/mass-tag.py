@@ -21,13 +21,10 @@ newbuilds = {} # dict of packages that have a newer build attempt
 tasks = {} # dict of new build task info
 
 # Create a koji session
-kojisession = koji.ClientSession('https://koji.fedoraproject.org/kojihub')
+kojisession = koji.ClientSession('https://koji.fedoraproject.org/kojihub', {'krb_rdns': False})
 
 # Log into koji
-clientcert = os.path.expanduser('~/.fedora.cert')
-clientca = os.path.expanduser('~/.fedora-upload-ca.cert')
-serverca = os.path.expanduser('~/.fedora-server-ca.cert')
-kojisession.ssl_login(clientcert, clientca, serverca)
+kojisession.krb_login()
 
 # Generate a list of builds to iterate over, sorted by package name
 builds = sorted(kojisession.listTagged(holdingtag, latest=True),
