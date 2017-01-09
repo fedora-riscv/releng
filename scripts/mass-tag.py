@@ -15,8 +15,8 @@ import operator
 
 # Set some variables
 # Some of these could arguably be passed in as args.
-target = 'f24' # tag to tag into
-holdingtag = 'f24-nodejs4' # tag holding the rebuilds
+target = 'f26-pending' # tag to tag into
+holdingtag = 'f26-python3' # tag holding the rebuilds
 newbuilds = {} # dict of packages that have a newer build attempt
 tasks = {} # dict of new build task info
 
@@ -24,10 +24,7 @@ tasks = {} # dict of new build task info
 kojisession = koji.ClientSession('https://koji.fedoraproject.org/kojihub')
 
 # Log into koji
-clientcert = os.path.expanduser('~/.fedora.cert')
-clientca = os.path.expanduser('~/.fedora-upload-ca.cert')
-serverca = os.path.expanduser('~/.fedora-server-ca.cert')
-kojisession.ssl_login(clientcert, clientca, serverca)
+kojisession.krb_login()
 
 # Generate a list of builds to iterate over, sorted by package name
 builds = sorted(kojisession.listTagged(holdingtag, latest=True),
