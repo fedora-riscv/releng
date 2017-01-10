@@ -20,11 +20,6 @@ LOCALKOJIHUB = 'http://sparc.koji.fedoraproject.org/kojihub'
 REMOTEKOJIHUB = 'http://koji.fedoraproject.org/kojihub'
 PACKAGEURL = 'http://kojipkgs.fedoraproject.org/'
 
-# Should probably set these from a koji config file
-SERVERCA = os.path.expanduser('~/.fedora-server-ca.cert')
-CLIENTCA = os.path.expanduser('~/.fedora-server-ca.cert')
-CLIENTCERT = os.path.expanduser('~/.fedora.cert')
-
 workpath = '/tmp/build-recent'
 
 loglevel = logging.DEBUG
@@ -130,9 +125,9 @@ def importBuild(build, rpms, buildinfo, tag=None):
 
 # setup the koji session
 logging.info('Setting up koji session')
-localkojisession = koji.ClientSession(LOCALKOJIHUB)
+localkojisession = koji.ClientSession(LOCALKOJIHUB, {'krb_rdns': False})
 remotekojisession = koji.ClientSession(REMOTEKOJIHUB)
-localkojisession.ssl_login(CLIENTCERT, CLIENTCA, SERVERCA)
+localkojisession.krb_login()
 
 tag = 'dist-f16'
 

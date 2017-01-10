@@ -29,6 +29,7 @@ parser.add_argument("tag", nargs="+", help="tag to sync")
 args = parser.parse_args()
 
 # Should probably set these from a koji config file
+# Should only be used for ssl login
 SERVERCA = os.path.expanduser('~/.fedora-server-ca.cert')
 CLIENTCA = os.path.expanduser('~/.fedora-upload-ca.cert')
 CLIENTCERT = os.path.expanduser('~/.fedora.cert')

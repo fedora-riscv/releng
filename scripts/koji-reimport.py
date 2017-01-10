@@ -23,14 +23,11 @@ pkgs = ['']
 tag = ''
 
 # setup koji sessions: 
-serverca = os.path.expanduser('~/.fedora-server-ca.cert')
-clientca = os.path.expanduser('~/.fedora-upload-ca.cert')
-clientcrt = os.path.expanduser('~/.fedora.cert')
 primarykoji = 'https://koji.fedoraproject.org/kojihub'
 secondarykoji = 'https://ppc.koji.fedoraproject.org/kojihub' 
 primary = koji.ClientSession(primarykoji)
-secondary = koji.ClientSession(secondarykoji)
-secondary.ssl_login(clientcrt, clientca, serverca) 
+secondary = koji.ClientSession(secondarykoji, {'krb_rdns': False})
+secondary.krb_login()
 
 # do the thing: 
 

@@ -34,6 +34,7 @@ REMOTEKOJIHUB = 'https://koji.fedoraproject.org/kojihub'
 PACKAGEURL = 'http://kojipkgs.fedoraproject.org/'
 
 # Should probably set these from a koji config file
+# Should only be used for ssl login
 SERVERCA = os.path.expanduser('~/.fedora-server-ca.cert')
 CLIENTCA = os.path.expanduser('~/.fedora-upload-ca.cert')
 CLIENTCERT = os.path.expanduser('~/.fedora.cert')
@@ -150,7 +151,7 @@ logging.info('Setting up koji session')
 localkojisession = koji.ClientSession(LOCALKOJIHUB, session_opts)
 remotekojisession = koji.ClientSession(REMOTEKOJIHUB)
 if os.path.isfile(CLIENTCERT):
-    localckojisession.ssl_login(CLIENTCERT, CLIENTCA, SERVERCA)
+    localkojisession.ssl_login(CLIENTCERT, CLIENTCA, SERVERCA)
 else:
     if args.keytab and args.principal:
         localkojisession.krb_login(principal=args.principal, keytab=args.keytab)

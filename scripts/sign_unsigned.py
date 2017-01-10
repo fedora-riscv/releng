@@ -315,6 +315,7 @@ class KojiTool(AbstractTool):
         self.options.kojihub = 'http://koji.fedoraproject.org/kojihub'
         self.options.regex = False
         self.options.ignore = []
+        self.options.krb_rdns = False
 
     def create_koji_session(self):
         # used options: debug, debug_xmlrpc, user, password
@@ -742,10 +743,7 @@ class SignUnsigned(CliTool, KojiTool):
 
     def cmd_default(self):
         self.tweak_options()
-        clientcert = '/etc/pki/pkgsigner/pkgsigner.pem'
-        clientca = '/etc/pki/pkgsigner/fedora-upload-ca.cert'
-        serverca = '/etc/pki/pkgsigner/fedora-server-ca.cert'
-        self.koji_session.ssl_login(clientcert, clientca, serverca) # NEEDSWORK
+        self.koji_session.krb_login()
         self.print_msg("Getting rpm list from koji")
         if self.options.builds:
             rpms = self.get_build_rpms(self.options.builds)

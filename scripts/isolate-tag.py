@@ -16,13 +16,10 @@ import os
 tag = 'f25'
 oldtag = 'f24'
 # Create a koji session
-kojisession = koji.ClientSession('http://ppc.koji.fedoraproject.org/kojihub')
+kojisession = koji.ClientSession('http://ppc.koji.fedoraproject.org/kojihub', {'krb_rdns': False})
 
 # Log into koji
-clientcert = os.path.expanduser('~/.fedora.cert')
-clientca = os.path.expanduser('~/.fedora-upload-ca.cert')
-serverca = os.path.expanduser('~/.fedora-server-ca.cert')
-kojisession.ssl_login(clientcert, clientca, serverca)
+kojisession.krb_login()
 
 # Get all builds tagged into the tag w/o inherited builds
 builds = kojisession.listTagged(tag, latest=True)

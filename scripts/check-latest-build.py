@@ -39,10 +39,6 @@ if args.arch is None:
 else:
     KOJIHUB = 'http://%s.koji.fedoraproject.org/kojihub' % (args.arch)
 
-# Should probably set these from a koji config file
-SERVERCA = os.path.expanduser('~/.fedora-server-ca.cert')
-CLIENTCA = os.path.expanduser('~/.fedora-upload-ca.cert')
-CLIENTCERT = os.path.expanduser('~/.fedora.cert')
 
 def _rpmvercmp((e1, v1, r1), (e2, v2, r2)):
     """find out which build is newer"""
@@ -62,8 +58,8 @@ def _rpmvercmp((e1, v1, r1), (e2, v2, r2)):
         return -1
 
 
-kojisession = koji.ClientSession(KOJIHUB)
-kojisession.ssl_login(CLIENTCERT, CLIENTCA, SERVERCA)
+kojisession = koji.ClientSession(KOJIHUB, {'krb_rdns': False})
+kojisession.krb_login()
 
 if args.package == []:
     latest_builds = sorted(kojisession.listTagged(args.tag, latest=True),
