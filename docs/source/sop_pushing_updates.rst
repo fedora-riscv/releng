@@ -47,14 +47,14 @@ Get a list of packages to push
 ::
 
     $ cd /var/cache/sigul
-    $ sudo -u apache bodhi-push --releases '24 23 22 5 6 7' --username <yourusername>
+    $ sudo -u apache bodhi-push --releases 'f25,f24,epel-7,EL-6,EL-5' --username <yourusername>
     <enter your password+2factorauth, then your fas password>
 
 You can say 'n' to the push at this point if you wish to sign packages (see
 below). Or you can keep this request open in a window while you sign the
 packages, then come back and say y.
 
-List the releases above you wish to push from: 24 23 22 5 6 7, etc
+List the releases above you wish to push from: 25 24 5 6 7, etc
 
 You can also specify ``--request=testing`` to limit pushes. Valid types are
 ``testing`` or ``stable``.
@@ -68,7 +68,7 @@ frozen):
 ::
 
     $ cd /var/cache/sigul
-    $ sudo -u apache bodhi-push --releases 24 --request=testing \
+    $ sudo -u apache bodhi-push --releases f25 --request=testing \
         --username <username>
 
 Then
@@ -76,7 +76,7 @@ Then
 ::
 
     $ cd /var/cache/sigul
-    $ sudo -u apache bodhi-push --releases '23 22 5 6 7' --username <username>
+    $ sudo -u apache bodhi-push --releases 'f24,epel-7,EL-6,EL-5' --username <username>
 
 Pushing Stable updates during freeze
 ------------------------------------
