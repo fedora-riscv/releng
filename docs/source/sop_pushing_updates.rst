@@ -90,59 +90,14 @@ will file a ticket with the nvrs to push
     $ sudo -u apache bodhi-push --builds '<nvr1> <nvr2> ...' --username <username>
 
 
-Sign the packages
------------------
-
-* Sign builds using scripts/sigulsign_unsigned.py from releng git repo
-
-  ::
-
-    $ ./sigulsign_unsigned.py -vv --write-all \
-        --sigul-batch-size=25 fedora-22 \
-        $(cat /var/cache/sigul/Stable-F22 /var/cache/sigul/Testing-F22)
-
-(Make sure you sign each release with the right key... ie, 'fedora-19' key
-with F19 packages, or 'epel-5' with EL-5 packages)
-
-Here is another example, inside a loop:
-
-::
-
-    for i in 24 23 22;
-    do
-        ~/releng/scripts/sigulsign_unsigned.py \
-            fedora-$i -v --write-all \
-            --sigul-batch-size=25 $(cat /var/cache/sigul/{Stable,Testing}-F${i});
-    done
-
-    for i in 7 6 5;
-    do
-        ~/releng/scripts/sigulsign_unsigned.py \
-            epel-$i -v --write-all \
-            --sigul-batch-size=25 $(cat /var/cache/sigul/{Stable,Testing}-*EL-${i});
-    done
-
-
-* If signing process struggles to finish, then consider adjusting the
-  ``--sigul-batch-size=N`` to ``1``, which is more resilient but much slower.
-
-Repeat gathering updates and signing steps
-------------------------------------------
-
-After gathering the list of updates and signing them, repeat the process until
-there are no new updates to be signed. You want to do this because as you are
-signing updates, maintainers are submitting new ones. There is a window while
-you are signing that a new update will be added and if you just push then, the
-push will fail with an unsigned package.
-
 Perform the bodhi push
 ----------------------
 
-Re-run the earlier bodhi command from step 2 and say 'y' to push.
+Say 'y' to push for the above command.
 
 Verification
 ============
-#. Monitor the sysemd journal
+#. Monitor the systemd journal
 
    ::
 

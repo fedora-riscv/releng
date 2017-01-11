@@ -63,6 +63,7 @@ Standard Operating Procedures
     sop_package_blocking
     sop_package_unblocking
     sop_pdc
+    sop_signing_builds
     sop_pushing_updates
     sop_release_package_signing
     sop_remote_dist_git_branches
