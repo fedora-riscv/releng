@@ -80,7 +80,10 @@ When the builds are completed to remove the target and merge builds across
 
     koji remove-target epel6-xfce48
 
-to merge builds across edit mass-tag.py in the releng git repo and run it.
+to merge builds across edit mass-tag.py in the releng git repo and run it. Paste
+the output from mass-tag.py into pagure releng ticket to show what packages got
+merged and what packages needs rebuiding to the people who are working on the
+buildroot.
 
 Tags are ``never`` removed.
 
