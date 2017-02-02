@@ -70,7 +70,6 @@ def _get_nightly_amis_nd(delta, start=None, end=None):
         params.update({'end': end})
 
     resp = requests.get(_get_raw_url(), params=params)
-    from ipdb import set_trace;set_trace()
     messages = resp.json().get('raw_messages', [])
     print(messages)
 
@@ -111,13 +110,16 @@ def delete_amis_nd(amis, dry_run=False):
         # Filter all the nightly AMIs belonging to this region
         r_amis = [amis for _, _, r in amis if r == region]
 
-        # Loop through the AMIs change the permissions
+        # Loop through the AMIs and delete then only if the launch permission
+        # for the AMIs are private.
         for compose_id, ami_id, region in r_amis:
             try:
                 ami_obj = conn.get_image(ami_id)
-
-                if not dry_run:
+                is_launch_permitted = bool(ami_obj.get_launch_permission())
+                if not dry_run and not is_launch_permitted:
                     conn.deregister_image(ami_obj.id, delete_snapshot=True)
+                else:
+                    print(ami_id)
             except:
                 log.error('%s: %s failed' % (region, ami_id))
 
@@ -144,7 +146,6 @@ def change_amis_permission_nd(amis, dry_run=False):
 
         # Filter all the nightly AMIs belonging to this region
         r_amis = [amis for _, _, r in amis if r == region]
-        print(r_amis)
 
         # Loop through the AMIs change the permissions
         for _, ami_id, region in r_amis:
