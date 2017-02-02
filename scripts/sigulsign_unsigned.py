@@ -2,11 +2,12 @@
 #
 # sigulsign_unsigned.py - A utility to use sigul to sign rpms in koji
 #
-# Copyright (C) 2009-2013 Red Hat, Inc.
+# Copyright (C) 2009-2017 Red Hat, Inc.
 # SPDX-License-Identifier:      GPL-2.0
 #
 # Authors:
 #     Jesse Keating <jkeating@redhat.com>
+#     Patrick Uiterwijk <puiterwijk@redhat.com>
 #
 # This program requires koji and sigul installed, as well as configured.
 
@@ -21,7 +22,7 @@ import subprocess
 import tempfile
 import logging
 
-import gpgme
+import gpg
 
 errors = {}
 
@@ -71,10 +72,10 @@ KEYS = {
 }
 
 
-class GPGMEContext(object):
+class GPGContext(object):
     """ Use it like:
 
-        with GPGMEContext() as ctx:
+        with GPGContext() as ctx:
             #do_stuff(ctx)
     """
     config = """no-auto-check-trustdb
@@ -92,12 +93,12 @@ compress-algo zlib
         self.tempdir = tempfile.gettempdir()
         self.create_homedir = create_homedir
 
-        ctx = gpgme.Context()
+        ctx = gpg.Context()
         gpg_homedir = None
         if create_homedir:
             gpg_homedir = tempfile.mkdtemp(prefix="temporary_gpg_homedir_")
             # FIXME: Hardcoded gpg path
-            ctx.set_engine_info(gpgme.PROTOCOL_OpenPGP,
+            ctx.set_engine_info(gpg.constants.PROTOCOL_OpenPGP,
                                 "/usr/bin/gpg", gpg_homedir)
 
             with open(os.path.join(gpg_homedir, 'gpg.conf'),
@@ -118,23 +119,22 @@ compress-algo zlib
 
 
 def get_key_info(source, filename=False):
-    with GPGMEContext() as ctx:
-        if filename:
-            with open(source, "r") as ifile:
-                import_result = ctx.import_(ifile)
-        else:
-            ifile = StringIO(source)
-            import_result = ctx.import_(ifile)
+    with GPGContext() as ctx:
+        if filename is not None:
+            with open(source, 'r') as ifile:
+                source = ifile.read()
+        ctx.op_import_source)
+        import_result = ctx.op_import_result()
 
         if import_result.imported != 1:
             raise ValueError(
                 "{0} does not contain exactly one GPG key".format(filename))
 
-        imported_fpr = import_result.imports[0][0]
+        imported_fpr = import_result.imports[0].fpr
         key = ctx.get_key(imported_fpr)
         first_subkey = key.subkeys[0]
         keyid = first_subkey.keyid[-8:].lower()
-        if first_subkey.pubkey_algo == gpgme.PK_DSA:
+        if first_subkey.pubkey_algo == gpg.constants.PK_DSA:
             v3 = False
         else:
             v3 = True
