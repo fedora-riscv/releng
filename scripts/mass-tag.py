@@ -12,11 +12,16 @@
 import koji
 import os
 import operator
+import argparse
 
 # Set some variables
 # Some of these could arguably be passed in as args.
-target = 'f26-pending' # tag to tag into
-holdingtag = 'f26-python3' # tag holding the rebuilds
+parser = argparse.ArgumentParser()
+parser.add_argument('-t','--target', help='Tag to tag the builds into',required=True)
+parser.add_argument('-s','--source',help='Tag holding the builds', required=True)
+args = parser.parse_args()
+target = args.target # tag to tag into
+holdingtag = args.source # tag holding the rebuilds
 newbuilds = {} # dict of packages that have a newer build attempt
 tasks = {} # dict of new build task info
 
