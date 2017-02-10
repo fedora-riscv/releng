@@ -17,14 +17,14 @@ import operator
 
 # Set some variables
 # Some of these could arguably be passed in as args.
-buildtag = 'f24-rebuild' # tag to build from
-targets = ['f24-candidate', 'rawhide', 'f24'] # tag to build from
-epoch = '2016-02-02 10:30:08.000000' # rebuild anything not built after this date
+buildtag = 'f26-rebuild' # tag to build from
+targets = ['f26-candidate', 'rawhide', 'f26'] # tag to build from
+epoch = '2017-02-05 09:04:08.000000' # rebuild anything not built after this date
 user = 'Fedora Release Engineering <releng@fedoraproject.org>'
-comment = '- Rebuilt for https://fedoraproject.org/wiki/Fedora_24_Mass_Rebuild'
+comment = '- Rebuilt for https://fedoraproject.org/wiki/Fedora_26_Mass_Rebuild'
 workdir = os.path.expanduser('~/massbuild')
 enviro = os.environ
-target = 'f24-rebuild'
+target = 'f26-rebuild'
 
 pkg_skip_list = ['fedora-release', 'fedora-repos', 'generic-release', 'redhat-rpm-config', 'shim', 'shim-signed', 'kernel', 'linux-firmware', 'grub2', 'openh264']
 
@@ -102,7 +102,7 @@ for pkg in pkgs:
         continue
 
     # Check out git
-    fedpkgcmd = ['fedpkg', 'clone', name]
+    fedpkgcmd = ['fedpkg', '--user', 'releng', 'clone', name]
     print 'Checking out %s' % name
     if runme(fedpkgcmd, 'fedpkg', name, enviro):
         continue
