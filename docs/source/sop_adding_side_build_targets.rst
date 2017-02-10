@@ -67,6 +67,9 @@ A Fedora example would be:
     koji add-tag f23-gnutls --parent=f23-build --arches=armv7hl,i686,x86_64
     koji add-target f23-gnutls f23-gnutls 
 
+Once the target is added, please file a ticket in `pagure infrastructure`_ about the
+new tag that is created so that they can enable auto signing for the tag.
+
 Verification
 ============
 Check in koji that a newRepo task is created for your new tag and has the
@@ -95,3 +98,4 @@ Consider Before Running
 * Is there a mass-rebuild going on? no side tags are allowed while a mass
   rebuild is underway
 
+.. _pagure infrastructure: https://pagure.io/fedora-infrastructure/issues
