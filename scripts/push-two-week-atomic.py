@@ -11,6 +11,7 @@
 #
 # Authors:
 #     Adam Miller <maxamillion@fedoraproject.org>
+#     Patrick Uiterwijk <puiterwijk@redhat.com>
 #
 # Exit codes:
 #   0 - Success
@@ -20,6 +21,7 @@
 #
 #
 # NOTE: This is bad and I feel bad for having written it, here there be dragons
+# NOTE2: The atomic tree ref code is also ugly. Blame to Patrick, credits to Adam.
 
 import os
 import sys
@@ -44,6 +46,8 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(os.path.basename(sys.argv[0]))
 
 # Define "constants"
+ATOMIC_DIR = "/mnt/koji/mash/atomic/%s"
+TARGET_REF = "fedora-atomic/%s/x86_64/docker-host"
 COMPOSE_BASEDIR = "/mnt/koji/compose/twoweek/"
 
 # FIXME ???? Do we need a real STMP server here?
@@ -543,6 +547,27 @@ def prune_old_composes(prune_base_dir, prune_limit):
                     "prune_old_composes: command failed: {}".format(prune_cmd)
                 )
 
+
+def move_tree_commit(release, old_commit, new_commit):
+    log.info("Creating diff")
+    diff_cmd = ["/usr/bin/rpm-ostree", "static-delta", "generate", "--repo",
+                ATOMIC_DIR % release, "--if-not-exists", "--from", old_commit,
+                "--to", new_commit]
+    if subprocess.call(diff_cmd):
+        log.error("move_tree_commit: diff generation failed: %s", diff_cmd)
+        exit(3)
+
+    with open(os.path.join(ATOMIC_DIR % release, 'heads',
+                           TARGET_REF % release), 'w') as f:
+        f.write(new_commit)
+
+    summary_cmd = ["/usr/bin/rpm-ostree", "summary", "-u", "--repo",
+                   ATOMIC_DIR % release]
+    if subprocess.call(summary_cmd):
+        log.error("move_tree_commit: summary update failed: %s", summary_cmd)
+        exit(3)
+
+
 if __name__ == '__main__':
 
     # get args from command line
@@ -587,20 +612,45 @@ if __name__ == '__main__':
         log.error("No successful builds found")
         sys.exit(2)
 
+    log.info("Extracting compose_id from tested autocloud data")
+    compose_id = tested_autocloud_info['atomic_qcow2']['compose_id']
+
+    # TODO: https://github.com/kushaldas/tunirtests/pull/59 will allow us to
+    # extract this from the autocloud test results.
+    print('Releasing compose %s' % compose_id)
+    tree_commit = None
+    while not tree_commit:
+        tree_commit = raw_input('Tree commit: ').strip()
+        if not os.path.exists(os.path.join(ATOMIC_DIR,
+                                           'objects',
+                                           tree_commit[:2],
+                                           '%s.commit' % tree_commit[2:])):
+            print('Commit does not exist. Try again')
+            tree_commit = None
+
+    with open(os.path.join(ATOMIC_DIR % pargs.release, 'heads',
+                           TARGET_REF % pargs.release), 'r') as f:
+        previous_commit = f.read().strip()
+
     log.info("Sending fedmsg releng.atomic.twoweek.begin")
     fedmsg_publish(
         topic="atomic.twoweek.begin",
         msg=dict(**tested_autocloud_info)
     )
 
-    log.info("Extracting compose_id from tested autocloud data")
-    compose_id = tested_autocloud_info['atomic_qcow2']['compose_id']
-
     log.info("Signing image metadata - compose")
     sign_checksum_files(
         pargs.key,
         os.path.join(COMPOSE_BASEDIR, compose_id),
     )
+
+    log.info("Moving tree commit %s => %s", previous_commit, tree_commit)
+    move_tree_commit(pargs.release, previous_commit, tree_commit)
+    if subprocess.call(rsync_cmd):
+        log.error(
+            "stage_atomic_release: rsync command failed: {}".format(rsync_cmd)
+        )
+        exit(3)
 
     log.info("Staging release content in /pub/alt/atomic/stable/")
     stage_atomic_release(compose_id)
