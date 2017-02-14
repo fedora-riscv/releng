@@ -550,7 +550,7 @@ def prune_old_composes(prune_base_dir, prune_limit):
 
 def move_tree_commit(release, old_commit, new_commit):
     log.info("Creating diff")
-    diff_cmd = ["/usr/bin/rpm-ostree", "static-delta", "generate", "--repo",
+    diff_cmd = ["/usr/bin/ostree", "static-delta", "generate", "--repo",
                 ATOMIC_DIR % release, "--if-not-exists", "--from", old_commit,
                 "--to", new_commit]
     if subprocess.call(diff_cmd):
@@ -561,7 +561,7 @@ def move_tree_commit(release, old_commit, new_commit):
                            TARGET_REF % release), 'w') as f:
         f.write(new_commit)
 
-    summary_cmd = ["/usr/bin/rpm-ostree", "summary", "-u", "--repo",
+    summary_cmd = ["/usr/bin/ostree", "summary", "-u", "--repo",
                    ATOMIC_DIR % release]
     if subprocess.call(summary_cmd):
         log.error("move_tree_commit: summary update failed: %s", summary_cmd)
