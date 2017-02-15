@@ -564,7 +564,7 @@ def move_tree_commit(release, old_commit, new_commit):
         log.error("move_tree_commit: diff generation failed: %s", diff_cmd)
         exit(3)
 
-    with open(os.path.join(ATOMIC_DIR % release, 'heads',
+    with open(os.path.join(ATOMIC_DIR % release, 'refs', 'heads',
                            TARGET_REF % release), 'w') as f:
         f.write(new_commit)
 
@@ -640,7 +640,7 @@ if __name__ == '__main__':
         # porting to use libostree.
         tree_version = tree_version.replace("'", "")
 
-    with open(os.path.join(ATOMIC_DIR % pargs.release, 'heads',
+    with open(os.path.join(ATOMIC_DIR % pargs.release, 'refs', 'heads',
                            TARGET_REF % pargs.release), 'r') as f:
         previous_commit = f.read().strip()
 
