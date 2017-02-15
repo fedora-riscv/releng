@@ -304,7 +304,7 @@ def send_atomic_announce_email(
     msg.attach(
         MIMEText(
             """
-A new Atomic Host update is available via an OSTree commit:
+A new Fedora Atomic Host update is available via an OSTree commit:
 
 Commit: {}
 Version: {}
