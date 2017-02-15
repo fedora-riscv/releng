@@ -637,7 +637,7 @@ if __name__ == '__main__':
             continue
         # It's in GVariant print format by default, we can make this less hacky when
         # porting to use libostree.
-        tree_version = version.replace("'", "")
+        tree_version = tree_version.replace("'", "")
 
     with open(os.path.join(ATOMIC_DIR % pargs.release, 'heads',
                            TARGET_REF % pargs.release), 'r') as f:
