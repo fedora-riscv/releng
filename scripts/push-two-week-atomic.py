@@ -631,7 +631,7 @@ if __name__ == '__main__':
         tree_commit = raw_input('Tree commit: ').strip()
         try:
             print("Validating and finding version of {}".format(tree_commit))
-            tree_version = subprocess.check_output(['ostree', '--repo=' + ATOMIC_DIR, 'show', '--print-metadata-key=version', tree_commit])
+            tree_version = subprocess.check_output(['ostree', '--repo=' + ATOMIC_DIR % pargs.release, 'show', '--print-metadata-key=version', tree_commit])
         except subprocess.CalledProcessError as e:
             tree_commit = None
             continue
