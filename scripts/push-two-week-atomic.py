@@ -658,11 +658,6 @@ if __name__ == '__main__':
 
     log.info("Moving tree commit %s => %s (%s)", previous_commit, tree_commit, tree_version)
     move_tree_commit(pargs.release, previous_commit, tree_commit)
-    if subprocess.call(rsync_cmd):
-        log.error(
-            "stage_atomic_release: rsync command failed: {}".format(rsync_cmd)
-        )
-        exit(3)
 
     log.info("Staging release content in /pub/alt/atomic/stable/")
     stage_atomic_release(compose_id)
