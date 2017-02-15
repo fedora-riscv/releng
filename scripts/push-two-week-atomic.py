@@ -633,6 +633,7 @@ if __name__ == '__main__':
             print("Validating and finding version of {}".format(tree_commit))
             tree_version = subprocess.check_output(['/usr/bin/ostree', '--repo=' + ATOMIC_DIR % pargs.release, 'show', '--print-metadata-key=version', tree_commit])
         except subprocess.CalledProcessError as e:
+            print('Error when validating commit: %s. Try again.' % tree_commit)
             tree_commit = None
             continue
         # It's in GVariant print format by default, we can make this less hacky when
