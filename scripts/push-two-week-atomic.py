@@ -27,13 +27,11 @@ import os
 import sys
 import json
 import glob
-import time
 import shutil
 import fnmatch
 import smtplib
 import argparse
 import logging
-import datetime
 import subprocess
 
 import requests
