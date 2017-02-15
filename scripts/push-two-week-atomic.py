@@ -275,7 +275,9 @@ def send_atomic_announce_email(
         email_filelist,
         mail_receivers=ATOMIC_EMAIL_RECIPIENTS,
         sender_email=ATOMIC_EMAIL_SENDER,
-        sender_smtp=ATOMIC_EMAIL_SMTP):
+        sender_smtp=ATOMIC_EMAIL_SMTP,
+        tree_commit=None,
+        tree_version=None):
     """
     send_atomic_announce_email
 
@@ -302,10 +304,15 @@ def send_atomic_announce_email(
     msg.attach(
         MIMEText(
             """
-A new update of Fedora Cloud Atomic Host has been released and can be
-downloaded at:
+A new Atomic Host update is available via an OSTree commit:
 
-Images can be found here:
+Commit: {}
+Version: {}
+
+Existing systems can be upgraded in place via e.g. `atomic host upgrade` or
+`atomic host deploy`.
+
+Corresponding image media for new installations can be downloaded from:
 
     https://getfedora.org/en/cloud/download/atomic.html
 
@@ -337,7 +344,7 @@ their own discretion.
 Thank you,
 Fedora Release Engineering
             """.format(
-                '\n'.join(released_checksums)
+                '\n'.join(tree_commit, tree_version, released_checksums)
             )
         )
     )
@@ -619,14 +626,18 @@ if __name__ == '__main__':
     # extract this from the autocloud test results.
     print('Releasing compose %s' % compose_id)
     tree_commit = None
+    tree_version = None
     while not tree_commit:
         tree_commit = raw_input('Tree commit: ').strip()
-        if not os.path.exists(os.path.join(ATOMIC_DIR,
-                                           'objects',
-                                           tree_commit[:2],
-                                           '%s.commit' % tree_commit[2:])):
-            print('Commit does not exist. Try again')
+        try:
+            print("Validating and finding version of {}".format(tree_commit))
+            tree_version = subprocess.check_output(['ostree', '--repo=' + ATOMIC_DIR, 'show', '--print-metadata-key=version', tree_commit])
+        except subprocess.CalledProcessError as e:
             tree_commit = None
+            continue
+        # It's in GVariant print format by default, we can make this less hacky when
+        # porting to use libostree.
+        tree_version = version.replace("'", "")
 
     with open(os.path.join(ATOMIC_DIR % pargs.release, 'heads',
                            TARGET_REF % pargs.release), 'r') as f:
@@ -644,7 +655,7 @@ if __name__ == '__main__':
         os.path.join(COMPOSE_BASEDIR, compose_id),
     )
 
-    log.info("Moving tree commit %s => %s", previous_commit, tree_commit)
+    log.info("Moving tree commit %s => %s (%s)", previous_commit, tree_commit, tree_version)
     move_tree_commit(pargs.release, previous_commit, tree_commit)
     if subprocess.call(rsync_cmd):
         log.error(
@@ -676,7 +687,8 @@ if __name__ == '__main__':
             for c_file in glob.glob(os.path.join(full_dir_path, "*CHECKSUM")):
                 email_filelist.append(c_file)
 
-    send_atomic_announce_email(set(email_filelist))
+    send_atomic_announce_email(set(email_filelist), tree_commit=tree_commit,
+                               tree_version=tree_version)
 
     # FIXME - The logic in this functioni is broken, leave it disabled for now
     #log.info("Pruning old Atomic test composes")
