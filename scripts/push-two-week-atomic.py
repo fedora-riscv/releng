@@ -343,7 +343,9 @@ their own discretion.
 Thank you,
 Fedora Release Engineering
             """.format(
-                '\n'.join(tree_commit, tree_version, released_checksums)
+                tree_commit,
+                tree_version,
+                '\n'.join(released_checksums)
             )
         )
     )
