@@ -18,6 +18,7 @@
 #   1 - required arg missing
 #   2 - no successful AutoCloud builds found
 #   3 - subcommand failed, error message will be logged.
+#   4 - execution canceled by user
 #
 #
 # NOTE: This is bad and I feel bad for having written it, here there be dragons
@@ -644,6 +645,13 @@ if __name__ == '__main__':
                      ATOMIC_DIR % pargs.release, TARGET_REF % pargs.release]
     previous_commit = subprocess.check_output(rev_parse_cmd).strip()
 
+    # This could happen if there was a failure in this script sending the email 
+    # or anything after the commit has already been moved.
+    if previous_commit == tree_commit:
+        answer = raw_input('ref is already at that commit, are you sure?: (y/n)').strip()
+        if answer.lower() != 'y':
+            sys.exit(4)
+
     log.info("Sending fedmsg releng.atomic.twoweek.begin")
     fedmsg_publish(
         topic="atomic.twoweek.begin",
@@ -656,8 +664,12 @@ if __name__ == '__main__':
         os.path.join(COMPOSE_BASEDIR, compose_id),
     )
 
-    log.info("Moving tree commit %s => %s (%s)", previous_commit, tree_commit, tree_version)
-    move_tree_commit(pargs.release, previous_commit, tree_commit)
+    # If we are already at the new commit then there is nothing to do
+    if previous_commit == tree_commit:
+        log.info("Tree commit is already at %s. Skipping move", tree_commit)
+    else:
+        log.info("Moving tree commit %s => %s (%s)", previous_commit, tree_commit, tree_version)
+        move_tree_commit(pargs.release, previous_commit, tree_commit)
 
     log.info("Staging release content in /pub/alt/atomic/stable/")
     stage_atomic_release(compose_id)
