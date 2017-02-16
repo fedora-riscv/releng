@@ -640,8 +640,8 @@ if __name__ == '__main__':
         # porting to use libostree.
         tree_version = tree_version.replace("'", "")
 
-    rev_parse_cmd = ['/usr/bin/ostree', '--repo', ATOMIC_DIR % pargs.release,
-                     'rev-parse', TARGET_REF % pargs.release]
+    rev_parse_cmd = ['/usr/bin/ostree', 'rev-parse', '--repo',
+                     ATOMIC_DIR % pargs.release, TARGET_REF % pargs.release]
     previous_commit = subprocess.check_output(rev_parse_cmd).strip()
 
     log.info("Sending fedmsg releng.atomic.twoweek.begin")
