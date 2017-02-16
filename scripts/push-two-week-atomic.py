@@ -562,9 +562,11 @@ def move_tree_commit(release, old_commit, new_commit):
         log.error("move_tree_commit: diff generation failed: %s", diff_cmd)
         exit(3)
 
-    with open(os.path.join(ATOMIC_DIR % release, 'refs', 'heads',
-                           TARGET_REF % release), 'w') as f:
-        f.write(new_commit)
+    reset_cmd = ['/usr/bin/ostree', 'reset', TARGET_REF % release, 
+                 new_commit, '--repo', ATOMIC_DIR % release]
+    if subprocess.call(reset_cmd):
+        log.error("move_tree_commit: resetting ref to new commit failed: %s", reset_cmd)
+        exit(3)
 
     summary_cmd = ["/usr/bin/ostree", "summary", "-u", "--repo",
                    ATOMIC_DIR % release]
@@ -638,9 +640,9 @@ if __name__ == '__main__':
         # porting to use libostree.
         tree_version = tree_version.replace("'", "")
 
-    with open(os.path.join(ATOMIC_DIR % pargs.release, 'refs', 'heads',
-                           TARGET_REF % pargs.release), 'r') as f:
-        previous_commit = f.read().strip()
+    rev_parse_cmd = ['/usr/bin/ostree', '--repo', ATOMIC_DIR % pargs.release,
+                     'rev-parse', TARGET_REF % pargs.release]
+    previous_commit = subprocess.check_output(rev_parse_cmd).strip()
 
     log.info("Sending fedmsg releng.atomic.twoweek.begin")
     fedmsg_publish(
