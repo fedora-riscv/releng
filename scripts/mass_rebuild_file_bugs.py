@@ -20,15 +20,15 @@ from find_failures import get_failed_builds
 
 # Set some variables
 # Some of these could arguably be passed in as args.
-buildtag = 'f23-rebuild' # tag to check
-desttag = 'f23' # Tag where fixed builds go
-epoch = '2015-06-16 00:00:00.000000' # rebuild anything not built after this date
+buildtag = 'f26-rebuild' # tag to check
+desttag = 'f26' # Tag where fixed builds go
+epoch = '2017-02-05 09:04:08.000000' # rebuild anything not built after this date
 failures = {} # dict of owners to lists of packages that failed.
 failed = [] # raw list of failed packages
 
 product = "Fedora" # for BZ product field
 version = "rawhide" # for BZ version field
-tracking_bug = 1239338 # Tracking bug for mass build failures
+tracking_bug = 1423041 # Tracking bug for mass build failures
 
 
 def report_failure(product, component, version, summary, comment, logs):
@@ -114,7 +114,7 @@ def get_task_failed(kojisession, task_id):
 
 
 if __name__ == '__main__':
-    kojisession = koji.ClientSession('http://koji.fedoraproject.org/kojihub')
+    kojisession = koji.ClientSession('https://koji.fedoraproject.org/kojihub')
     print 'Getting the list of failed builds...'
     failbuilds = get_failed_builds(kojisession, epoch, buildtag, desttag)
     print 'Getting the list of filed bugs...'
@@ -125,7 +125,7 @@ if __name__ == '__main__':
         task_id = build['task_id']
         component = build['package_name']
         summary = "%s: FTBFS in %s" % (component, 'rawhide')
-        work_url = 'http://kojipkgs.fedoraproject.org/work'
+        work_url = 'https://kojipkgs.fedoraproject.org/work'
 
         child_id = get_task_failed(kojisession, task_id)
         if not child_id:
@@ -142,9 +142,9 @@ if __name__ == '__main__':
 
         comment = """Your package %s failed to build from source in current rawhide.
 
-http://koji.fedoraproject.org/koji/taskinfo?taskID=%s
+https://koji.fedoraproject.org/koji/taskinfo?taskID=%s
 
-For details on mass rebuild see https://fedoraproject.org/wiki/Fedora_23_Mass_Rebuild
+For details on mass rebuild see https://fedoraproject.org/wiki/Fedora_26_Mass_Rebuild
 """ % (component, task_id)
 
         if component not in filed_bugs_components:
