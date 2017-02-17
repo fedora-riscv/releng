@@ -19,6 +19,7 @@
 #   2 - no successful AutoCloud builds found
 #   3 - subcommand failed, error message will be logged.
 #   4 - execution canceled by user
+#   5 - masher lock file found
 #
 #
 # NOTE: This is bad and I feel bad for having written it, here there be dragons
@@ -48,6 +49,7 @@ log = logging.getLogger(os.path.basename(sys.argv[0]))
 ATOMIC_DIR = "/mnt/koji/mash/atomic/%s"
 TARGET_REF = "fedora-atomic/%s/x86_64/docker-host"
 COMPOSE_BASEDIR = "/mnt/koji/compose/twoweek/"
+MASHER_LOCKFILE_GLOB = "/mnt/koji/mash/updates/MASHING*"
 
 # FIXME ???? Do we need a real STMP server here?
 ATOMIC_EMAIL_SMTP = "localhost"
@@ -565,7 +567,7 @@ def move_tree_commit(release, old_commit, new_commit):
         log.error("move_tree_commit: diff generation failed: %s", diff_cmd)
         exit(3)
 
-    reset_cmd = ['/usr/bin/sudo', 'ostree', 'reset', TARGET_REF % release, 
+    reset_cmd = ['/usr/bin/sudo', 'ostree', 'reset', TARGET_REF % release,
                  new_commit, '--repo', ATOMIC_DIR % release]
     if subprocess.call(reset_cmd):
         log.error("move_tree_commit: resetting ref to new commit failed: %s", reset_cmd)
@@ -590,7 +592,14 @@ if __name__ == '__main__':
     parser.add_argument(
         "-r",
         "--release",
-        help="Fedora Release to target for release (Ex: 22, 23, 24, rawhide)",
+        help="Fedora Release to target for release (Ex: 24, 25, rawhide)",
+    )
+    parser.add_argument(
+        "-f",
+        "--force",
+        type=bool,
+        default=False,
+        help="Force the release even if masher lock files are found (check with RelEng first)",
     )
     pargs = parser.parse_args()
 
@@ -600,6 +609,20 @@ if __name__ == '__main__':
     if not pargs.release:
         log.error("No release arg passed, see -h for help")
         sys.exit(1)
+
+    log.info("Checking for masher lock files")
+    if glob.glob(MASHER_LOCKFILE_GLOB) and not pargs.force:
+        errmsg = """
+        Masher file found, must --force to proceed.
+
+        MAKE SURE YOU KNOW WHAT YOU ARE DOING, WHEN IN DOUBT CHECK WITH
+        #fedora-releng on irc.freenode.net TO VERIFY WE ARE SAFE TO NOT
+        BREAK MASHER
+        """
+        log.error(errmsg)
+        sys.exit(5)
+
+
 
     log.info("Checking to make sure release is not currently blocked")
     if BLOCK_ATOMIC_RELEASE:
@@ -647,7 +670,7 @@ if __name__ == '__main__':
                      ATOMIC_DIR % pargs.release, TARGET_REF % pargs.release]
     previous_commit = subprocess.check_output(rev_parse_cmd).strip()
 
-    # This could happen if there was a failure in this script sending the email 
+    # This could happen if there was a failure in this script sending the email
     # or anything after the commit has already been moved.
     if previous_commit == tree_commit:
         answer = raw_input('ref is already at that commit, are you sure?: (y/n)').strip()
