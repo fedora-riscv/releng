@@ -91,12 +91,16 @@ for pkg in pkgs:
     newbuild = False
     # Check the builds to make sure they were for the target we care about
     for build in builds:
-        buildtarget = kojisession.getTaskInfo(build['task_id'],
-                                   request=True)['request'][1]
-        if buildtarget == target or buildtarget in targets:
-            # We've already got an attempt made, skip.
-            newbuild = True
-            break
+        try:
+            buildtarget = kojisession.getTaskInfo(build['task_id'],
+                                       request=True)['request'][1]
+            if buildtarget == target or buildtarget in targets:
+                # We've already got an attempt made, skip.
+                newbuild = True
+                break
+        except:
+            print 'Skipping %s, no taskinfo.' % name
+            continue
     if newbuild:
         print 'Skipping %s, already attempted.' % name
         continue
