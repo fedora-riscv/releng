@@ -1,40 +1,39 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 # srpm-exlcuded-arch: is a tool to give you a list of packge names that
 # are excluded on the given arches.  access to a srpm tree is needed.
 #
-# Copyright (C) 2008-2013 Red Hat, Inc.
+# Copyright (C) 2008-2017 Red Hat, Inc.
 # SPDX-License-Identifier:      GPL-2.0+
 #
 # Authors:
 #       Dennis Gilmore <dennis@ausil.us>
+#       Dan Horák <dhorak@redhat.com>
 
 import rpm
 import os
 import sys
-import optparse
+import argparse
 import glob
 
-OptionParser = optparse.OptionParser
-usage = "%prog [options]"
-parser = OptionParser(usage=usage)
-parser.add_option("-a", "--arches", 
-       help="space or command separated list of arches to check for")
-parser.add_option("--path", default='./',
-       help="path to dir with srpms, default current directory")
-(options, args) = parser.parse_args()
-arches = options.arches
-if arches == None:
-   print "You must pass arches to check for in."
-   sys.exit()
-else:
-   if arches.find(',') == -1:
-        arches = arches.split(' ')
-   else:
-        arches = arches.split(',')
+parser = argparse.ArgumentParser()
+parser.add_argument("--arches", "-a", help="space or command separated list of arches to check for", required=True)
+parser.add_argument("--path", "-p", help="path to dir with srpms, default current directory", default=".")
+parser.add_argument("--list", "-l", help="print one package per line", action="store_true")
+args = parser.parse_args()
 
-srpm_path = options.path
-srpms = glob.glob('%s/*.rpm' % srpm_path)
+arches = args.arches
+if arches.find(',') == -1:
+    arches = arches.split(' ')
+else:
+    arches = arches.split(',')
+
+srpms = glob.glob('%s/*/*.rpm' % args.path)
+if len(srpms) == 0:
+    print("Error: empty srpm list from directory '%s'" % (args.path))
+    sys.exit(1)
+
 pkglist = []
 
 for srpm in srpms:
@@ -58,8 +57,12 @@ for srpm in srpms:
             pkglist.append(pkgname)
             #print "Excluding: %s" % pkgname
 
-output = ""
-for pkg in pkglist:
-    output +=  pkg + " "
+if args.list:
+    for pkg in pkglist:
+        print(pkg)
+else:
+    output = ""
+    for pkg in pkglist:
+        output +=  pkg + " "
 
-print output
+    print output
