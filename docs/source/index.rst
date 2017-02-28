@@ -31,7 +31,7 @@ Contact Information
 ===================
 * IRC: ``#fedora-releng`` on irc.freenode.net
 * Mailing List: `rel-eng@lists.fedoraproject.org <https://admin.fedoraproject.org/mailman/listinfo/rel-eng>`_
-* Issue tracker: `Fedora Rel-Eng Trac Tickets <https://fedorahosted.org/rel-eng/newticket>`_
+* Issue tracker: `Fedora Releng Pagure Tickets <https://pagure.io/releng/new_issue>`_
 
 If you want the to get something done (e.g. moving packages to buildroots or
 into frozen compositions) by the ReleaseEngineering Team, please create a
@@ -113,7 +113,7 @@ people new to rel-eng will usually get access a little bit at a time.
 Typically people won't immediately be granted the ability to sign packages and
 push updates for example. A couple of tasks you could start out with are
 troubleshooting why builds are failing (and if rel-eng could take actions to
-fix it) as the requests are submitted to trac or help with scripts for various
+fix it) as the requests are submitted to pagure or help with scripts for various
 rel-eng tasks.
 
 There are also a number of tools that Fedora Release Engineering uses and
@@ -133,11 +133,11 @@ the :ref:`releng-contact-info`
 
 Meetings
 ========
-rel-eng holds regular meetings every Monday at 14:30 UTC in `#fedora-meeting-1`
+rel-eng holds regular meetings every Monday at 14:30 UTC in `#fedora-meeting-2`
 on the Freenode IRC network.
 
-* `Meeting agendas <https://fedorahosted.org/rel-eng/report/10>`_ are created
-  from open tickets in Trac that contain the meeting keyword.
+* `Meeting agendas <https://pagure.io/releng/issues?status=Open&tags=meeting>`_ are created
+  from open tickets in pagure that contain the meeting keyword.
 
 Meeting Minutes
 ---------------
