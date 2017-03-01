@@ -43,6 +43,7 @@ EPEL5_RELEASE = dict(
     tag='dist-5E-epel',
     branch='el5',
     mailto='epel-devel@lists.fedoraproject.org',
+    bcc=['epel-announce@lists.fedoraproject.org'],
 )
 
 EPEL6_RELEASE = dict(
@@ -53,6 +54,7 @@ EPEL6_RELEASE = dict(
     tag='dist-6E-epel',
     branch='el6',
     mailto='epel-devel@lists.fedoraproject.org',
+    bcc=['epel-announce@lists.fedoraproject.org'],
 )
 
 EPEL7_RELEASE = dict(
@@ -61,6 +63,7 @@ EPEL7_RELEASE = dict(
     tag='epel7',
     branch='epel7',
     mailto='epel-devel@lists.fedoraproject.org',
+    bcc=['epel-announce@lists.fedoraproject.org'],
 )
 
 RAWHIDE_RELEASE = dict(
@@ -71,6 +74,7 @@ RAWHIDE_RELEASE = dict(
     tag='f27',
     branch='master',
     mailto='devel@lists.fedoraproject.org',
+    bcc=[],
 )
 
 BRANCHED_RELEASE = dict(
@@ -81,6 +85,7 @@ BRANCHED_RELEASE = dict(
     tag='f26',
     branch='f26',
     mailto='devel@lists.fedoraproject.org',
+    bcc=[],
 )
 
 RELEASES = {
@@ -826,7 +831,7 @@ def main():
         else:
             mailto = RELEASES[args.release]["mailto"]
         if args.send:
-            bcc = addresses
+            bcc = addresses + RELEASES[args.release]["bcc"]
         else:
             bcc = None
         mail_errors = send_mail(args.mailfrom, mailto, subject, text, bcc)
