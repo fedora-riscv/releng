@@ -184,10 +184,10 @@ if __name__ == '__main__':
         print('Both the argument delete and change permission is not allowed')
 
     if args.delete:
-        end = (datetime.now() - timedelta(days=5)).strftime('%s')
-        amis = _get_nightly_amis_nd(delta=43200, end=int(end))
+        end = (datetime.now() - timedelta(days=10)).strftime('%s')
+        amis = _get_nightly_amis_nd(delta=864000, end=int(end))
         delete_amis_nd(amis, dry_run=args.dry_run)
 
     if args.change_perms:
-        amis = _get_nightly_amis_nd(delta=43200)
+        amis = _get_nightly_amis_nd(delta=864000)
         change_amis_permission_nd(amis, dry_run=args.dry_run)
