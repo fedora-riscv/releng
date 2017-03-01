@@ -240,7 +240,7 @@ each upstream for recommended contributions workflow.
 * `imagefactory <http://imgfac.org/>`_ -
   imagefactory builds images for a variety of operating system/cloud
   combinations.
-* `sigul <https://fedorahosted.org/sigul/>`_ -
+* `sigul <https://pagure.io/sigul>`_ -
   An automated gpg signing system
 * `mock <https://fedoraproject.org/wiki/Mock>`_ -
   a tool for building packages in prestine buildroots
