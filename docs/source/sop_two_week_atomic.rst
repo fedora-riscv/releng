@@ -84,7 +84,7 @@ were sent and recently received by `Datagrepper`_ in `this datagrepper query`_.
 One final item to check is that the actual compose artifacts have made their way
 into the `appropriate stable directories`_.
 
-.. _sigul: https://fedorahosted.org/sigul/
+.. _sigul: https://pagure.io/sigul
 .. _fedmsg: http://www.fedmsg.com/en/latest/
 .. _Datagrepper: https://apps.fedoraproject.org/datagrepper/
 .. _Fedora RelEng repo: https://pagure.io/releng
