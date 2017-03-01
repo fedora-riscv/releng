@@ -8,7 +8,7 @@ Composing Fedora
 Description
 ===========
 When Quality Engineering requests a TC or RC they do so by filing or reopening
-a ticket in Release Engineering trac. There is one trac ticket per milestone.
+a ticket in Release Engineering pagure.
 
 Action
 ======
@@ -89,7 +89,7 @@ Composing the Tree
 
 #. Close the ticket:
 
-   Copy the output pasted at teh end of run-pungi and paste into the ticket and
+   Copy the output pasted at the end of run-pungi and paste into the ticket and
    close it.
 
 Update the ticket
