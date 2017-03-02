@@ -42,8 +42,8 @@ EPEL5_RELEASE = dict(
     'dist-5E-epel/SRPMS',
     tag='dist-5E-epel',
     branch='el5',
-    mailto='epel-devel@lists.fedoraproject.org',
-    bcc=['epel-announce@lists.fedoraproject.org'],
+    mailto='epel-announce@lists.fedoraproject.org',
+    bcc=[],
 )
 
 EPEL6_RELEASE = dict(
@@ -53,8 +53,8 @@ EPEL6_RELEASE = dict(
     'dist-6E-epel/SRPMS',
     tag='dist-6E-epel',
     branch='el6',
-    mailto='epel-devel@lists.fedoraproject.org',
-    bcc=['epel-announce@lists.fedoraproject.org'],
+    mailto='epel-announce@lists.fedoraproject.org',
+    bcc=[],
 )
 
 EPEL7_RELEASE = dict(
@@ -62,8 +62,8 @@ EPEL7_RELEASE = dict(
     source_repo='https://kojipkgs.fedoraproject.org/mash/updates/epel7/SRPMS',
     tag='epel7',
     branch='epel7',
-    mailto='epel-devel@lists.fedoraproject.org',
-    bcc=['epel-announce@lists.fedoraproject.org'],
+    mailto='epel-announce@lists.fedoraproject.org',
+    bcc=[],
 )
 
 RAWHIDE_RELEASE = dict(
