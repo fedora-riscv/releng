@@ -47,7 +47,6 @@ $kojicli edit-tag --perm=admin f$RELEASE-updates-testing
 $kojicli edit-tag --perm=admin f$RELEASE-updates-testing-pending
 $kojicli edit-tag --perm=admin f$RELEASE-updates-pending
 $kojicli edit-tag --perm=admin f$RELEASE-atomic
-$kojicli edit-tag --perm=admin f$RELEASE-openh264
 $kojicli edit-tag --perm=autosign f$RELEASE-signing-pending
 $kojicli edit-tag --perm=autosign f$RELEASE-infra
 $kojicli edit-tag --perm=autosign f$RELEASE-infra-stg
