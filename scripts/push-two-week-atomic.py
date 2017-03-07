@@ -315,7 +315,7 @@ Existing systems can be upgraded in place via e.g. `atomic host upgrade` or
 
 Corresponding image media for new installations can be downloaded from:
 
-    https://getfedora.org/en/cloud/download/atomic.html
+    https://getfedora.org/en/atomic/download/
 
 Respective signed CHECKSUM files can be found here:
 {}
