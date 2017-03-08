@@ -35,9 +35,9 @@ if args.debug:
 log.debug("tag=%s arch=%s pkgs=%s", args.tag, args.arch, args.package)
 
 if args.arch is None:
-    KOJIHUB = 'http://koji.fedoraproject.org/kojihub'
+    KOJIHUB = 'fedora'
 else:
-    KOJIHUB = 'http://%s.koji.fedoraproject.org/kojihub' % (args.arch)
+    KOJIHUB = args.arch
 
 
 def _rpmvercmp((e1, v1, r1), (e2, v2, r2)):
@@ -57,8 +57,8 @@ def _rpmvercmp((e1, v1, r1), (e2, v2, r2)):
         # second evr wins
         return -1
 
-
-kojisession = koji.ClientSession(KOJIHUB, {'krb_rdns': False})
+koji_module = koji.get_profile_module(KOJIHUB)
+kojisession = koji_module.ClientSession(koji_module.config.server)
 kojisession.krb_login()
 
 if args.package == []:

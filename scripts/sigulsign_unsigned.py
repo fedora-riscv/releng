@@ -106,12 +106,11 @@ def get_gpg_agent_passphrase(cache_id, ask=False, error_message="X",
 class KojiHelper(object):
     def __init__(self, arch=None):
         if arch:
-            self.kojihub = \
-                'https://{arch}.koji.fedoraproject.org/kojihub'.format(
-                    arch=arch)
+            self.kojihub = arch
         else:
-            self.kojihub = 'https://koji.fedoraproject.org/kojihub'
-        self.kojisession = koji.ClientSession(self.kojihub, {'krb_rdns': False})
+            self.kojihub = "koji"
+        self.koji_module = koji.get_profile_module(self.kojihub) 
+        self.kojisession = self.koji_module.ClientSession(self.koji_module.config.server)
         self.kojisession.krb_login()
 
     def listTagged(self, tag, inherit=False):

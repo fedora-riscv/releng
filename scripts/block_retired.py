@@ -27,6 +27,8 @@ PRODUCTION_KOJI = "https://koji.fedoraproject.org/kojihub"
 STAGING_KOJI = "https://koji.stg.fedoraproject.org/kojihub"
 
 
+
+
 class ReleaseMapper(object):
     BRANCHNAME = 0
     KOJI_TAG = 1
@@ -78,8 +80,9 @@ def get_packages(tag, staging=False):
     """
     Get a list of all blocked and unblocked packages in a branch.
     """
-    url = PRODUCTION_KOJI if not staging else STAGING_KOJI
-    kojisession = koji.ClientSession(url, {'krb_rdns': False})
+    profile = PRODUCTION_KOJI_PROFILE if not staging else STAGING_KOJI_PROFILE
+    koji_module = koji.get_profile_module(profile)
+    kojisession = koji_module.ClientSession(koji_module.config.server)
     kojisession.krb_login()
     pkglist = kojisession.listPackages(tagID=tag, inherited=True)
     blocked = []
@@ -324,10 +327,15 @@ if __name__ == "__main__":
     parser.add_argument(
         "--staging", default=False, action="store_true",
         help="Talk to staging services (pkgdb), instead of production")
+    parser.add_argument(
+        "-p", "--profile", default="compose_koji",
+        help="Koji profile to use, default: %(default)s")
     args = parser.parse_args()
 
     setup_logging(args.debug)
 
+    PRODUCTION_KOJI_PROFILE = args.profile
+    STAGING_KOJI_PROFILE = "stg"
     if not args.packages:
         block_all_retired(staging=args.staging)
     else:

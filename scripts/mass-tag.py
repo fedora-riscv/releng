@@ -26,7 +26,8 @@ newbuilds = {} # dict of packages that have a newer build attempt
 tasks = {} # dict of new build task info
 
 # Create a koji session
-kojisession = koji.ClientSession('https://koji.fedoraproject.org/kojihub', {'krb_rdns': False})
+koji_module = koji.get_profile_module("fedora")
+kojisession = koji_module.ClientSession(koji_module.config.server)
 
 # Log into koji
 kojisession.krb_login()

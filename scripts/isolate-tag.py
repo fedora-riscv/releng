@@ -12,11 +12,18 @@
 
 import koji
 import os
+import argparse
 
 tag = 'f25'
 oldtag = 'f24'
 # Create a koji session
-kojisession = koji.ClientSession('http://ppc.koji.fedoraproject.org/kojihub', {'krb_rdns': False})
+parser = argparse.ArgumentParser()
+parser.add_argument('-p','--koji-profile', help='Select a koji profile to use',required=True)
+args = parser.parse_args()
+koji_profile = args.koji_profile
+
+koji_module = koji.get_profile_module(koji_profile)
+kojisession = koji_module.ClientSession(koji_module.config.server)
 
 # Log into koji
 kojisession.krb_login()

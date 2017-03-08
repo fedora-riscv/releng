@@ -21,7 +21,8 @@ tags = ['f26', 'f25', 'f24', 'f23'] # tag to check in koji
 
 arches = ['arm', 'ppc', 's390']
 
-kojisession = koji.ClientSession('https://koji.fedoraproject.org/kojihub')
+koji_module = koji.get_profile_module("fedora")
+kojisession = koji_module.ClientSession(koji_module.config.server)
 
 def getBlocked(kojisession, tag):
     blocked = [] # holding for blocked pkgs
@@ -46,7 +47,8 @@ def getUnBlocked(kojisession, tag):
 for arch in arches:
     print "== Working on Arch: %s" % arch
     # Create a koji session
-    seckojisession = koji.ClientSession('https://%s.koji.fedoraproject.org/kojihub' % arch , {'krb_rdns': False})
+    sec_koji_module = koji.get_profile_module(args.arch)
+    seckojisession = sec_koji_module.ClientSession(sec_koji_module.config.server)
     seckojisession.krb_login()
 
     for tag in tags:

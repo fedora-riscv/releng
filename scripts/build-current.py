@@ -15,8 +15,6 @@ import string
 import rpm
 import operator
 
-LOCALKOJIHUB = 'http://arm.koji.fedoraproject.org/kojihub'
-REMOTEKOJIHUB = 'http://koji.fedoraproject.org/kojihub'
 PACKAGEURL = 'http://kojipkgs.fedoraproject.org/'
 
 workpath = '/tmp/build-recent'
@@ -134,8 +132,10 @@ def importBuild(build, rpms, buildinfo, tag=None):
 
 # setup the koji session
 logging.info('Setting up koji session')
-localkojisession = koji.ClientSession(LOCALKOJIHUB, {'krb_rdns': False})
-remotekojisession = koji.ClientSession(REMOTEKOJIHUB)
+local_koji_module = koji.get_profile_module("arm")
+localkojisession = local_koji_module.ClientSession(local_koji_module.config.server)
+remote_koji_module = koji.get_profile_module("koji")
+remotekojisession = remote_koji_module.ClientSession(remote_koji_module.config.server)
 localkojisession.krb_login()
 
 tag = 'f18-rebuild'
