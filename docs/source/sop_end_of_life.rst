@@ -91,7 +91,7 @@ Badges tasks
       `sysadmin-badges-members@fedoraproject.org` and
       `gitbadges-members@fedoraproject.org`.  Tell them that they need to update
       this badge and point them to these instructions.
-    * Clone the repo with `` $ git clone https://git.fedorahosted.org/git/badges.git``
+    * Clone the repo with `` $ git clone ssh://git@pagure.io/fedora-badges-assets.git``
     * Edit `rules/you-can-pry-it-from-my-cold-undead-hands.yml` and add the EOL
       release to the list in the trigger section on line 19.
     * Push that back to fedorahosted.
@@ -169,6 +169,6 @@ Consider Before Running
 .. _End of Life Process:
     https://fedoraproject.org/wiki/BugZappers/HouseKeeping#End_of_Life_.28EOL.29
 .. _cold undead hands:
-    https://git.fedorahosted.org/cgit/badges.git/tree/rules/you-can-pry-it-from-my-cold-undead-hands.yml
+    https://pagure.io/fedora-badges-assets/blob/master/f/rules/you-can-pry-it-from-my-cold-undead-hands.yml
 .. _File Taskotron ticket:
     https://phab.qadevel.cloud.fedoraproject.org/maniphest/task/edit/form/default/?title=release%20is%20EOL&priority=80&tags=libtaskotron
