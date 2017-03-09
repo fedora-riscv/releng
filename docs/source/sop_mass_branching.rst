@@ -285,27 +285,54 @@ A script that reads the `dnf`_/`yum`_ repodata (critpath group in comps, and
 the package dependencies) is used to generate this.  Read
 :doc:`sop_update_critpath` for the steps to take.
 
+Fedora Container Base Image
+---------------------------
+
+In order to enable builds for Container Base Images via the `Fedora Layered
+Image Build System`_ we will need to import a new image for Rawhide as well as
+for the new ``fedora:rawhide`` and ``fedora:${RAWHIDE}`` tags.
+
+Check for the latest successful Rawhide Base Image composed image `here
+<https://koji.fedoraproject.org/koji/packageinfo?packageID=21546>`_.
+
+On ``compose-x86-01.phx2`` run:
+
+::
+
+    # Update this to be the correct URL for your image
+    $ BASEIMAGE_URL="https://kojipkgs.fedoraproject.org//packages/Fedora-Docker-Base/Rawhide/20170310.n.0/images/Fedora-Docker-Base-Rawhide-20170310.n.0.x86_64.tar.xz"
+
+    # Update this to whatever version number Rawhide now points to
+    $ RAWHIDE="27"
+
+    # Load the latest, find it's image name
+    $ sudo docker load < <(curl -s "${BASEIMAGE_URL}")
+    $ sudo docker images | grep base-rawhide
+    fedora-docker-base-rawhide-20170310.n.0.x86_64      latest      ffd832a990ca        5 hours ago     201.8 MB
+
+    # Tag everything
+    $ sudo docker tag fedora-docker-base-rawhide-20170310.n.0.x86_64 candidate-registry.fedoraproject.org/fedora:rawhide
+    $ sudo docker tag fedora-docker-base-rawhide-20170310.n.0.x86_64 candidate-registry.fedoraproject.org/fedora:${RAWHIDE}
+    $ sudo docker tag fedora-docker-base-rawhide-20170310.n.0.x86_64 registry.fedoraproject.org/fedora:rawhide
+    $ sudo docker tag fedora-docker-base-rawhide-20170310.n.0.x86_64 registry.fedoraproject.org/fedora:${RAWHIDE
+
+    # Push the images
+    $ sudo docker push candidate-registry.fedoraproject.org/fedora:rawhide
+    $ sudo docker push candidate-registry.fedoraproject.org/fedora:${RAWHIDE}
+    $ sudo docker push registry.fedoraproject.org/fedora:rawhide
+    $ sudo docker push registry.fedoraproject.org/fedora:${RAWHIDE}
+
+    # Clean up after ourselves
+    $ sudo docker rmi fedora-docker-base-rawhide-20170310.n.0.x86_64
+    Untagged: fedora-docker-base-rawhide-20170310.n.0.x86_64:latest
+    $ for i in $(sudo docker images -q -f 'dangling=true'); do sudo docker rmi $i; done
+
 
 Consider Before Running
 =======================
 
 .. note::
     FIXME: Need some love here
-
-.. _master collection: https://admin.fedoraproject.org/pkgdb/collection/master/
-.. _Admin interface of pkgdb: https://admin.fedoraproject.org/pkgdb/admin/
-.. _Final Freeze: https://fedoraproject.org/wiki/Schedule
-.. _pkgdb configuration file:
-    https://infrastructure.fedoraproject.org/infra/ansible/roles/pkgdb2/templates/pkgdb2.cfg
-.. _File a Taskotron ticket:
-    https://phab.qadevel.cloud.fedoraproject.org/maniphest/task/edit/form/default/?title=new%20release%20branched&priority=80&tags=libtaskotron
-.. _Bodhi SOP: https://infrastructure.fedoraproject.org/infra/docs/bodhi.rst
-.. _spin: http://spins.fedoraproject.org
-.. _dnf: https://fedoraproject.org/wiki/Dnf
-.. _yum: https://fedoraproject.org/wiki/Yum
-.. _spin-kickstarts: https://pagure.io/fedora-kickstarts/
-.. _file a rel-eng ticket:
-    https://fedorahosted.org/rel-eng/newticket?summary=Update%20nightly%20spin%20kickstart&type=task&component=production&priority=critical&milestone=Hot%20issues&cc=kevin
 
 
 Debug PkgDB
@@ -357,3 +384,22 @@ issues in the database of pkgdb:
     AND package_listing_acl.packagelisting_id = p1.id
     AND package.id = p1.package_id
     AND package.namespace != 'modules';
+
+
+
+.. _master collection: https://admin.fedoraproject.org/pkgdb/collection/master/
+.. _Admin interface of pkgdb: https://admin.fedoraproject.org/pkgdb/admin/
+.. _Final Freeze: https://fedoraproject.org/wiki/Schedule
+.. _pkgdb configuration file:
+    https://infrastructure.fedoraproject.org/infra/ansible/roles/pkgdb2/templates/pkgdb2.cfg
+.. _File a Taskotron ticket:
+    https://phab.qadevel.cloud.fedoraproject.org/maniphest/task/edit/form/default/?title=new%20release%20branched&priority=80&tags=libtaskotron
+.. _Bodhi SOP: https://infrastructure.fedoraproject.org/infra/docs/bodhi.rst
+.. _spin: http://spins.fedoraproject.org
+.. _dnf: https://fedoraproject.org/wiki/Dnf
+.. _yum: https://fedoraproject.org/wiki/Yum
+.. _spin-kickstarts: https://pagure.io/fedora-kickstarts/
+.. _file a rel-eng ticket:
+    https://fedorahosted.org/rel-eng/newticket?summary=Update%20nightly%20spin%20kickstart&type=task&component=production&priority=critical&milestone=Hot%20issues&cc=kevin
+.. _Fedora Layered Image Build System:
+    https://docs.pagure.org/releng/layered_image_build_service.html
