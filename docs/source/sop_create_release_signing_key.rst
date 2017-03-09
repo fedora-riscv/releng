@@ -93,7 +93,7 @@ following:
 
         $ sigul change-passphrase fedora-23
 
-#. When your sigul cert expires, you will need to run: 
+#. When your sigul cert expires, you will need to run:
 
    ::
 
@@ -107,42 +107,36 @@ following:
 
    to add a new one.
 
-fedora-release
---------------
-The fedora-release package houses a copy of the public key information.  This
+fedora-repos
+------------
+The fedora-repos package houses a copy of the public key information.  This
 is used by rpm to verify the signature on files encountered.  Currently the
-fedora-release package has a single key file named after the version of the
+fedora-repos package has a single key file named after the version of the
 key and the arch the key is for.  To continue our example, the file would be
-named ``RPM-GPG-KEY-fedora-13-primary`` which is the primary arch key for
-Fedora 13.  To create this file, use the ``get-public-key`` command from sigul:
+named ``RPM-GPG-KEY-fedora-27-primary`` which is the primary arch key for
+Fedora 27.  To create this file, use the ``get-public-key`` command from sigul:
 
 ::
 
-    $ sigul get-public-key fedora-13 > RPM-GPG-KEY-fedora-13-primary
+    $ sigul get-public-key fedora-27 > RPM-GPG-KEY-fedora-27-primary
 
-Add this file to the repo, and remove the previous release's file.
+Add this file to the repo and update the archmap file for the new release.
 
 ::
 
-    $ cvs rm RPM-GPG-KEY-fedora-12-primary
-    $ cvs add RPM-GPG-KEY-fedora-13-primary
+    $ git add RPM-GPG-KEY-fedora-27-primary
 
-Then make a new fedora-release build for rawhide (``FIXME: this should be its own SOP``)
+Then make a new fedora-repos build for rawhide (``FIXME: this should be its own SOP``)
 
-fedoraproject.org
------------------
-``FIXME - WE DON'T EVEN CVS ANYMORE BECAUSE IT'S NOT THE EARLY 90s``
-fedoraproject.org/keys lists information about all of our keys.  We need to
-let the webteam know we have created a new key so that they can add it to the
+getfedora.org
+-------------
+getfedora.org/keys lists information about all of our keys.  We need to
+let the websites team know we have created a new key so that they can add it to the
 list.
 
-We do this by sending an email to webmaster@fedoraproject.org pointing to the
-viewvc
-http://cvs.fedoraproject.org/viewvc/fedora-release/RPM-GPG-KEY-fedora-13-primary?revision=1.1&root=fedora&view=co
-as well as including a URL to this page so that the process is not forgotten
-(see section below)
-
-This url will have to be refreshed for the right release and CVS version
+We do this by filing an issues in their pagure instance
+https://pagure.io/fedora-websites/
+we should point them at this SOP
 
 Web team SOP
 ^^^^^^^^^^^^
@@ -193,24 +187,21 @@ import they key into our local keyring, and then upload it to the key servers.
     $ gpg --import fedora-13
     $ gpg --send-keys E8E40FDE
 
-Mash
+pungi-fedora
 ----
-Mash is the tool that composes our nightly trees, and as such it needs to know
-about the new key.  This currently is done by checking mash out from git,
-editing the rawhide.mash file and sending the patch to the mash upstream.
+The nightly compose configs come from the pungi-fedora project on https://pagure.io
+We need to create a pull request to pull in the new key.
 
 ::
 
-    $ git clone https://pagure.io/mash
-    $ cd mash
-    $ vim configs/rawhide.mash
-    <add key to front of keys = line>
+    $ git clone ssh://git@pagure.io/<your fork path>/pungi-fedora.git
+    $ cd pungi-fedora
+    $ vim *conf
+    <set key value in sigkeys = line >
     $ git commit -m 'Add new key'
-    $ git send-email --to notting@redhat.com HEAD^
+    $ git push
+    $ file a Pull Request
 
-
-``FIXME - Nottingham isn't active in Fedora RelEng lately``
-Coordinate with Bill Nottingham to get a new build of mash done with the change.
 
 Koji
 ----
@@ -219,40 +210,41 @@ to be removed to save space.  Part of that criteria has to do with whether or
 not the build has been signed with a key.  If the collection utility doesn't
 know about a key it will ignore the build.  Thus as we create new keys we need
 to inform the utility of these keys or else builds can pile up.  The
-configuration for the garbage collection lives within puppet.
+configuration for the garbage collection lives within ansible.
 
-On the puppet server in a clone edit the configs/build/koji-gc.conf file:
+On a clone of the infrastructure ansible git repo edit the
+roles/koji_hub/templates/koji-gc.conf.j2 file:
 
 ::
 
-    diff --git a/configs/build/koji-gc.conf b/configs/build/koji-gc.conf
-    index 8b14704..042ec35 100644
-    --- a/configs/build/koji-gc.conf
-    +++ b/configs/build/koji-gc.conf
-    @@ -11,6 +11,7 @@ key_aliases =
-         4EBFC273    fedora-10
-         D22E77F2    fedora-11
-         57BBCCBA    fedora-12
-    +    217521F6    fedora-epel
-
-     unprotected_keys =
-         fedora-test
-    @@ -21,6 +22,7 @@ unprotected_keys =
-         fedora-12
+    diff --git a/roles/koji_hub/templates/koji-gc.conf.j2 b/roles/koji_hub/templates/koji-gc.conf.j2
+    index 9ecb750..9c48a8e 100644
+    --- a/roles/koji_hub/templates/koji-gc.conf.j2
+    +++ b/roles/koji_hub/templates/koji-gc.conf.j2
+    @@ -35,6 +35,7 @@ key_aliases =
+         81B46521    fedora-24
+         FDB19C98    fedora-25
+         64DAB85D    fedora-26
+    +    F5282EE4    fedora-27
+         217521F6    fedora-epel
+         0608B895    fedora-epel-6
+         352C64E5    fedora-epel-7
+    @@ -52,6 +53,7 @@ unprotected_keys =
+         fedora-24
+         fedora-25
+         fedora-26
+    +    fedora-27
          fedora-extras
          redhat-beta
-    +    fedora-epel
-
-     server = https://koji.fedoraproject.org/kojihub
-     weburl = http://koji.fedoraproject.org/koji
-    @@ -38,6 +40,7 @@ policy =
-         sig fedora-10 && age < 12 weeks :: keep
-         sig fedora-11 && age < 12 weeks :: keep
-         sig fedora-12 && age < 12 weeks :: keep
-    +    sig fedora-epel && age < 12 weeks :: keep
-
-         #stuff to chuck semi-rapidly
-         tag *-testing *-candidate *-override && order >= 2 :: untag
+         fedora-epel
+    @@ -91,6 +93,7 @@ policy =
+         sig fedora-24 && age < 12 weeks :: keep
+         sig fedora-25 && age < 12 weeks :: keep
+         sig fedora-26 && age < 12 weeks :: keep
+    +    sig fedora-27 && age < 12 weeks :: keep
+         sig fedora-epel && age < 12 weeks :: keep
+         sig fedora-epel-6 && age < 12 weeks :: keep
+         sig fedora-epel-7 && age < 12 weeks :: keep
 
 In this case the fedora-epel key was added to the list of key aliases, then
 referenced in the list of unprotected_keys, and finally a policy was created
@@ -275,7 +267,7 @@ Use the ``list-keys`` command to verify that the key was indeed added to sigul:
 ::
 
     $ sigul list-keys
-    Administrator's password: 
+    Administrator's password:
     fedora-10
     fedora-10-testing
     fedora-11
@@ -290,7 +282,7 @@ Use the ``list-key-users`` command to verify all the signers have access:
 ::
 
         $ sigul list-key-users fedora-13
-        Key passphrase: 
+        Key passphrase:
         jkeating
         jwboyer
 
@@ -303,52 +295,203 @@ build from koji and run rpm2cpio on it, then run gpg on the key file:
 
 ::
 
-    $ koji download-build --arch noarch --latest dist-f13 fedora-release
-    fedora-release.noarch                                   |  39 kB     00:00 ... 
+    $ koji download-build --arch noarch --latest f27 fedora-repos
+    fedora-repos-rawhide-27-0.1.noarch.rpm                  | 7.3 kB  00:00:00
+    fedora-repos-27-0.1.noarch.rpm                          |  87 kB  00:00:00
+    $ rpmdev-extract fedora-repos-27-0.1.noarch.rpm
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-27-fedora
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-10-i386
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-10-ppc
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-10-ppc64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-10-primary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-10-x86_64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-11-i386
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-11-ppc
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-11-ppc64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-11-primary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-11-x86_64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-12-i386
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-12-ppc
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-12-ppc64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-12-primary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-12-x86_64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-13-arm
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-13-armhfp
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-13-i386
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-13-mips
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-13-primary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-13-secondary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-13-x86_64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-14-i386
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-14-primary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-14-x86_64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-15-arm
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-15-armhfp
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-15-i386
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-15-ppc
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-15-ppc64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-15-primary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-15-s390
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-15-s390x
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-15-secondary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-15-x86_64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-16-arm
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-16-armhfp
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-16-i386
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-16-ppc
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-16-ppc64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-16-primary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-16-s390
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-16-s390x
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-16-secondary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-16-x86_64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-17-arm
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-17-armhfp
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-17-i386
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-17-ppc
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-17-ppc64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-17-primary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-17-s390
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-17-s390x
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-17-secondary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-17-x86_64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-18-arm
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-18-armhfp
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-18-i386
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-18-ppc
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-18-ppc64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-18-primary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-18-s390
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-18-s390x
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-18-secondary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-18-x86_64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-19-armhfp
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-19-i386
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-19-ppc
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-19-ppc64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-19-primary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-19-s390
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-19-s390x
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-19-secondary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-19-x86_64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-20-armhfp
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-20-i386
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-20-ppc
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-20-ppc64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-20-primary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-20-s390
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-20-s390x
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-20-secondary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-20-x86_64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-21-aarch64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-21-armhfp
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-21-i386
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-21-ppc64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-21-ppc64le
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-21-primary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-21-s390
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-21-s390x
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-21-secondary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-21-x86_64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-22-aarch64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-22-armhfp
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-22-i386
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-22-ppc64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-22-ppc64le
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-22-primary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-22-s390
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-22-s390x
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-22-secondary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-22-x86_64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-23-aarch64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-23-armhfp
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-23-i386
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-23-ppc64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-23-ppc64le
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-23-primary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-23-s390
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-23-s390x
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-23-secondary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-23-x86_64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-24-aarch64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-24-armhfp
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-24-i386
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-24-ppc64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-24-ppc64le
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-24-primary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-24-s390x
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-24-secondary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-24-x86_64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-25-aarch64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-25-armhfp
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-25-i386
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-25-ppc64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-25-ppc64le
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-25-primary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-25-s390x
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-25-secondary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-25-x86_64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-26-aarch64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-26-armhfp
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-26-i386
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-26-ppc64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-26-ppc64le
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-26-primary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-26-s390x
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-26-secondary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-26-x86_64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-27-aarch64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-27-armhfp
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-27-i386
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-27-ppc64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-27-ppc64le
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-27-primary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-27-s390x
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-27-x86_64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-7-primary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-8-i386
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-8-ppc
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-8-ppc64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-8-primary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-8-primary-original
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-8-x86_64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-9-i386
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-9-ia64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-9-ppc
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-9-ppc64
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-9-primary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-9-primary-original
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-9-secondary
+    fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-9-x86_64
+    fedora-repos-27-0.1.noarch/etc/yum.repos.d
+    fedora-repos-27-0.1.noarch/etc/yum.repos.d/fedora-cisco-openh264.repo
+    fedora-repos-27-0.1.noarch/etc/yum.repos.d/fedora-updates-testing.repo
+    fedora-repos-27-0.1.noarch/etc/yum.repos.d/fedora-updates.repo
+    fedora-repos-27-0.1.noarch/etc/yum.repos.d/fedora.repo
 
-    $ rpm2cpio fedora-release-13-0.3.noarch.rpm |cpio -ivd
-    ./etc/fedora-release
-    ./etc/issue
-    ./etc/issue.net
-    ./etc/pki/rpm-gpg
-    ./etc/pki/rpm-gpg/RPM-GPG-KEY-fedora
-    ./etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-13-primary
-    ./etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-i386
-    ./etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-ppc
-    ./etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-ppc64
-    ./etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-x86_64
-    ./etc/redhat-release
-    ./etc/rpm/macros.dist
-    ./etc/system-release
-    ./etc/system-release-cpe
-    ./etc/yum.repos.d
-    ./etc/yum.repos.d/fedora-rawhide.repo
-    ./etc/yum.repos.d/fedora-updates-testing.repo
-    ./etc/yum.repos.d/fedora-updates.repo
-    ./etc/yum.repos.d/fedora.repo
-    ./usr/share/doc/fedora-release-13
-    ./usr/share/doc/fedora-release-13/GPL
-    57 blocks
-
-    $ gpg etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-13-primary
-    pub  4096R/E8E40FDE 2010-01-19 Fedora (13) <fedora@fedoraproject.org>
+    $ gpg2 fedora-repos-27-0.1.noarch/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-27-primary
+    pub   rsa4096 2017-02-21 [SCE]
+          860E19B0AFA800A1751881A6F55E7430F5282EE4
+    uid           Fedora 27 (27) <fedora-27@fedoraproject.org>
+        pub  4096R/E8E40FDE 2010-01-19 Fedora (13) <fedora@fedoraproject.org>
 
 You may wish to do this in a tempoary directory to make cleaning it up easy.
 
-fedoraproject.org
+getfedora.org
 -----------------
-One can simply browse to http://fedoraproject.org/keys to verify that the key
+One can simply browse to https://getfedora.org/keys to verify that the key
 has been uploaded.
 
 sigulsign_unsigned
 ------------------
 The best way to test whether or not the key has been added correctly is to
-sign a package using the key, like our newly built fedora-release package.
+sign a package using the key, like our newly built fedora-repos package.
 
 ::
 
     $ ./sigulsign_unsigned.py fedora-13 fedora-release-13-0.3
-    Passphrase for fedora-13: 
+    Passphrase for fedora-13:
 
 The command should exit cleanly.
 
@@ -358,7 +501,7 @@ One can use the <code>search-keys</code> command from gpg to locate the key on t
 
 ::
 
-    $ gpg --search-keys "Fedora (13)"
+    $ gpg2 --search-keys "Fedora (13)"
     gpg: searching for "Fedora (13)" from hkp server subkeys.pgp.net
     (1) Fedora (13) <fedora@fedoraproject.org>
           4096 bit RSA key E8E40FDE, created: 2010-01-19
@@ -366,7 +509,7 @@ One can use the <code>search-keys</code> command from gpg to locate the key on t
 
 Koji
 ----
-Log into koji01 by way of gateway.fedoraproject.org.
+Log into koji02.phx2.fedoraproject.org by way of bastion.fedoraproject.org.
 
 Verify that ``/etc/koji-gc/koji-gc.conf`` has the new key in it.
 
