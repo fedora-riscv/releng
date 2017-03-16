@@ -17,8 +17,8 @@ from autosigner import SubjectSMTPHandler
 
 
 log = logging.getLogger(__name__)
-RETIRING_BRANCHES = ["el5", "el6", "epel7", "f25", "master"]
-PROD_ONLY_BRANCHES = ["el5", "el6", "epel7", "f25", "master"]
+RETIRING_BRANCHES = ["el5", "el6", "epel7", "f26", "master"]
+PROD_ONLY_BRANCHES = ["el5", "el6", "epel7", "f26", "master"]
 
 PRODUCTION_PKGDB = "https://admin.fedoraproject.org/pkgdb"
 STAGING_PKGDB = "https://admin.stg.fedoraproject.org/pkgdb"
@@ -36,7 +36,8 @@ class ReleaseMapper(object):
 
         # git branchname, koji tag, epel build tag
         self.mapping = (
-            ("master", "f26", ""),
+            ("master", "f27", ""),
+            ("f26", "f26", ""),
             ("f25", "f25", ""),
             ("f24", "f24", ""),
             ("f23", "f23", ""),
