@@ -64,8 +64,10 @@ def rpmvercmp ((e1, v1, r1), (e2, v2, r2)):
 
 print "=== Working on arch: %s ====" % args.arch
 # Create a koji session
-kojisession = koji.ClientSession('https://koji.fedoraproject.org/kojihub')
-seckojisession = koji.ClientSession('https://%s.koji.fedoraproject.org/kojihub' % args.arch, session_opts)
+koji_module = koji.get_profile_module("fedora")
+kojisession = koji_module.ClientSession(koji_module.config.server)
+sec_koji_module = koji.get_profile_module(args.arch)
+seckojisession = sec_koji_module.ClientSession(sec_koji_module.config.server, session_opts)
 if os.path.isfile(CLIENTCERT):
     seckojisession.ssl_login(CLIENTCERT, CLIENTCA, SERVERCA)
 else:

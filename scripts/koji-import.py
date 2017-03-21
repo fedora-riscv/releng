@@ -29,8 +29,8 @@ parser.add_argument("tag", help="import to this tag")
 parser.add_argument("build", nargs="*", help="build to import")
 args = parser.parse_args()
 
-LOCALKOJIHUB = 'https://%s.koji.fedoraproject.org/kojihub' % (args.arch)
-REMOTEKOJIHUB = 'https://koji.fedoraproject.org/kojihub'
+LOCALKOJIHUB = args.arch
+REMOTEKOJIHUB = 'fedora'
 PACKAGEURL = 'http://kojipkgs.fedoraproject.org/'
 
 # Should probably set these from a koji config file
@@ -148,8 +148,10 @@ def importBuild(rpms, buildinfo, tag=None):
 
 # setup the koji session
 logging.info('Setting up koji session')
-localkojisession = koji.ClientSession(LOCALKOJIHUB, session_opts)
-remotekojisession = koji.ClientSession(REMOTEKOJIHUB)
+local_koji_module = koji.get_profile_module(LOCALKOJIHUB)
+remote_koji_module = koji.get_profile_module(REMOTEKOJIHUB)
+localkojisession = local_koji_module.ClientSession(local_koji_module.config.server, session_opts)
+remotekojisession = remote_koji_module.ClientSession(remote_koji_module.config.server)
 if os.path.isfile(CLIENTCERT):
     localkojisession.ssl_login(CLIENTCERT, CLIENTCA, SERVERCA)
 else:

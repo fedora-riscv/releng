@@ -312,14 +312,15 @@ class KojiTool(AbstractTool):
         self.options.debug_xmlrpc = False
         self.options.password = None
         self.options.user = None
-        self.options.kojihub = 'http://koji.fedoraproject.org/kojihub'
+        self.options.kojihub = 'koji'
         self.options.regex = False
         self.options.ignore = []
         self.options.krb_rdns = False
 
     def create_koji_session(self):
         # used options: debug, debug_xmlrpc, user, password
-        self.koji_session = koji.ClientSession(self.options.kojihub, self.options.__dict__)
+        self.koji_module = koji.get_profile_module(self.kojihub)
+        self.koji_session = self.koji_module.ClientSession(self.koji_module.config.server, self.options.__dict__)
 
     def close_koji_session(self):
         self.koji_session.logout()

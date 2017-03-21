@@ -11,7 +11,7 @@
 # This program requires koji installed, as well as configured.
 
 import os
-import optparse
+import argparse
 import sys
 import koji
 import logging
@@ -20,25 +20,25 @@ status = 0
 builds = {}
 untag = []
 loglevel = ''
-KOJIHUB = 'https://koji.fedoraproject.org/kojihub'
 # Setup a dict of our key names as sigul knows them to the actual key ID
 # that koji would use.  We should get this from sigul somehow.
 
-# Define our usage
-usage = 'usage: %prog [options] tag'
 # Create a parser to parse our arguments
-parser = optparse.OptionParser(usage=usage)
-parser.add_option('-v', '--verbose', action='count', default=0,
+parser = argparse.ArgumentParser(usage = '%(prog)s [options] tag')
+parser.add_argument('-v', '--verbose', action='count', default=0,
                   help='Be verbose, specify twice for debug')
-parser.add_option('-n', '--dry-run', action='store_true', default=False,
+parser.add_argument('-n', '--dry-run', action='store_true', default=False,
                   help='Perform a dry run without untagging')
+parser.add_argument('-p', '--koji-profile', default="fedora",
+                  help='Select a koji profile to use')
 
+KOJIHUB = args.koji_profile
 # Get our options and arguments
-(opts, args) = parser.parse_args()
+args, extras =  parser.parse_known_args()
 
-if opts.verbose <= 0:   
+if args.verbose <= 0:
     loglevel = logging.WARNING
-elif opts.verbose == 1:
+elif args.verbose == 1:
     loglevel = logging.INFO 
 else: # options.verbose >= 2
     loglevel = logging.DEBUG
@@ -48,15 +48,16 @@ logging.basicConfig(format='%(levelname)s: %(message)s',
                     level=loglevel)
 
 # Check to see if we got any arguments
-if not args:
+if not extras:
     parser.print_help()
     sys.exit(1)
 
-tag = args[0]
+tag = extras[0]
 
 # setup the koji session
 logging.info('Setting up koji session')
-kojisession = koji.ClientSession(KOJIHUB, {'krb_rdns': False})
+koji_module = koji.get_profile_module(KOJIHUB)
+kojisession = koji_module.ClientSession(koji_module.config.server)
 if not kojisession.krb_login():
     logging.error('Unable to log into koji')
     sys.exit(1)
@@ -81,14 +82,14 @@ for pkg in sorted(builds.keys()):
 
 # Now untag all the builds
 logging.info('Untagging %s builds' % len(untag))
-if not opts.dry_run:
+if not args.dry_run:
     kojisession.multicall = True
 for build in untag:
-    if not opts.dry_run:
+    if not args.dry_run:
         kojisession.untagBuildBypass(tag, build, force=True)
     logging.debug('Untagging %s' % build)
 
-if not opts.dry_run:
+if not args.dry_run:
     results = kojisession.multiCall()
 
     for build, result in zip(untag, results):
