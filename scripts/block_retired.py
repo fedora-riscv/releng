@@ -26,7 +26,8 @@ STAGING_PKGDB = "https://admin.stg.fedoraproject.org/pkgdb"
 PRODUCTION_KOJI = "https://koji.fedoraproject.org/kojihub"
 STAGING_KOJI = "https://koji.stg.fedoraproject.org/kojihub"
 
-
+# pkgdb default namespace
+DEFAULT_NS = "rpms"
 
 
 class ReleaseMapper(object):
@@ -34,27 +35,37 @@ class ReleaseMapper(object):
     KOJI_TAG = 1
     EPEL_BUILD_TAG = 2
 
-    def __init__(self, staging=False):
+    def __init__(self, staging=False, namespace=DEFAULT_NS):
 
-        # git branchname, koji tag, epel build tag
-        self.mapping = (
-            ("master", "f27", ""),
-            ("f26", "f26", ""),
-            ("f25", "f25", ""),
-            ("f24", "f24", ""),
-            ("f23", "f23", ""),
-            ("f22", "f22", ""),
-            ("f21", "f21", ""),
-            ("f20", "f20", ""),
-            ("f19", "f19", ""),
-            ("f18", "f18", ""),
-        )
-        if not staging:
-            self.mapping = self.mapping + (
-                ("epel7", "epel7", "epel7-build"),
-                ("el6", "dist-6E-epel", "dist-6E-epel-build"),
-                ("el5", "dist-5E-epel", "dist-5E-epel-build"),
+        if namespace == "docker":
+            # git branchname, koji tag, epel build tag
+            self.mapping = (
+                ("master", "f27docker", ""),
+                ("f26", "f26docker", ""),
+                ("f25", "f25docker", ""),
+                ("f24", "f24docker", ""),
             )
+        else:
+            # git branchname, koji tag, epel build tag
+            self.mapping = (
+                ("master", "f27", ""),
+                ("f26", "f26", ""),
+                ("f25", "f25", ""),
+                ("f24", "f24", ""),
+                ("f23", "f23", ""),
+                ("f22", "f22", ""),
+                ("f21", "f21", ""),
+                ("f20", "f20", ""),
+                ("f19", "f19", ""),
+                ("f18", "f18", ""),
+            )
+
+            if not staging:
+                self.mapping = self.mapping + (
+                    ("epel7", "epel7", "epel7-build"),
+                    ("el6", "dist-6E-epel", "dist-6E-epel-build"),
+                    ("el5", "dist-5E-epel", "dist-5E-epel-build"),
+                )
 
     def branchname(self, key=""):
         return self.lookup(key, self.BRANCHNAME)
@@ -99,23 +110,23 @@ def get_packages(tag, staging=False):
     return unblocked, blocked
 
 
-def unblocked_packages(branch="master", staging=False):
+def unblocked_packages(branch="master", staging=False, namespace=DEFAULT_NS):
     """
     Get a list of all unblocked pacakges in a branch.
     """
-    mapper = ReleaseMapper(staging=staging)
+    mapper = ReleaseMapper(staging=staging, namespace=namespace)
     tag = mapper.koji_tag(branch)
     unblocked, _ = get_packages(tag, staging)
     return unblocked
 
 
-def get_retired_packages(branch="master", staging=False):
+def get_retired_packages(branch="master", staging=False, namespace=DEFAULT_NS):
     url = PRODUCTION_PKGDB if not staging else STAGING_PKGDB
     pkgdb = pkgdb2client.PkgDB(url)
 
     try:
         retiredresponse = pkgdb.get_packages(
-            branches=branch, page="all", status="Retired")
+            branches=branch, page="all", status="Retired", namespace=namespace)
     except pkgdb2client.PkgDBException as e:
         if "No packages found for these parameters" not in str(e):
             raise
@@ -126,7 +137,7 @@ def get_retired_packages(branch="master", staging=False):
     return retiredpkgs
 
 
-def pkgdb_retirement_status(package, branch="master", staging=False):
+def pkgdb_retirement_status(package, branch="master", staging=False, namespace=DEFAULT_NS):
     """ Returns retirement info for `package` in `branch`
 
     :returns: dict: retired: True - if retired, False if not, None if
@@ -138,7 +149,7 @@ def pkgdb_retirement_status(package, branch="master", staging=False):
     retired = None
     status_change = None
     try:
-        pkgdbresult = pkgdb.get_package(package, branches=branch)
+        pkgdbresult = pkgdb.get_package(package, branches=branch, namespace=namespace)
         if pkgdbresult["output"] == "ok":
             for pkginfo in pkgdbresult["packages"]:
                 if pkginfo["package"]["name"] == package:
@@ -190,14 +201,14 @@ def run_koji(koji_params, staging=False):
     return process, stdout, stderr
 
 
-def block_package(packages, branch="master", staging=False):
+def block_package(packages, branch="master", staging=False, namespace=DEFAULT_NS):
     if isinstance(packages, basestring):
         packages = [packages]
 
     if len(packages) == 0:
         return None
 
-    mapper = ReleaseMapper(staging=staging)
+    mapper = ReleaseMapper(staging=staging, namespace=namespace)
     tag = mapper.koji_tag(branch)
     epel_build_tag = mapper.epel_build_tag(branch)
 
@@ -254,33 +265,34 @@ def handle_message(message, retiring_branches=RETIRING_BRANCHES,
     return block_package(package, branch, staging=staging)
 
 
-def block_all_retired(branches=RETIRING_BRANCHES, staging=False):
+def block_all_retired(branches=RETIRING_BRANCHES, staging=False, namespace=DEFAULT_NS):
     for branch in branches:
         log.debug("Processing branch %s", branch)
         if staging and branch in PROD_ONLY_BRANCHES:
-            log.warning('%s not handled in staging..' % branch)
+            log.warning('%s in namespace "%s" not handled in staging..' %
+                        (branch, namespace))
             continue
-        retired = get_retired_packages(branch, staging)
+        retired = get_retired_packages(branch, staging, namespace)
         unblocked = []
 
         # Check which packages are included in a tag but not blocked, this
         # ensures that no packages not included in a tag are tried to be
         # blocked. Packages might not be in the rawhide tag if they are retired
         # too fast, e.g. because they are EPEL-only
-        allunblocked = unblocked_packages(branch, staging)
+        allunblocked = unblocked_packages(branch, staging, namespace)
         for pkg in retired:
             if pkg in allunblocked:
                 unblocked.append(pkg)
 
-        errors = block_package(unblocked, branch, staging=staging)
+        errors = block_package(unblocked, branch, staging=staging, namespace=namespace)
         # Block packages individually so that errors with one package does not
         # stop the other packages to be blocked
         if errors:
             for error in errors:
                 log.error(error)
             for package in unblocked:
-                errors = block_package(package, branch, staging=staging)
-                log.info("Blocked %s on %s", package, branch)
+                errors = block_package(package, branch, staging=staging, namespace=namespace)
+                log.info("Blocked %s on %s in namespace %s", package, branch, namespace)
                 for error in errors:
                     log.error(error)
 
@@ -331,6 +343,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "-p", "--profile", default="compose_koji",
         help="Koji profile to use, default: %(default)s")
+    parser.add_argument(
+        "--namespace", default=DEFAULT_NS,
+        help="pkgdb namespace to use, default: %(default)s")
     args = parser.parse_args()
 
     setup_logging(args.debug)
@@ -338,6 +353,7 @@ if __name__ == "__main__":
     PRODUCTION_KOJI_PROFILE = args.profile
     STAGING_KOJI_PROFILE = "stg"
     if not args.packages:
-        block_all_retired(staging=args.staging)
+        block_all_retired(staging=args.staging, namespace=args.namespace)
     else:
-        block_package(args.packages, args.branch, staging=args.staging)
+        block_package(args.packages, args.branch, staging=args.staging,
+                      namespace=args.namespace)
