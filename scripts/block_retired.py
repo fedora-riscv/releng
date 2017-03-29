@@ -23,9 +23,6 @@ PROD_ONLY_BRANCHES = ["el5", "el6", "epel7", "f26", "master"]
 PRODUCTION_PKGDB = "https://admin.fedoraproject.org/pkgdb"
 STAGING_PKGDB = "https://admin.stg.fedoraproject.org/pkgdb"
 
-PRODUCTION_KOJI = "https://koji.fedoraproject.org/kojihub"
-STAGING_KOJI = "https://koji.stg.fedoraproject.org/kojihub"
-
 # pkgdb default namespace
 DEFAULT_NS = "rpms"
 
