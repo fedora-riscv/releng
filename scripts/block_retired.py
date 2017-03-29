@@ -40,10 +40,10 @@ class ReleaseMapper(object):
         if namespace == "docker":
             # git branchname, koji tag, epel build tag
             self.mapping = (
-                ("master", "f27docker", ""),
-                ("f26", "f26docker", ""),
-                ("f25", "f25docker", ""),
-                ("f24", "f24docker", ""),
+                ("master", "f27-docker", ""),
+                ("f26", "f26-docker", ""),
+                ("f25", "f25-docker", ""),
+                ("f24", "f24-docker", ""),
             )
         else:
             # git branchname, koji tag, epel build tag
