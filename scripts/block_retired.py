@@ -190,8 +190,8 @@ def get_retirement_info(message):
 
 
 def run_koji(koji_params, staging=False):
-    url = PRODUCTION_KOJI if not staging else STAGING_KOJI
-    koji_cmd = ["koji", "--server", url]
+    profile = PRODUCTION_KOJI_PROFILE if not staging else STAGING_KOJI_PROFILE
+    koji_cmd = ["koji", "--profile", profile]
     cmd = koji_cmd + koji_params
     log.debug("Running: %s", " ".join(cmd))
     process = subprocess.Popen(cmd, stderr=subprocess.PIPE,
