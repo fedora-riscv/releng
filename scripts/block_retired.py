@@ -95,7 +95,6 @@ def get_packages(tag, staging=False):
     profile = PRODUCTION_KOJI_PROFILE if not staging else STAGING_KOJI_PROFILE
     koji_module = koji.get_profile_module(profile)
     kojisession = koji_module.ClientSession(koji_module.config.server)
-    kojisession.krb_login()
     pkglist = kojisession.listPackages(tagID=tag, inherited=True)
     blocked = []
     unblocked = []
