@@ -50,22 +50,22 @@ the following:
 
 ::
 
-    koji add-tag epel6-xfce48 --parent=dist-6E-epel-build --arches=i686,x86_64,ppc64
-    koji add-target epel6-xfce48 epel6-xfce48
+    $ koji add-tag epel6-xfce48 --parent=dist-6E-epel-build --arches=i686,x86_64,ppc64
+    $ koji add-target epel6-xfce48 epel6-xfce48
 
 For EL7 we would do the following:
 
 ::
 
-    koji add-tag epel7-xfce48 --parent=epel7-build --arches=aarch64,x86_64,ppc64,ppc64le
-    koji add-target epel7-xfce48 epel7-xfce48
+    $ koji add-tag epel7-xfce48 --parent=epel7-build --arches=aarch64,x86_64,ppc64,ppc64le
+    $ koji add-target epel7-xfce48 epel7-xfce48
 
 A Fedora example would be:
 
 ::
 
-    koji add-tag f23-gnutls --parent=f23-build --arches=armv7hl,i686,x86_64
-    koji add-target f23-gnutls f23-gnutls
+    $ koji add-tag f23-gnutls --parent=f23-build --arches=armv7hl,i686,x86_64
+    $ koji add-target f23-gnutls f23-gnutls
 
 Once the target is added, please file a ticket in `pagure infrastructure`_ about the
 new tag that is created so that they can enable auto signing for the tag.
