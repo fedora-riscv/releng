@@ -56,13 +56,13 @@ sudo -u ftpsync compose-partial-copy --arch=aarch64 --arch=i386 --arch=ppc64 --a
 
 sudo -u ftpsync scripts/build_composeinfo $DESTDIR/$RELPREFIX$RELEASEVER/
 sudo -u ftpsync scripts/build_composeinfo $ALTDESTDIR/$RELPREFIX$RELEASEVER/
-sudo -u ftpsync scripts/build_composeinfo $ALTARCHALTDESTDIR/$RELPREFIX$RELEASEVER/
-sudo scripts/build_composeinfo $BASE$RELEASEVER/$COMPOSEID/compose/
+sudo -u ftpsync scripts/build_composeinfo $ALTARCHDESTDIR/$RELPREFIX$RELEASEVER/
+sudo scripts/build_composeinfo $BASE/$SHORTRELEASEVER/$COMPOSEID/compose/
 
 sudo -u ftpsync chmod 750 $DESTDIR/$RELPREFIX$RELEASEVER/
 sudo -u ftpsync chmod 750 $ALTDESTDIR/$RELPREFIX$RELEASEVER/
-sudo -u ftpsync chmod 750 $ALTARCHALTDESTDIR/$RELPREFIX$RELEASEVER/
+sudo -u ftpsync chmod 750 $ALTARCHDESTDIR/$RELPREFIX$RELEASEVER/
 
 sudo -u ftpsync du -hs $DESTDIR/$RELPREFIX$RELEASEVER/
 sudo -u ftpsync du -hs $ALTDESTDIR/$RELPREFIX$RELEASEVER/
-sudo -u ftpsync du -hs $ALTARCHALTDESTDIR/$RELPREFIX$RELEASEVER/
+sudo -u ftpsync du -hs $ALTARCHDESTDIR/$RELPREFIX$RELEASEVER/
