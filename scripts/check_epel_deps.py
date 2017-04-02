@@ -74,37 +74,6 @@ baseurl=http://kojipkgs.fedoraproject.org/repo/rhel/rhel-$basearch-server-lb-6/
 enabled=1
 
 """ % (treename, arch, treename, arch, distdir, arch, subdir, arch, arch)
-    elif treename == 'epel-5':
-        confheader = """
-[main]
-debuglevel=2
-logfile=/var/log/yum.log
-pkgpolicy=newest
-distroverpkg=redhat-release
-reposdir=/dev/null
-keepcache=0
-
-[%s-%s]
-name=Fedora EPEL %s Tree - %s
-baseurl=file://%s/%s/%s
-enabled=1
-
-[rhel-server]
-name=RHEL Server
-baseurl=http://kojipkgs.fedoraproject.org/repo/rhel/rhel-%s-server-5/
-enabled=1
-
-[rhel5-vt]
-name = rhel5 vt 
-baseurl=http://kojipkgs.fedoraproject.org/repo/rhel/rhel-%s-server-vt-5/
-enabled=1
-
-[rhel5-productivity]
-name = rhel5 productivity
-baseurl=http://kojipkgs.fedoraproject.org/repo/rhel/rhel-%s-server-productivity-5/
-enabled=1
-
-""" % (treename, arch, treename, arch, distdir, arch, subdir, arch, arch, arch)
 
     # Enable the testing repos?
     # This block is the same for both el5 and el6.

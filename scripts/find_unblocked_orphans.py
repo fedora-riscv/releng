@@ -35,17 +35,6 @@ except ImportError:
     with_table = False
 
 
-EPEL5_RELEASE = dict(
-    repo='https://kojipkgs.fedoraproject.org/mash/updates/dist-5E-epel/'
-    'x86_64/',
-    source_repo='https://kojipkgs.fedoraproject.org/mash/updates/'
-    'dist-5E-epel/SRPMS',
-    tag='dist-5E-epel',
-    branch='el5',
-    mailto='epel-announce@lists.fedoraproject.org',
-    bcc=[],
-)
-
 EPEL6_RELEASE = dict(
     repo='https://kojipkgs.fedoraproject.org/mash/updates/dist-6E-epel/'
     'x86_64/',
@@ -93,7 +82,6 @@ RELEASES = {
     "branched": BRANCHED_RELEASE,
     "epel7": EPEL7_RELEASE,
     "epel6": EPEL6_RELEASE,
-    "epel5": EPEL5_RELEASE,
 }
 
 # pkgdb uid for orphan

@@ -47,7 +47,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Helper to retire packages")
     parser.add_argument("--branch", default="master", nargs="*",
                         choices=["master", "f26", "f25", "f24",
-                                 "epel7", "el6", "el5"])
+                                 "epel7", "el6"])
     parser.add_argument("--reasonfile", default=None)
     parser.add_argument("--reason", default=None)
     parser.add_argument("--orphan", default=False, action="store_true",

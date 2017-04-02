@@ -17,8 +17,8 @@ from autosigner import SubjectSMTPHandler
 
 
 log = logging.getLogger(__name__)
-RETIRING_BRANCHES = ["el5", "el6", "epel7", "f26", "master"]
-PROD_ONLY_BRANCHES = ["el5", "el6", "epel7", "f26", "master"]
+RETIRING_BRANCHES = ["el6", "epel7", "f26", "master"]
+PROD_ONLY_BRANCHES = ["el6", "epel7", "f26", "master"]
 
 PRODUCTION_PKGDB = "https://admin.fedoraproject.org/pkgdb"
 STAGING_PKGDB = "https://admin.stg.fedoraproject.org/pkgdb"
@@ -49,19 +49,12 @@ class ReleaseMapper(object):
                 ("f26", "f26", ""),
                 ("f25", "f25", ""),
                 ("f24", "f24", ""),
-                ("f23", "f23", ""),
-                ("f22", "f22", ""),
-                ("f21", "f21", ""),
-                ("f20", "f20", ""),
-                ("f19", "f19", ""),
-                ("f18", "f18", ""),
             )
 
             if not staging:
                 self.mapping = self.mapping + (
                     ("epel7", "epel7", "epel7-build"),
                     ("el6", "dist-6E-epel", "dist-6E-epel-build"),
-                    ("el5", "dist-5E-epel", "dist-5E-epel-build"),
                 )
 
     def branchname(self, key=""):
