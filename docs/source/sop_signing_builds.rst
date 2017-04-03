@@ -12,7 +12,7 @@ Sign the packages
         $(cat /var/cache/sigul/Stable-F22 /var/cache/sigul/Testing-F22)
  
 (Make sure you sign each release with the right key... ie, 'fedora-19' key
-with F19 packages, or 'epel-5' with EL-5 packages)
+with F19 packages, or 'epel-6' with EL-6 packages)
 
 Here is another example, inside a loop:
 
@@ -25,7 +25,7 @@ Here is another example, inside a loop:
             --sigul-batch-size=25 $(cat /var/cache/sigul/{Stable,Testing}-F${i});
     done
 
-    for i in 7 6 5;
+    for i in 7 6;
     do
         ~/releng/scripts/sigulsign_unsigned.py \
             epel-$i -v --write-all \

@@ -47,7 +47,7 @@ Get a list of packages to push
 ::
 
     $ cd /var/cache/sigul
-    $ sudo -u apache bodhi-push --releases 'f25,f24,epel-7,EL-6,EL-5' --username <yourusername>
+    $ sudo -u apache bodhi-push --releases 'f25,f24,epel-7,EL-6' --username <yourusername>
     <enter your password+2factorauth, then your fas password>
 
 You can say 'n' to the push at this point if you wish to sign packages (see
@@ -76,7 +76,7 @@ Then
 ::
 
     $ cd /var/cache/sigul
-    $ sudo -u apache bodhi-push --releases 'f24,epel-7,EL-6,EL-5' --username <username>
+    $ sudo -u apache bodhi-push --releases 'f24,epel-7,EL-6' --username <username>
 
 Pushing Stable updates during freeze
 ------------------------------------
