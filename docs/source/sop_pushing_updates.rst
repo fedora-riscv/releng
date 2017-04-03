@@ -46,8 +46,7 @@ Get a list of packages to push
 
 ::
 
-    $ cd /var/cache/sigul
-    $ sudo -u apache bodhi-push --releases 'f25,f24,epel-7,EL-6' --username <yourusername>
+    $ sudo -u apache bodhi-push --releases 'f26,f25,f24,epel-7,EL-6' --username <yourusername>
     <enter your password+2factorauth, then your fas password>
 
 You can say 'n' to the push at this point if you wish to sign packages (see
@@ -62,21 +61,28 @@ You can also specify ``--request=testing`` to limit pushes. Valid types are
 The list of updates should be in the cache directory named ``Stable-$Branch``
 or ``Testing-$Branch`` for each of the Branches you wished to push.
 
-During freezes you will need to do two steps: (If say, fedora 23 branched was
+During freezes you will need to do two steps: (If say, fedora 26 branched was
 frozen):
 
 ::
 
-    $ cd /var/cache/sigul
-    $ sudo -u apache bodhi-push --releases f25 --request=testing \
+    $ sudo -u apache bodhi-push --releases f26 --request=testing \
         --username <username>
 
 Then
 
 ::
 
-    $ cd /var/cache/sigul
-    $ sudo -u apache bodhi-push --releases 'f24,epel-7,EL-6' --username <username>
+    $ sudo -u apache bodhi-push --releases 'f25,f24,epel-7,EL-6' --username <username>
+
+During the Release Candidate compose phase we tag builds to be included into a
+-compose tag (e.g. f26-compose). When we have a candidate that has been signed off as gold
+we need to ensure that all builds tagged into the -compose tag have been pushed stable.
+Once we have pushed all -compose builds stable we then have to clone the base tag (e.g. f26)
+to a tag for the milestone for Alpha and Beta (e.g. f26-Alpha). After final release we need
+to lock the base tag and adjust the release status in bodhi so that updates now hit the
+-updates tag (e.g. f26-updates). Once we have cloned the tag or locked the tag and adjusted
+bodhi we are free to push stable updates again.
 
 Pushing Stable updates during freeze
 ------------------------------------
@@ -86,7 +92,6 @@ will file a ticket with the nvrs to push
 
 ::
 
-    $ cd /var/cache/sigul
     $ sudo -u apache bodhi-push --builds '<nvr1> <nvr2> ...' --username <username>
 
 
