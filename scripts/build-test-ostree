@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TARGET=f26-build
+TARGET=f27-build
 DATE=$(date  "+%Y%m%d-%H-%M")
 COMPOSEDIR=/mnt/koji/compose/cd/
 
@@ -14,13 +14,11 @@ sed -i -e 's|^mirrorlist.*$|baseurl=https://kojipkgs.fedoraproject.org/repos/raw
 popd >& /dev/null
 
 
-for arch in x86_64 aarch64 armhfp
+for arch in x86_64 aarch64 armhfp ppc64le
 do
    ARCHLOG=$COMPOSEDIR/logs/$DATE/$arch/
    mkdir $ARCHLOG
-   ln -T -f -s $ARCHLOG $COMPOSEDIR/log-latest
-   compose-koji runroot --new-chroot --use-shell --task-id --channel-override=compose --package=pungi --package=ostree --package=rpm-ostree --mount=/mnt/koji/compose/cd/ --mount=/mnt/koji/atomic-cd/ $TARGET $arch 'rm -f /var/lib/rpm/__db*; rm -rf /var/cache/yum/*; set -x; pungi-make-ostree tree --log-dir=/mnt/koji/compose/cd/log-latest/ --treefile=/mnt/koji/compose/cd/fedora-atomic/fedora-atomic-docker-host.json --repo=/mnt/koji/atomic-cd/' >$ARCHLOG/koji-task.log
-   rm -f $COMPOSEDIR/log-latest
+   compose-koji runroot --new-chroot --use-shell --task-id --channel-override=compose --package=pungi --package=ostree --package=rpm-ostree --mount=/mnt/koji/compose/cd/ --mount=/mnt/koji/atomic-cd/ $TARGET $arch "rm -f /var/lib/rpm/__db*; rm -rf /var/cache/yum/*; set -x; pungi-make-ostree tree --log-dir=$ARCHLOG --treefile=/mnt/koji/compose/cd/fedora-atomic/fedora-atomic-docker-host.json --repo=/mnt/koji/atomic-cd/" >$ARCHLOG/koji-task.log
 done
 
 # keep only the last weeks worth of ostree commits
