@@ -30,8 +30,8 @@ Action
 
         git branch -D <branchname> </pre>
 
-erification
-===========
+Verification
+============
 To verify just list the branches.
 
 ::
