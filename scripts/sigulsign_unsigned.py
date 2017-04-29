@@ -303,10 +303,14 @@ class SigulHelper(object):
         cmdline.extend(args)
         return cmdline
 
-    def run_command(self, command):
-        child = subprocess.Popen(command, stdin=subprocess.PIPE,
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
+    def run_command(self, command, eat_output=True):
+        if eat_output:
+            child = subprocess.Popen(command, stdin=subprocess.PIPE,
+                                     stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE)
+        else:
+            child = subprocess.Popen(command, stdin=subprocess.PIPE)
+
         stdout, stderr = child.communicate(self.password + '\0')
         ret = child.wait()
         return ret, stdout, stderr
@@ -506,7 +510,7 @@ if __name__ == "__main__":
         )
         command = sigul_helper.build_sign_cmdline(rpms)
         logging.debug('Running %s' % subprocess.list2cmdline(command))
-        ret = sigul_helper.run_command(command)[0]
+        ret = sigul_helper.run_command(command, False)
         if ret != 0:
             logging.error('Error signing %s' % (rpms))
             for rpm in rpms:
