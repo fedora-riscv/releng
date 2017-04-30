@@ -510,7 +510,7 @@ if __name__ == "__main__":
         )
         command = sigul_helper.build_sign_cmdline(rpms)
         logging.debug('Running %s' % subprocess.list2cmdline(command))
-        ret = sigul_helper.run_command(command, False)
+        ret = sigul_helper.run_command(command, False)[0]
         if ret != 0:
             logging.error('Error signing %s' % (rpms))
             for rpm in rpms:
