@@ -10,7 +10,7 @@ import yum
 import koji
 import yum.Errors
 from yum.misc import getCacheDir
-from optparse import OptionParser
+from argparse import ArgumentParser
 from rpmUtils.miscutils import compareEVR
 import smtplib
 from email.MIMEText import MIMEText
@@ -52,27 +52,27 @@ ownersworkdir = '/srv/extras-push/work'
 
 
 def parseArgs():
-    usage = "usage: %s [options (see -h)]" % sys.argv[0]
-    parser = OptionParser(usage=usage)
-    parser.add_option("-c", "--config", default='/etc/yum.conf',
+    usage = "%(prog)s [options (see -h)]"
+    parser = ArgumentParser(usage=usage)
+    parser.add_argument("-c", "--config", default='/etc/yum.conf',
                       help='config file to use (defaults to /etc/yum.conf)')
-    parser.add_option("-t", "--tempcache", default=False, action="store_true",
+    parser.add_argument("-t", "--tempcache", default=False, action="store_true",
                       help="Use a temp dir for storing/accessing yum-cache")
-    parser.add_option("-d", "--cachedir", default='',
+    parser.add_argument("-d", "--cachedir", default='',
                       help="custom directory for storing/accessing yum-cache")
-    parser.add_option("-q", "--quiet", default=False, action="store_true",
+    parser.add_argument("-q", "--quiet", default=False, action="store_true",
                       help="quiet (no output to stderr)")
-    parser.add_option("-n", "--nomail", default=False, action="store_true",
+    parser.add_argument("-n", "--nomail", default=False, action="store_true",
                       help="do not send mail, just output the results")
-    parser.add_option("-w", "--noowners", default=False, action="store_true",
+    parser.add_argument("-w", "--noowners", default=False, action="store_true",
                       help="do not do owners.list processing")
-    parser.add_option("-x", "--nextonly", default=False, action="store_true",
+    parser.add_argument("-x", "--nextonly", default=False, action="store_true",
                       help="check next dist version only for each package, "
                       "not all newer ones")
-    parser.add_option("-m", "--missing", default=False, action="store_true",
+    parser.add_argument("-m", "--missing", default=False, action="store_true",
                       help="check for packages missing in newer repos")
-    (opts, args) = parser.parse_args()
-    return (opts, args)
+    args, extras = parser.parse_known_args()
+    return (args, extras)
 
 class MySolver(yum.YumBase):
     def __init__(self, arch = None, config = "/etc/yum.conf"):

@@ -18,23 +18,23 @@ import re
 import logging
 import os
 import ConfigParser
-from optparse import OptionParser
+import argparse
 
-parser = OptionParser() 
-parser.add_option("-c", "--config-file", dest="shadowconfig",
+parser = argparse.ArgumentParser() 
+parser.add_argument("-c", "--config-file", dest="shadowconfig",
                   default="/etc/koji-shadow/koji-shadow.conf",
                   help="koji-shadow configuration file")
-parser.add_option("--shadow", dest="shadowcommand", 
+parser.add_argument("--shadow", dest="shadowcommand", 
                   help="path to koji-shadow", default="/usr/sbin/koji-shadow")
-parser.add_option("-l", "--logdir", dest="logdir", 
+parser.add_argument("-l", "--logdir", dest="logdir", 
                   help="directory to write logs to", 
                   default="/mnt/koji/reports/koji-stalk")
-parser.add_option("-t", "--test", dest="testonly", action="store_true",
+parser.add_argument("-t", "--test", dest="testonly", action="store_true",
                   help="Only monitor fedmsg without building", default=False)
-parser.add_option("--threads", type="int", default="3", 
+parser.add_argument("--threads", type=int, default="3", 
                   help="number of threads per distro")
 
-(options, args) = parser.parse_args()
+args, extras = parser.parse_known_args()
 
 ### Begin Configuration ###
 
@@ -51,15 +51,15 @@ remote = koji.ClientSession('http://koji.fedoraproject.org/kojihub')
 # If you want to hard-code values for yourself, do it here:
 
 # number of threads (i.e. max simultaneous koji-shadow instances) per distro
-threads = int(options.threads) 
+threads = int(args.threads) 
 
 # Don't actually build anything or attempt to tag, write logs to /tmp
-testonly = options.testonly
+testonly = args.testonly
 
 # koji-shadow configuration
-shadowcommand = options.shadowcommand
-shadowconfig = options.shadowconfig
-logdir = options.logdir
+shadowcommand = args.shadowcommand
+shadowconfig = args.shadowconfig
+logdir = args.logdir
 
 
 ### End configuration ### 

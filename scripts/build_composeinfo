@@ -5,7 +5,7 @@
 
 import os, os.path
 import sys
-from optparse import OptionParser
+from argparse import ArgumentParser
 import logging
 import ConfigParser
 import pprint
@@ -114,25 +114,25 @@ def buildCompose(composePath, treeinfos, name):
     composeInfoParser.write(open(composeFile,'w'))
 
 def main():
-    parser = OptionParser("usage: %prog [options] Directory")
-    parser.add_option("-n", "--name",
+    parser = ArgumentParser(usage = '%(prog)s [options] Directory')
+    parser.add_argument("-n", "--name",
                       default=None,
                       help="Alternate name to use, otherwise we use family+version")
-    parser.add_option("-v", "--debug",
+    parser.add_argument("-v", "--debug",
                       action='store_true',
                       default=False,
                       help="show debug messages")
-    parser.add_option("-q", "--quiet",
+    parser.add_argument("-q", "--quiet",
                       action='store_true',
                       default=False,
                       help="less messages")
-    (opts, compose) = parser.parse_args()
+    args, compose = parser.parse_known_args()
 
     LOG_FORMAT = '%(asctime)s - %(levelname)s - %(filename)s - ' \
         '%(funcName)s:%(lineno)s - %(message)s'
-    if opts.debug:
+    if args.debug:
         LOG_LEVEL = logging.DEBUG
-    elif opts.quiet:
+    elif args.quiet:
         LOG_LEVEL = logging.CRITICAL
     else:
         LOG_LEVEL = logging.INFO

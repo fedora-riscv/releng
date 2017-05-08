@@ -11,7 +11,7 @@ import rpm
 import os
 import logging
 import subprocess
-import optparse
+import argparse
 import createrepo
 import sys
 import re
@@ -339,17 +339,17 @@ def main(opts):
         
 
 if __name__ == '__main__':
-    opt_p = optparse.OptionParser(usage="%prog [OPTIONS] ")
-    opt_p.add_option('-a', '--arch', action='store', dest='onlyarch',
+    opt_p = argparse.ArgumentParser(usage = "%(prog)s [OPTIONS] ")
+    opt_p.add_argument('-a', '--arch', action='store', dest='onlyarch',
                      default=False, help="sync only the given arch.")
-    opt_p.add_option('-s', '--show', action='store_true', dest='only_show',
+    opt_p.add_argument('-s', '--show', action='store_true', dest='only_show',
                      default=False, help="Show what would be done but dont actually do it.")
-    opt_p.add_option('-n', '--no-sync', action='store_true', dest='no_sync',
+    opt_p.add_argument('-n', '--no-sync', action='store_true', dest='no_sync',
                      default=False, help="Skip syncing new bits.")
-    opt_p.add_option('--disable-fedmsg', dest="fedmsg", action="store_false",
+    opt_p.add_argument('--disable-fedmsg', dest="fedmsg", action="store_false",
                      help="Disable fedmsg notifications", default=True)
 
-    (opts, args) = opt_p.parse_args()
+    args, extras = opt_p.parse_known_args()
 
-    main(opts)
+    main(args)
 

@@ -11,7 +11,7 @@ import sys
 import tempfile
 import re
 import smtplib
-from optparse import OptionParser
+import argparse
 from yum.constants import *
 from yum.misc import getCacheDir
 
@@ -269,24 +269,24 @@ def doit(dir, treename, mail=True, testing=False):
 
 if __name__ == '__main__':
 
-    parser = OptionParser("usage: %prog [options] <directory>")
-    parser.add_option("--nomail", action="store_true")
-    parser.add_option("--enable-testing", action="store_true")
-    parser.add_option("--treename", default="rawhide")
-    (options, args) = parser.parse_args(sys.argv[1:])
+    parser = argparse.ArgumentParser(usage = '%(prog)s [options] <directory>')
+    parser.add_argument("--nomail", action="store_true")
+    parser.add_argument("--enable-testing", action="store_true")
+    parser.add_argument("--treename", default="rawhide")
+    args, extras = parser.parse_known_args()
 
-    if len(args) != 1:
+    if len(extras) != 1:
         parser.error("incorrect number of arguments")
         sys.exit(1)
 
-    if options.nomail:
+    if args.nomail:
         mail = False
     else:
         mail = True
 
-    if options.enable_testing:
+    if args.enable_testing:
         testing = True
     else:
         testing = False
 
-    doit(args[0], options.treename, mail, testing)
+    doit(extras[0], args.treename, mail, testing)
