@@ -9,6 +9,8 @@ import shutil
 import subprocess
 import tempfile
 
+import pkgdb2client
+
 ORPHAN_REASON = """Retired orphaned package, because it was orphaned for
 more than six weeks.
 """
@@ -20,6 +22,43 @@ retired, because it was orphaned for more than six weeks.
 ORPHAN_NOT_FOUND = """Retired orphaned package, because it was not built or
 published."""
 
+BRANCH_HIERARCHY = {
+    "master": "",
+    "f26": "master",
+    "f25": "f26",
+    "f24": "f25",
+    "epel7": "",
+    "el6": ""
+}
+
+def get_status(name, branch="master"):
+    pkgdb = pkgdb2client.PkgDB()
+    response = pkgdb.get_package(name, branches=branch)
+
+    for p in response.get("packages", []):
+        if p.get("package", {}).get("name") == name:
+            status = p.get("status")
+            return status
+    return ""
+
+def check_status(name, branch, status="Orphaned", dep_status="Retired"):
+    current_status = get_status(name, branch)
+    if current_status != status:
+        return False
+
+    branches = []
+    while True:
+        nextbranch = BRANCH_HIERARCHY.get(branch)
+        if nextbranch:
+            branches.append(nextbranch)
+            branch = nextbranch
+        else:
+            break
+    for branch in branches:
+        current_status = get_status(name, branch)
+        if current_status != dep_status:
+            return False
+    return True
 
 def retire(pkg, branch, reason, dryrun=False):
     def run(cmd, cwd):
@@ -46,8 +85,7 @@ def retire(pkg, branch, reason, dryrun=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Helper to retire packages")
     parser.add_argument("--branch", default="master", nargs="*",
-                        choices=["master", "f26", "f25", "f24",
-                                 "epel7", "el6"])
+                        choices=BRANCH_HIERARCHY.keys())
     parser.add_argument("--reasonfile", default=None)
     parser.add_argument("--reason", default=None)
     parser.add_argument("--orphan", default=False, action="store_true",
@@ -94,6 +132,21 @@ if __name__ == "__main__":
     for pkg in args.pkg:
         retired = False
         for branch in args.branch:
+            if args.orphan or args.notfound_orphan:
+                if not check_status(pkg, branch):
+                    print("Skipped pkg '{}' on '{}' because it is not "
+                          "orphaned or not retired in one or more checked "
+                          "branches".format(pkg, branch))
+                    continue
+            elif args.orphan_dependent:
+                if not check_status(args.orphan_dependent, branch, "Retired"):
+                    print("Skipped pkg '{}' on '{}' because "
+                          "package '{}' is not retired in one or more checked "
+                          "branches".format(
+                              pkg, branch, args.orphan_dependent))
+                    continue
+
+
             for _ in xrange(0, 3):
                 try:
                     retire(pkg, branch, reason, dryrun=False)
