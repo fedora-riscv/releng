@@ -9,7 +9,7 @@ import pprint
 import rpm
 import re
 import xmlrpclib
-from optparse import OptionParser
+from argparse import ArgumentParser
 
 def _(args):
     """Stub function for translation"""
@@ -177,55 +177,54 @@ def print_hidden_packages(session, tag, opts, pkg_list=None):
             print "Oops, no packages to compare in the main tag (%s)" % tag['name']
 
 if __name__ == "__main__":
-    usage = _("Usage: find-hidden-packages [options] tag <pkg> [<pkg>...]")
+    usage = _("find-hidden-packages [options] tag <pkg> [<pkg>...]")
     #usage += _("\n(Specify the --help global option for a list of other help options)")
-    parser = OptionParser(usage=usage)
-    parser.disable_interspersed_args()
-    parser.add_option("-v", "--verbose", action="store_true", help=_("Be verbose"))
-    parser.add_option("-d", "--debug", action="store_true", default=False,
+    parser = ArgumentParser(usage=usage)
+    parser.add_argument("-v", "--verbose", action="store_true", help=_("Be verbose"))
+    parser.add_argument("-d", "--debug", action="store_true", default=False,
                       help=_("Show debugging output"))
-    parser.add_option("-s", "--server", default="http://koji.fedoraproject.org/kojihub",
+    parser.add_argument("-s", "--server", default="http://koji.fedoraproject.org/kojihub",
                       help=_("Url of koji XMLRPC server"))
-    parser.add_option("-p", "--parent", help=_("Compare against a single parent"))
-    parser.add_option("--reverse", action="store_true", help=_("Process tag's children instead of its parents"))
-    parser.add_option("--changelogs", action="store_true", help=_("Print the differing changelog entries"))
-    parser.add_option("--tag-order", action="store_true", help=_("Use tag ordering within tags"))
-    parser.add_option("--stop", help=_("Stop processing inheritance at this tag"))
-    parser.add_option("--jump", help=_("Jump from one tag to another when processing inheritance"))
+    parser.add_argument("-p", "--parent", help=_("Compare against a single parent"))
+    parser.add_argument("--reverse", action="store_true", help=_("Process tag's children instead of its parents"))
+    parser.add_argument("--changelogs", action="store_true", help=_("Print the differing changelog entries"))
+    parser.add_argument("--tag-order", action="store_true", help=_("Use tag ordering within tags"))
+    parser.add_argument("--stop", help=_("Stop processing inheritance at this tag"))
+    parser.add_argument("--jump", help=_("Jump from one tag to another when processing inheritance"))
 
-    (options, args) = parser.parse_args()
+    args, extras  = parser.parse_known_args()
 
     # parse arguments
     opts = {}
-    opts['debug'] = options.debug
-    opts['verbose'] = options.verbose or options.debug
-    opts['parent'] = options.parent
-    opts['reverse'] = options.reverse or False
-    opts['changelogs'] = options.changelogs or False
+    opts['debug'] = args.debug
+    opts['verbose'] = args.verbose or args.debug
+    opts['parent'] = args.parent
+    opts['reverse'] = args.reverse or False
+    opts['changelogs'] = args.changelogs or False
     opts['stop'] = {}
     opts['jump'] = {}
-    opts['tag_order'] = options.tag_order
+    opts['tag_order'] = args.tag_order
 
     if opts['parent'] and opts['reverse']:
         error("Cannot specify both --parent and --reverse")
 
     # setup server connection
     session_opts = {'debug': opts['debug']}
-    kojihub = koji.ClientSession(options.server,session_opts)
+    kojihub = koji.ClientSession(args.server,session_opts)
 
     # just quick sanity check on the args before we connect to the server
-    if len(args) < 1:
+    if len(extras) < 1:
         error("You must specify a tag")
 
     try:
         # make sure we can connect to the server
         ensure_connection(kojihub)
-        if options.debug:
+        if args.debug:
             print "Successfully connected to hub"
     except (KeyboardInterrupt,SystemExit):
         pass
     except:
-        if options.debug:
+        if args.debug:
             raise
         else:
             exctype, value = sys.exc_info()[:2]
@@ -233,13 +232,13 @@ if __name__ == "__main__":
             print "%s: %s" % (exctype, value)
 
     # validate the tag
-    tag = kojihub.getTag(args[0])
+    tag = kojihub.getTag(extras[0])
     if not tag:
-        parser.error(_("Unknown tag: %s" % args[0]))
+        parser.error(_("Unknown tag: %s" % extras[0]))
 
     # parse jump option
-    if options.jump:
-        match = re.match(r'^(.*)/(.*)$', options.jump)
+    if args.jump:
+        match = re.match(r'^(.*)/(.*)$', args.jump)
         if match:
             tag1 = kojihub.getTagID(match.group(1))
             if not tag1:
@@ -250,16 +249,16 @@ if __name__ == "__main__":
             opts['jump'][str(tag1)] = tag2
 
     # parse stop option
-    if options.stop:
-        tag1 = kojihub.getTagID(options.stop)
+    if args.stop:
+        tag1 = kojihub.getTagID(args.stop)
         if not tag1:
-            parser.error(_("Unknown tag: %s" % options.stop))
+            parser.error(_("Unknown tag: %s" % args.stop))
         opts['stop'] = {str(tag1): 1}
 
     # check for specific packages
     pkgs = None
-    if len(args) > 1:
-        pkgs = args[1:]
+    if len(extras) > 1:
+        pkgs = extras[1:]
 
     rv = 0
     try:

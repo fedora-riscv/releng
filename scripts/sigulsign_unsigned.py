@@ -12,7 +12,7 @@
 # This program requires koji and sigul installed, as well as configured.
 
 import os
-import optparse
+import argparse
 import sys
 import koji
 import getpass
@@ -338,44 +338,44 @@ class SigulHelper(object):
 
 if __name__ == "__main__":
     # Define our usage
-    usage = 'usage: %prog [options] key (build1, build2)'
+    usage = 'usage: %(prog)s [options] key (build1, build2)'
     # Create a parser to parse our arguments
-    parser = optparse.OptionParser(usage=usage)
-    parser.add_option('-v', '--verbose', action='count', default=0,
+    parser = argparse.ArgumentParser(usage=usage)
+    parser.add_argument('-v', '--verbose', action='count', default=0,
                       help='Be verbose, specify twice for debug')
-    parser.add_option('--tag',
+    parser.add_argument('--tag',
                       help='Koji tag to sign, use instead of listing builds')
-    parser.add_option('--inherit', action='store_true', default=False,
+    parser.add_argument('--inherit', action='store_true', default=False,
                       help='Use tag inheritance to find builds.')
-    parser.add_option('--just-write', action='store_true', default=False,
+    parser.add_argument('--just-write', action='store_true', default=False,
                       help='Just write out signed copies of the rpms')
-    parser.add_option('--just-sign', action='store_true', default=False,
+    parser.add_argument('--just-sign', action='store_true', default=False,
                       help='Just sign and import the rpms')
-    parser.add_option('--just-list', action='store_true', default=False,
+    parser.add_argument('--just-list', action='store_true', default=False,
                       help='Just list the unsigned rpms')
-    parser.add_option('--write-all', action='store_true', default=False,
+    parser.add_argument('--write-all', action='store_true', default=False,
                       help='Write every rpm, not just unsigned')
-    parser.add_option('--password',
+    parser.add_argument('--password',
                       help='Password for the key')
-    parser.add_option('--batch-mode', action="store_true", default=False,
+    parser.add_argument('--batch-mode', action="store_true", default=False,
                       help='Read null-byte terminated password from stdin')
-    parser.add_option('--arch',
+    parser.add_argument('--arch',
                       help='Architecture when singing secondary arches')
-    parser.add_option('--sigul-batch-size',
+    parser.add_argument('--sigul-batch-size',
                       help='Amount of RPMs to sign in a sigul batch',
-                      default=50, type="int")
-    parser.add_option('--sigul-config-file',
+                      default=50, type=int)
+    parser.add_argument('--sigul-config-file',
                       help='Config file to use for sigul',
-                      default=None, type="str")
-    parser.add_option('--gpg-agent',
+                      default=None, type=str)
+    parser.add_argument('--gpg-agent',
                       help='Use GPG Agent to ask for password',
                       default=False, action='store_true')
     # Get our options and arguments
-    (opts, args) = parser.parse_args()
+    args, extras = parser.parse_known_args()
 
-    if opts.verbose <= 0:
+    if args.verbose <= 0:
         loglevel = logging.WARNING
-    elif opts.verbose == 1:
+    elif args.verbose == 1:
         loglevel = logging.INFO
     else:  # options.verbose >= 2
         loglevel = logging.DEBUG
@@ -384,17 +384,17 @@ if __name__ == "__main__":
                         level=loglevel)
 
     # Check to see if we got any arguments
-    if not args:
+    if not extras:
         parser.print_help()
         sys.exit(1)
 
     # Check to see if we either got a tag or some builds
-    if opts.tag and len(args) > 2:
+    if args.tag and len(extras) > 2:
         logging.error('You must provide either a tag or a build.')
         parser.print_help()
         sys.exit(1)
 
-    key = args[0]
+    key = extras[0]
     logging.debug('Using %s for key %s' % (KEYS[key]['id'], key))
     if key not in KEYS.keys():
         logging.error('Unknown key %s' % key)
@@ -403,10 +403,10 @@ if __name__ == "__main__":
 
     # Get the passphrase for the user if we're going to sign something
     # (This code stolen from sigul client.py)
-    if not (opts.just_list or opts.just_write):
-        if opts.password:
-            passphrase = opts.password
-        elif opts.batch_mode:
+    if not (args.just_list or args.just_write):
+        if args.password:
+            passphrase = args.password
+        elif args.batch_mode:
             passphrase = ""
             while True:
                 pwchar = sys.stdin.read(1)
@@ -422,9 +422,9 @@ if __name__ == "__main__":
 
         try:
             sigul_helper = SigulHelper(key, passphrase,
-                                       config_file=opts.sigul_config_file,
-                                       arch=opts.arch, ask=True,
-                                       ask_with_agent=opts.gpg_agent)
+                                       config_file=args.sigul_config_file,
+                                       arch=args.arch, ask=True,
+                                       ask_with_agent=args.gpg_agent)
         except ValueError as error:
             logging.error('Error validating passphrase for key %s: %s', key,
                           error)
@@ -432,19 +432,19 @@ if __name__ == "__main__":
 
     # setup the koji session
     logging.info('Setting up koji session')
-    kojihelper = KojiHelper(arch=opts.arch)
+    kojihelper = KojiHelper(arch=args.arch)
     kojisession = kojihelper.kojisession
 
     # Get a list of builds
     # If we have a tag option, get all the latest builds from that tag,
     # optionally using inheritance.  Otherwise take everything after the
     # key as a build.
-    if opts.tag is not None:
-        logging.info('Getting builds from %s' % opts.tag)
-        builds = kojihelper.listTagged(opts.tag, inherit=opts.inherit)
+    if args.tag is not None:
+        logging.info('Getting builds from %s' % args.tag)
+        builds = kojihelper.listTagged(args.tag, inherit=args.inherit)
     else:
         logging.info('Getting builds from arguments')
-        builds = args[1:]
+        builds = extras[1:]
 
     logging.info('Got %s builds' % len(builds))
 
@@ -481,7 +481,7 @@ if __name__ == "__main__":
     # We try to write them all instead of worrying about which
     # are already written or not.  Calls are cheap, restarting
     # mash isn't.
-    if opts.just_write:
+    if args.just_write:
         logging.info('Just writing rpms')
         exit(writeRPMs(status, kojihelper))
 
@@ -494,14 +494,14 @@ if __name__ == "__main__":
     for rpm in unsigned:
         logging.debug('%s is not signed with %s' % (rpm, key))
 
-    if opts.just_list:
+    if args.just_list:
         logging.info('Just listing rpms')
         print('\n'.join(unsigned))
         exit(status)
 
     # run sigul
     logging.debug('Found %s unsigned rpms' % len(unsigned))
-    batchsize = opts.sigul_batch_size
+    batchsize = args.sigul_batch_size
 
     def run_sigul(rpms, batchnr):
         global status
@@ -533,7 +533,7 @@ if __name__ == "__main__":
         run_sigul(rpms, batchnr)
 
     # Now that we've signed things, time to write them out, if so desired.
-    if not opts.just_sign:
+    if not args.just_sign:
         exit(writeRPMs(status, kojihelper))
 
     logging.info('All done.')

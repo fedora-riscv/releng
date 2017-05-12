@@ -8,7 +8,7 @@
 
 import sys
 import yum
-import optparse
+import argparse
 import shutil
 import tempfile
 from rpmUtils.arch import getBaseArch
@@ -142,61 +142,61 @@ def nvr(p):
 if __name__ == '__main__':
     # Option parsing
     releases = sorted(releasepath.keys())
-    parser = optparse.OptionParser(usage="%%prog [options] [%s]" % '|'.join(releases))
-    parser.add_option("--nvr", action='store_true', default=False,
+    parser = argparse.ArgumentParser(usage = "%%(prog)s [options] [%s]" % '|'.join(releases))
+    parser.add_argument("--nvr", action='store_true', default=False,
                       help="output full NVR instead of just package name")
-    parser.add_option("-a", "--arches", default=','.join(primary_arches),
-                      help="Primary arches to evaluate (%default)")
-    parser.add_option("-s", "--altarches", default=','.join(alternate_arches),
-                      help="Alternate arches to evaluate (%default)")
-    parser.add_option("-o", "--output", default="critpath.txt",
-                      help="name of file to write critpath list (%default)")
-    parser.add_option("-u", "--url", default=fedora_baseurl,
+    parser.add_argument("-a", "--arches", default=','.join(primary_arches),
+                      help="Primary arches to evaluate (%(default)s)")
+    parser.add_argument("-s", "--altarches", default=','.join(alternate_arches),
+                      help="Alternate arches to evaluate (%(default)s)")
+    parser.add_argument("-o", "--output", default="critpath.txt",
+                      help="name of file to write critpath list (%(default)s)")
+    parser.add_argument("-u", "--url", default=fedora_baseurl,
                       help="URL to Primary repos")
-    parser.add_option("-r", "--alturl", default=fedora_alternateurl,
+    parser.add_argument("-r", "--alturl", default=fedora_alternateurl,
                       help="URL to Alternate repos")
-    parser.add_option("--srpm", action='store_true', default=False,
+    parser.add_argument("--srpm", action='store_true', default=False,
                       help="Output source RPMS instead of binary RPMS (for pkgdb)")
-    parser.add_option("--noaltarch", action='store_true', default=False,
+    parser.add_argument("--noaltarch", action='store_true', default=False,
                       help="Not to run for alternate architectures")
-    (opt, args) = parser.parse_args()
-    if (len(args) != 1) or (args[0] not in releases):
+    args, extras = parser.parse_known_args()
+    if (len(extras) != 1) or (extras[0] not in releases):
         parser.error("must choose a release from the list: %s" % releases)
     (maj, min, sub) = yum.__version_info__
-    if (maj < 3 or min < 2 or (maj == 3 and min == 2 and sub < 24)) and opt.arches != getBaseArch():
+    if (maj < 3 or min < 2 or (maj == 3 and min == 2 and sub < 24)) and args.arches != getBaseArch():
         print "WARNING: yum < 3.2.24 may be unable to depsolve other arches."
-        print "Get a newer yum or run this on an actual %s system." % opt.arches
+        print "Get a newer yum or run this on an actual %s system." % args.arches
     # Sanity checking done, set some variables
-    release = args[0]
-    check_arches = opt.arches.split(',')
-    alternate_check_arches = opt.altarches.split(',')
-    if opt.nvr and opt.srpm:
+    release = extras[0]
+    check_arches = args.arches.split(',')
+    alternate_check_arches = args.altarches.split(',')
+    if args.nvr and args.srpm:
         print "ERROR: --nvr and --srpm are mutually exclusive"
         sys.exit(1)
 
-    if opt.url != fedora_baseurl:
+    if args.url != fedora_baseurl:
         releasepath[release] = releasepath[release].replace('development/','')
-    print "Using URL %s" % (opt.url + releasepath[release])
+    print "Using URL %s" % (args.url + releasepath[release])
 
     # Do the critpath expansion for each arch
     critpath = set()
     for arch in check_arches+alternate_check_arches:
         if arch in check_arches:
-            url=opt.url
+            url=args.url
         elif arch in alternate_check_arches:
-            if opt.noaltarch:
+            if args.noaltarch:
                 continue
             else:
-                url = opt.alturl
+                url = args.alturl
         else:
             raise Exception('Invalid architecture')
         print "Expanding critical path for %s" % arch
         (my, cachedir) = setup_yum(url = url, release=release, arch=arch)
         pkgs = expand_critpath(my, critpath_groups)
         print "%u packages for %s" % (len(pkgs), arch)
-        if opt.nvr:
+        if args.nvr:
             critpath.update([nvr(p).encode('utf8') for p in pkgs])
-        elif opt.srpm:
+        elif args.srpm:
             critpath.update([get_source(p.sourcerpm) for p in pkgs])
         else:
             critpath.update([p.name.encode('utf8') for p in pkgs])
@@ -205,8 +205,8 @@ if __name__ == '__main__':
             shutil.rmtree(cachedir)
         print
     # Write full list
-    f = open(opt.output,"w")
+    f = open(args.output,"w")
     for packagename in sorted(critpath):
         f.write(packagename + "\n")
     f.close()
-    print "Wrote %u items to %s" % (len(critpath), opt.output)
+    print "Wrote %u items to %s" % (len(critpath), args.output)
