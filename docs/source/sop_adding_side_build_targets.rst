@@ -89,7 +89,7 @@ mass-tag.py from the releng git repo.
 
 ::
 
-    $ ./merge-tag.py --source <side-build-tag> --target <main-target>
+    $ ./mass-tag.py --source <side-build-tag> --target <main-target>
 
 Paste the output from mass-tag.py into the pagure/releng ticket to show
 what packages were merged and what packages need rebuilding for those who
