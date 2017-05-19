@@ -16,11 +16,7 @@ if [ "$ARCH" = "arm" ]; then
 elif [ "$ARCH" = "ppc" ]; then
    arches="ppc64 ppc64le"
 elif [ "$ARCH" = "s390" ]; then
-   if [ "RELARCH" = "24" ]; then
-      arches="s390x"
-   else
-      arches="s390x s390"
-   fi
+   arches="s390x"
 fi
 
 mkdir $MASHDIR/$REL-updates-$DATE
