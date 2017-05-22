@@ -83,7 +83,10 @@ requests = kojisession.multiCall()
 
 # Populate the task info dict
 for [request] in requests:
-    tasks[request['id']] = request
+    try:
+        tasks[request['id']] = request
+    except:
+        continue
 
 # Loop through the results and tag if necessary
 kojisession.multicall = True
@@ -97,11 +100,15 @@ for build in builds:
     if build['package_name'] in newbuilds.keys():
         for newbuild in newbuilds[build['package_name']]:
             # Scrape the task info out of the tasks dict from the newbuild task ID
-            if tasks[newbuild['task_id']]['request'][1] in (target, '%s-candidate' % target, 'rawhide', 'dist-rawhide') \
-            and newbuild['state'] == 1:
-                print 'Newer build found for %s.' % build['package_name']
-                newer = True
-                break
+            try:
+                if tasks[newbuild['task_id']]['request'][1] in (target, '%s-candidate' % target, 'rawhide', 'dist-rawhide') \
+                and newbuild['state'] == 1:
+                    print 'Newer build found for %s.' % build['package_name']
+                    newer = True
+                    break
+            except:
+                print 'Skipping %s, no taskinfo.' % newbuild['nvr']
+                continue
     if not newer:
         print 'Tagging %s into %s' % (build['nvr'], target)
         taglist.append(build['nvr'])
