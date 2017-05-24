@@ -17,6 +17,9 @@ import operator
 
 # Set some variables
 # Some of these could arguably be passed in as args.
+
+#NOTE: The ordering of inputs matters. Please provide master/rawhide inputs first.
+
 buildtag = 'f27' # tag to build from
 secondbuildtag = 'f26' # tag to build from
 epoch = '2017-05-12 00:00:00.000000' # rebuild anything not built after this date
@@ -24,8 +27,8 @@ user = 'Fedora Release Engineering <rel-eng@lists.fedoraproject.org>'
 comment = '- Rebuilt for https://fedoraproject.org/wiki/Fedora_26_27_Mass_Rebuild'
 workdir = os.path.expanduser('~/massbuild-gcc')
 enviro = os.environ
-targets = ['f26-gcc-abi-rebuild','f27-gcc-abi-rebuild']
-branches = ['master', 'f26']
+targets = ['f27-gcc-abi-rebuild','f26-gcc-abi-rebuild'] #Set master/rawhide rebuild target first item in the list
+branches = ['master', 'f26'] #Set master(rawhide) branch first item in the list
 enviro['CVS_RSH'] = 'ssh' # use ssh for cvs
 
 pkg_skip_list = ['fedora-release', 'fedora-repos', 'generic-release', 'redhat-rpm-config', 'shim', 'shim-signed', 'kernel', 'grub2', 'gcc', 'glibc']
