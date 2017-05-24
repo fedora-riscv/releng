@@ -161,7 +161,7 @@ def main():
     if not treeinfos:
         logging.critical("No .treeinfo(s) found under %s", compose[0])
         return 4
-    return buildCompose(compose[0], treeinfos, opts.name)
+    return buildCompose(compose[0], treeinfos, args.name)
 
 if __name__ == '__main__':
     sys.exit(main())
