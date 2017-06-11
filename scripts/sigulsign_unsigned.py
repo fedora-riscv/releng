@@ -223,7 +223,7 @@ def writeRPMs(status, kojihelper, batch=None):
        Returns status, increased by one in case of failure"""
 
     # Check to see if we want to write all, or just the unsigned.
-    if opts.write_all:
+    if args.write_all:
         rpms = rpmdict.keys()
     else:
         if batch is None:
