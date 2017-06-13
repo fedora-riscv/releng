@@ -25,11 +25,12 @@ Windows
 
         $ openssl rsa -in key.pem -outform PVK -pvk-strong -out authenticode.pvk
 
-#. Convert the key file to .spc format:
+
+#. Convert the key file to .pfx format:
 
    ::
 
-        $ openssl crl2pkcs7 -nocrl -certfile cert.pem -outform DER -out authenticode.spc
+        $ openssl pkcs12 -export -out authenticode.pfx -inkey authenticode.key -in key.pem
 
 #. Clone the Fedora Media Writer git repo:
 
@@ -51,8 +52,9 @@ Windows
 #. Install the remaining packages that are listed under PACKAGES variable in
    build.sh script.
 
-#. Export CERTPATH to the location where the .pvk and .spc files are located and
-   export CERTPASS to the password used in creating .pvk file.
+#. Export CERTPATH to the location where the .pfx file is located and make sure
+   its named as authenticode.pfx and export CERTPASS to the file that contains the
+   password used in creating .pvk file.
 
 #. Run the build.sh script:
 
@@ -68,3 +70,10 @@ directory.
 Consider Before Running
 =======================
 Nothing yet.
+
+Issue with signing
+=======================
+If the build is done but it is not signed then try editing the ``build.sh``
+and add -askpass argument for all the osslsigncode commands and run the script,
+when it asks for the password you can enter the password that was used in
+creating .pvk file.
