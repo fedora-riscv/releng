@@ -21,7 +21,7 @@ else
 kojicli=$arch-koji
 fi
 
-$kojicli clone-tag  f$OLDRELEASE f$RELEASE
+$kojicli clone-tag --all --latest-only f$OLDRELEASE f$RELEASE
 $kojicli edit-tag -x mock.package_manager=dnf f$RELEASE
 $kojicli add-tag f$RELEASE-docker
 $kojicli add-tag --parent f$RELEASE-docker --arches=x86_64 f$RELEASE-docker-build
