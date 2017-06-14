@@ -2,3 +2,4 @@ docs/build/
 pylint-log
 .vagrant
 tests/pylint/.pylint.d/
+*.pyc
