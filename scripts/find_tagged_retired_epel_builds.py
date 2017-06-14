@@ -8,8 +8,7 @@ import logging
 import time
 
 
-from autosigner import SubjectSMTPHandler
-from block_retired import get_packages, run_koji
+from block_retired import get_packages, run_koji, SubjectSMTPHandler
 
 
 log = logging.getLogger(__name__)

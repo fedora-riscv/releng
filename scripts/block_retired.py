@@ -13,8 +13,6 @@ import time
 import koji
 import pkgdb2client
 
-from autosigner import SubjectSMTPHandler
-
 
 log = logging.getLogger(__name__)
 RETIRING_BRANCHES = ["el6", "epel7", "f26", "master"]
@@ -25,6 +23,17 @@ STAGING_PKGDB = "https://admin.stg.fedoraproject.org/pkgdb"
 
 # pkgdb default namespace
 DEFAULT_NS = "rpms"
+
+class SubjectSMTPHandler(logging.handlers.SMTPHandler):
+
+    subject_prefix = ""
+
+    def getSubject(self, record):
+        first_line = record.message.split("\n")[0]
+        fmt = self.subject_prefix + "{0.levelname}: {first_line}"
+
+        return fmt.format(record, first_line=first_line)
+
 
 
 class ReleaseMapper(object):
