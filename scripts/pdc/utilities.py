@@ -43,7 +43,8 @@ def ensure_component_branches(pdc, package, slas, eol, branch, type, force):
         # See if the sla already exists on the branch:
         results = list(pdc.get_paged(endpoint, sla=sla, **base))
         if results:
-            print("sla %r already exists for %r" % (sla, base))
+            print("  sla {sla: <16} already exists for {branch_type}/"
+                  "{global_component}#{branch}".format(sla=sla, **base))
             continue
         message = "Apply sla %r to %r" % (sla, base)
         if not prompt(message, force):
