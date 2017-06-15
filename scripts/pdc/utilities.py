@@ -41,18 +41,21 @@ def ensure_component_branches(pdc, package, slas, eol, branch, type, critpath, f
     endpoint = pdc['component-branch-slas']
     # A base query
     base = dict(branch=branch, global_component=package, branch_type=type)
+    modified = []
     for sla in slas:
         # See if the sla already exists on the branch:
         results = list(pdc.get_paged(endpoint, sla=sla, **base))
         if results:
-            print("  sla {sla: <16} already exists for {branch_type}/"
-                  "{global_component}#{branch}".format(sla=sla, **base))
             continue
+
+        # See if user wants intervention
         message = "Apply sla %r to %r" % (sla, base)
         if not prompt(message, force):
             print("Not applying sla %r to %r" % (sla, base))
             continue
-        print("Applying sla %r to %r (critpath %r)" % (sla, base, critpath))
+
+        # Do it.
+        modified.append(sla)
         payload = dict(
             sla=sla,
             eol=eol,
@@ -64,3 +67,9 @@ def ensure_component_branches(pdc, package, slas, eol, branch, type, critpath, f
             )
         )
         endpoint._(payload)
+
+    # Report at the end.
+    if modified:
+        print("Applied %r to %r (critpath %r)" % (modified, base, critpath))
+    else:
+        print("Did not apply any slas to %r (critpath %r)" % (base, critpath))

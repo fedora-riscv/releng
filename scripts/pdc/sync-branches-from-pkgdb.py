@@ -16,6 +16,7 @@ from __future__ import print_function
 
 import argparse
 import json
+import multiprocessing.pool
 import os
 import sys
 import time
@@ -59,7 +60,7 @@ def _pkgdb_data_by_page(page, tries=1):
             return json.loads(f.read())
 
     url = 'https://admin.fedoraproject.org/pkgdb/api/packages/?acls=True&limit=5&page=%i' % page
-    print("  Querying %r" % url, end='...')
+    print("  Querying %r" % url)
     sys.stdout.flush()
     start = time.time()
     response = requests.get(url)
@@ -68,7 +69,7 @@ def _pkgdb_data_by_page(page, tries=1):
             raise IOError("Tried 5 times.  Giving up.")
         print("  ! Failed, %r, %i times.  Trying again." % (response, tries))
         return _pkgdb_data_by_page(page, tries+1)
-    print("  Query took %r seconds" % (time.time() - start))
+    print("  pkgdb query took %r seconds" % (time.time() - start))
     data = response.json()
 
     print("Writing cache of pkgdb information to %r" % cache_file)
@@ -77,12 +78,18 @@ def _pkgdb_data_by_page(page, tries=1):
     return data
 
 
-def pkgdb_data():
+def feed_pkgdb_data(q):
     initial = 0
-    for page in range(initial, _pkgdb_data_by_page(initial)['page_total']):
+    total = _pkgdb_data_by_page(initial)['page_total']
+    pages = range(total)
+
+    def _handle_page(page):
         data = _pkgdb_data_by_page(page)
         for entry in data['packages']:
-            yield entry
+            q.put(entry)
+
+    pool = multiprocessing.pool.ThreadPool(5)
+    pool.map(_handle_page, pages)
 
 
 def get_implicit_slas(branchname):
@@ -209,7 +216,7 @@ if __name__ == '__main__':
     q = queue.Queue()
 
     # Set up N workers to pull work from a queue of pkgdb entries
-    N = 5
+    N = 10
     def pull_work():
         while True:
             print("Worker found %i items on the queue" % q.qsize())
@@ -217,7 +224,6 @@ if __name__ == '__main__':
             if entry is StopIteration:
                 print("Worker found StopIteration.  Shutting down.")
                 break
-            print("Worker is handling a pkgdb entry.")
             do_work(entry)
     workers = [threading.Thread(target=pull_work) for i in range(N)]
     for worker in workers:
@@ -225,13 +231,12 @@ if __name__ == '__main__':
 
     try:
         # Feed their queue of pkgdb entries.  They work on them in parallel.
-        export = pkgdb_data()
-        for entry in export:
-            q.put(entry)
+        feed_pkgdb_data(q)
     except:
         print("Clearing the queue for premature shutdown.")
         with q.mutex:
             q.queue.clear()
+        raise
     finally:
         # Wrap up.  Tell the workers to stop and wait for them to be done.
         for worker in workers:
