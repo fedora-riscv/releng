@@ -191,5 +191,6 @@ if __name__ == '__main__':
                 eol=eol,
                 branch=acl['collection']['branchname'],
                 type=branch_type,
+                critpath=acl['critpath'],
                 force=True,
             )

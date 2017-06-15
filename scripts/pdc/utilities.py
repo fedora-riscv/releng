@@ -37,7 +37,7 @@ def verify_slas(pdc, slas):
             die("%r is not a valid SLA in PDC.  See %s" % (sla, endpoint))
 
 
-def ensure_component_branches(pdc, package, slas, eol, branch, type, force):
+def ensure_component_branches(pdc, package, slas, eol, branch, type, critpath, force):
     endpoint = pdc['component-branch-slas']
     # A base query
     base = dict(branch=branch, global_component=package, branch_type=type)
@@ -52,7 +52,7 @@ def ensure_component_branches(pdc, package, slas, eol, branch, type, force):
         if not prompt(message, force):
             print("Not applying sla %r to %r" % (sla, base))
             continue
-        print("Applying sla %r to %r" % (sla, base))
+        print("Applying sla %r to %r (critpath %r)" % (sla, base, critpath))
         payload = dict(
             sla=sla,
             eol=eol,
@@ -60,6 +60,7 @@ def ensure_component_branches(pdc, package, slas, eol, branch, type, force):
                 name=branch,
                 global_component=package,
                 type=type,
+                critical_path=critpath,
             )
         )
         endpoint._(payload)
