@@ -68,7 +68,8 @@ def _pkgdb_data_by_page(page):
     return data
 
 def pkgdb_data():
-    for page in range(_pkgdb_data_by_page(0)['page_total']):
+    initial = 0
+    for page in range(initial, _pkgdb_data_by_page(initial)['page_total']):
         data = _pkgdb_data_by_page(page)
         for entry in data['packages']:
             yield entry
