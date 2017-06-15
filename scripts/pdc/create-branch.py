@@ -1,9 +1,14 @@
-""" insert-sla.py - Add a new branch SLA to PDC.
+""" create-branch.py - Add a new branch to PDC *by hand*.
 
-https://pdc.fedoraproject.org/rest_api/v1/component-sla-types/
+In general, you shouldn't use this script.  The "front door" for new branches
+is to have people use the fedrepo-req tool to request branches, and to have
+cvsadmin members use the fedrepo-req-admin tool to process them.  That tool
+creates branches in PDC and new repos in pagure.  This tool should be used as
+the backdoor option, in case releng needs to create a branch manually.
 
-Branches in dist-git may have arbitrary EOLs and SLAs, but the SLAs must be
-chosen from a set specified by release-engineering.
+https://pdc.fedoraproject.org/rest_api/v1/component-branches/
+
+Note that branches must be associated with SLAs and EOLs.
 
 You can run this on pdc-backend01, the token is in /etc/pdc.d/
 You can also find the token in the private git repo.
