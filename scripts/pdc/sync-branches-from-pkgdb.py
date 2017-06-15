@@ -17,7 +17,10 @@ from __future__ import print_function
 import argparse
 import json
 import os
+import sys
 import time
+import threading
+import Queue as queue
 
 import requests
 
@@ -46,7 +49,7 @@ ignored_branches = [
 ]
 
 
-def _pkgdb_data_by_page(page):
+def _pkgdb_data_by_page(page, tries=1):
     """ Returns an export of pkgdb's data. """
 
     cache_file = '/var/tmp/pkgdb-export-page-%i.cache' % page
@@ -57,8 +60,14 @@ def _pkgdb_data_by_page(page):
 
     url = 'https://admin.fedoraproject.org/pkgdb/api/packages/?acls=True&limit=5&page=%i' % page
     print("  Querying %r" % url, end='...')
+    sys.stdout.flush()
     start = time.time()
     response = requests.get(url)
+    if not bool(response):
+        if tries >= 5:
+            raise IOError("Tried 5 times.  Giving up.")
+        print("  ! Failed, %r, %i times.  Trying again." % (response, tries))
+        return _pkgdb_data_by_page(page, tries+1)
     print("  Query took %r seconds" % (time.time() - start))
     data = response.json()
 
@@ -67,12 +76,14 @@ def _pkgdb_data_by_page(page):
         f.write(json.dumps(data))
     return data
 
+
 def pkgdb_data():
     initial = 0
     for page in range(initial, _pkgdb_data_by_page(initial)['page_total']):
         data = _pkgdb_data_by_page(page)
         for entry in data['packages']:
             yield entry
+
 
 def get_implicit_slas(branchname):
     standard = [
@@ -165,32 +176,66 @@ def lookup_component_type(pkgdb_type):
     return lookup[pkgdb_type]
 
 
-if __name__ == '__main__':
+def do_work(entry):
     print("Connecting to PDC args.server %r with token %r" % (args.servername, args.token))
+
     pdc = pdc_client.PDCClient(args.servername, token=args.token)
 
-    export = pkgdb_data()
-    for entry in export:
-        utilities.ensure_global_component(pdc, entry['name'], force=True)
-        for acl in entry['acls']:
-            # First, Ignore stuff that we don't know how to handle.
-            if acl['collection']['branchname'] in ignored_branches:
-                continue
+    utilities.ensure_global_component(pdc, entry['name'], force=True)
+    for acl in entry['acls']:
+        # First, Ignore stuff that we don't know how to handle.
+        if acl['collection']['branchname'] in ignored_branches:
+            continue
 
-            # Then, find our values for this pkgdb entry.
-            slas = get_implicit_slas(acl['collection']['branchname'])
-            eol = get_implicit_eol(acl['collection']['branchname'])
-            branch_type = lookup_component_type(entry['namespace'])
+        # Then, find our values for this pkgdb entry.
+        slas = get_implicit_slas(acl['collection']['branchname'])
+        eol = get_implicit_eol(acl['collection']['branchname'])
+        branch_type = lookup_component_type(entry['namespace'])
 
-            # Make sure everything is set in PDC.
-            utilities.verify_slas(pdc, slas)
-            utilities.ensure_component_branches(
-                pdc,
-                package=entry['name'],
-                slas=slas,
-                eol=eol,
-                branch=acl['collection']['branchname'],
-                type=branch_type,
-                critpath=acl['critpath'],
-                force=True,
-            )
+        # Make sure everything is set in PDC.
+        utilities.verify_slas(pdc, slas)
+        utilities.ensure_component_branches(
+            pdc,
+            package=entry['name'],
+            slas=slas,
+            eol=eol,
+            branch=acl['collection']['branchname'],
+            type=branch_type,
+            critpath=acl['critpath'],
+            force=True,
+        )
+
+if __name__ == '__main__':
+    q = queue.Queue()
+
+    # Set up N workers to pull work from a queue of pkgdb entries
+    N = 5
+    def pull_work():
+        while True:
+            print("Worker found %i items on the queue" % q.qsize())
+            entry = q.get()
+            if entry is StopIteration:
+                print("Worker found StopIteration.  Shutting down.")
+                break
+            print("Worker is handling a pkgdb entry.")
+            do_work(entry)
+    workers = [threading.Thread(target=pull_work) for i in range(N)]
+    for worker in workers:
+        worker.start()
+
+    try:
+        # Feed their queue of pkgdb entries.  They work on them in parallel.
+        export = pkgdb_data()
+        for entry in export:
+            q.put(entry)
+    except:
+        print("Clearing the queue for premature shutdown.")
+        with q.mutex:
+            q.queue.clear()
+    finally:
+        # Wrap up.  Tell the workers to stop and wait for them to be done.
+        for worker in workers:
+            q.put(StopIteration)
+        for worker in workers:
+            worker.join()
+    print("Done.")
