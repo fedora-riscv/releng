@@ -1,6 +1,8 @@
 """ Common PDC utility functions, shared by scripts. """
+from __future__ import print_function
 
 import sys
+
 
 def prompt(message, force):
     return force or raw_input(message + " [y/N]: ").lower() in ('y', 'yes')
@@ -16,11 +18,11 @@ def ensure_global_component(pdc, package, force):
     pdc['global-components']._(name=package)
     results = list(pdc.get_paged(pdc['global-components'], name=package))
     if results:
-        print "Found global-components/%s" % package
+        print("Found global-components/%s" % package)
         return
     message = "global-component %s does not exist.  Create it?" % package
     if not prompt(message, force):
-        print "Not creating global-component", package
+        print("Not creating global-component", package)
         sys.exit(1)
     payload = dict(name=package)
     pdc['global-components']._(payload)
