@@ -222,6 +222,9 @@ def block_package(packages, branch="master", staging=False, namespace=DEFAULT_NS
     cmd = ["block-pkg", tag] + packages
     catch_koji_errors(cmd)
 
+    #If a package moves from EPEL to RHEL it can only be built if it is unblocked
+    #in the epel build tag. Therefore unblock all retired EPEL packages in the
+    #built tag since it does not hurt if the package does not move to RHEL.
     if epel_build_tag:
         cmd = ["unblock-pkg", epel_build_tag] + packages
         catch_koji_errors(cmd)
