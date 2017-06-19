@@ -86,6 +86,8 @@ def feed_pkgdb_data(q):
     def _handle_page(page):
         data = _pkgdb_data_by_page(page)
         for entry in data['packages']:
+            while q.qsize() > 1000:
+                time.sleep(30)
             q.put(entry)
 
     pool = multiprocessing.pool.ThreadPool(5)
