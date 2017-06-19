@@ -42,6 +42,7 @@ Standard Operating Procedures
     :maxdepth: 2
 
     sop_adding_build_targets
+    sop_adding_content_generator
     sop_adding_new_release_engineer
     sop_adding_packages_compose_artifact
     sop_adding_side_build_targets
