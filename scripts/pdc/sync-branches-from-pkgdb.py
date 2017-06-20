@@ -180,7 +180,7 @@ def lookup_component_type(pkgdb_type):
     lookup = {
         'rpms': 'rpm',
         'modules': 'module',
-        'containers': 'container',
+        'container': 'container',
     }
     return lookup[pkgdb_type]
 
