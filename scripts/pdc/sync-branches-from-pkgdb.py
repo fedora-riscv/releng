@@ -36,6 +36,7 @@ import pdc_client
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('servername', help='PDC server name.  See /etc/pdc.d/')
 parser.add_argument('token', help='PDC token for authentication.')
+parser.add_argument('namespace', help='PkgDB namespace, e.g.: rpms, modules, container')
 args = parser.parse_args()
 
 
@@ -50,16 +51,16 @@ ignored_branches = [
 ]
 
 
-def _pkgdb_data_by_page(page, tries=1):
+def _pkgdb_data_by_page(page, namespace, tries=1):
     """ Returns an export of pkgdb's data. """
 
-    cache_file = '/var/tmp/pkgdb-export-page-%i.cache' % page
+    cache_file = '/var/tmp/pkgdb-%s-export-page-%i.cache' % (namespace, page)
     if os.path.exists(cache_file):
         print("Using cache of pkgdb data in %r.  Delete it to re-pull." % cache_file)
         with open(cache_file, 'r') as f:
             return json.loads(f.read())
 
-    url = 'https://admin.fedoraproject.org/pkgdb/api/packages/?acls=True&limit=5&page=%i' % page
+    url = 'https://admin.fedoraproject.org/pkgdb/api/packages/?acls=True&limit=5&namespace=%s&page=%i' % (namespace, page)
     print("  Querying %r" % url)
     sys.stdout.flush()
     start = time.time()
@@ -68,7 +69,7 @@ def _pkgdb_data_by_page(page, tries=1):
         if tries >= 5:
             raise IOError("Tried 5 times.  Giving up.")
         print("  ! Failed, %r, %i times.  Trying again." % (response, tries))
-        return _pkgdb_data_by_page(page, tries+1)
+        return _pkgdb_data_by_page(page, namespace, tries+1)
     print("  pkgdb query took %r seconds" % (time.time() - start))
     data = response.json()
 
@@ -78,13 +79,13 @@ def _pkgdb_data_by_page(page, tries=1):
     return data
 
 
-def feed_pkgdb_data(q):
+def feed_pkgdb_data(q, namespace):
     initial = 0
-    total = _pkgdb_data_by_page(initial)['page_total']
+    total = _pkgdb_data_by_page(initial, namespace)['page_total']
     pages = range(total)
 
     def _handle_page(page):
-        data = _pkgdb_data_by_page(page)
+        data = _pkgdb_data_by_page(page, namespace)
         for entry in data['packages']:
             while q.qsize() > 1000:
                 time.sleep(30)
@@ -182,6 +183,9 @@ def lookup_component_type(pkgdb_type):
         'modules': 'module',
         'container': 'container',
     }
+    # Just to be verbose for users...
+    if not pkgdb_type in lookup:
+        raise KeyError("%r not in %r" % (pkgdb_type, lookup.keys()))
     return lookup[pkgdb_type]
 
 
@@ -215,6 +219,10 @@ def do_work(entry):
         )
 
 if __name__ == '__main__':
+    # Make sure the given namespace is a real namespace.
+    lookup_component_type(args.namespace)
+
+    # A work queue for communicating between threads.
     q = queue.Queue()
 
     # Set up N workers to pull work from a queue of pkgdb entries
@@ -233,7 +241,7 @@ if __name__ == '__main__':
 
     try:
         # Feed their queue of pkgdb entries.  They work on them in parallel.
-        feed_pkgdb_data(q)
+        feed_pkgdb_data(q, args.namespace)
     except:
         print("Clearing the queue for premature shutdown.")
         with q.mutex:
