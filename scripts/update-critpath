@@ -105,7 +105,6 @@ def prepend_pdc_branch_ids(global_components, branch):
         assert len(results) == 1
         return results[0]
 
-    N = len(global_components)
     for i, component in enumerate(global_components):
         args = {'name': branch, 'type': 'rpm', 'global_component': component}
         result = _get_pdc_branch_id(**args)
@@ -121,36 +120,22 @@ def update_critpath(current_critpath, new_critpath, branch):
     :arg current_critpath: a set listing all the packages that currently have
         the critpath package
     '''
-    # Remove the critpath flag to the package that should not have it
 
+    # Remove the critpath flag from packages which do not have it, but should.
     new_no = current_critpath - new_critpath
     LOG.debug('%i packages need critpath removed.' % len(new_no))
-    with open('lol.txt', 'w') as f:
-        for item in new_no:
-            f.write('%s\n' % item)
-    if new_no:
-        # Build a list of http PATCH arguments for a bulk modification
-        new_no = [{
-            'id': item.split(':')[0],
-            'critical_path': False,
-        } for item in new_no]
-        # And... apply that.
-        raise NotImplementedError()
-    else:
-        LOG.info('No packages to which the critpath flag should be removed')
+    for item in new_no:
+        idx, name = item.split(':', 1)
+        LOG.debug('  Sending PATCH for %s, (idx: %s)' % (name, idx))
+        pdc['component-branches'][idx + '/'] += dict(critical_path=False)
 
+    # Add the critpath flag to packages which should have it, but do not.
     new_yes = new_critpath - current_critpath
     LOG.debug('%i packages need critpath added.' % len(new_yes))
-    if new_yes:
-        # Build a list of http PATCH arguments for a bulk modification
-        new_yes = [{
-            'id': item.split(':')[0],
-            'critical_path': True,
-        } for item in new_yes]
-        # And... apply that.
-        raise NotImplementedError()
-    else:
-        LOG.info('No packages to which the critpath flag should be added')
+    for item in new_yes:
+        idx, name = item.split(':', 1)
+        LOG.debug('  Sending PATCH for %s, (idx: %s)' % (name, idx))
+        pdc['component-branches'][idx + '/'] += dict(critical_path=True)
 
 
 def main():
