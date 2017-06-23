@@ -1,16 +1,12 @@
 # -*- coding: utf-8 -*-
 # vi: ft=python
-
-"""
-# update_critpath - a commandline frontend for updating the critpath
-#
 # Copyright (C) 2014 Red Hat Inc
 # Copyright (C) 2014 Pierre-Yves Chibon, Chaoyi Zha, Toshio Kuratomi,
 #                    Bill Nottingham
 # Authors: Pierre-Yves Chibon <pingou@pingoured.fr>
-           Chaoyi Zha <summermontreal@gmail.com>
-           Bill Nottingham <notting@fedoraproject.org>
-           Toshio Kuratomi <toshio@fedoraproject.org>
+#          Chaoyi Zha <summermontreal@gmail.com>
+#          Bill Nottingham <notting@fedoraproject.org>
+#          Toshio Kuratomi <toshio@fedoraproject.org>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,15 +14,15 @@
 # your option) any later version.
 # See http://www.gnu.org/copyleft/gpl.html  for the full text of the
 # license.
-#
-# Critpath updating SOP:
-# http://fedoraproject.org/wiki/Update_Critpath_SOP
-#
-# How to use:
-#  $ python update-critpath <critpath.txt> <branch>
-# for example
-#  $ python update-critpath critpath.txt f20
-#
+""" update_critpath - a commandline frontend for updating the critpath
+
+Critpath updating SOP:
+http://fedoraproject.org/wiki/Update_Critpath_SOP
+
+How to use:
+ $ python update-critpath <critpath.txt> <branch>
+for example
+ $ python update-critpath critpath.txt f20
 """
 
 from pkgdb2client import PkgDB, PkgDBException
