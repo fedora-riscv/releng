@@ -13,7 +13,7 @@ Update Critpath
 Description
 ===========
 
-Packagedb has information about which packages are critpath and which are not.
+PDC has information about which packages are critpath and which are not.
 A script that reads the yum repodata (critpath group in comps, and the package
 dependencies) is used to generate this.  Since package dependencies change,
 this list should be updated periodically.
@@ -48,16 +48,16 @@ Action
 
         ./critpath.py --srpm -o critpath.txt branched
 
-#. Run the update script to add that to the pkgdb:
+#. Run the update script to add that to PDC:
 
    ::
 
         ./update-critpath --user toshio f18 critpath.txt
 
    The username is your fas username.  You must be in cvsadmin to be able to
-   change this.  The release is given in pkgdb format (f17, f18, devel, etc).
+   change this.  The branch is the name of the dist-git branch.
    critpath.txt is the file that the output of critpath.py went into.  The
-   script will prompt for your FAS password to verify your identity with the
-   pkgdb.
+   script needs a PDC token to talk to the server, configured in /etc/pdc.d/.
+   See the PDC SOP for more info.
 
 .. _releng git repository: https://pagure.io/releng
