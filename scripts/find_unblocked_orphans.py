@@ -1,6 +1,6 @@
 #! /usr/bin/python -tt
 #
-# find_unblocked_orphans.py - A utility to find orphaned packages in pkgdb
+# find_unblocked_orphans.py - A utility to find orphaned packages in pagure
 #                             that are unblocked in koji and to show what
 #                             may require those orphans
 #
@@ -16,7 +16,6 @@ from Queue import Queue
 from collections import OrderedDict
 from threading import Thread
 import argparse
-import cPickle as pickle
 import datetime
 import email.mime.text
 import hashlib
@@ -24,8 +23,11 @@ import os
 import smtplib
 import sys
 import textwrap
+import traceback
+
+import dogpile.cache
+import requests
 import koji
-import pkgdb2client
 import yum
 
 try:
@@ -33,6 +35,14 @@ try:
     with_table = True
 except ImportError:
     with_table = False
+
+
+cache = dogpile.cache.make_region().configure(
+    'dogpile.cache.dbm',
+    expiration_time=187000,
+    arguments=dict(filename='/var/tmp/orphans-cache.dbm'),
+)
+PAGURE_URL = 'https://src.fedoraproject.org'
 
 
 EPEL6_RELEASE = dict(
@@ -84,7 +94,7 @@ RELEASES = {
     "epel6": EPEL6_RELEASE,
 }
 
-# pkgdb uid for orphan
+# pagure uid for orphan
 ORPHAN_UID = 'orphan'
 
 HEADER = """The following packages are orphaned or did not build for two
@@ -132,102 +142,50 @@ def send_mail(from_, to, subject, text, bcc=None):
     return errors
 
 
-pkgdb = pkgdb2client.PkgDB()
-
-
-def get_cache(filename,
-              max_age=3600,
-              cachedir='~/.cache',
-              default=None):
-    """ Get a pickle file from cache
-    :param filename: Filename with pickle data
-    :type filename: str
-    :param max_age: Maximum age of cache in seconds
-    :type max_age: int
-    :param cachedir: Directory to get file from
-    :type cachedir: str
-    :param default: Default value if cache is too old or does not exist
-    :type default: object
-    :returns: pickled object
-    """
-    cache_file = os.path.expanduser(os.path.join(cachedir, filename))
-    try:
-        with open(cache_file, "rb") as pickle_file:
-            mtime = os.fstat(pickle_file.fileno()).st_mtime
-            mtime = datetime.datetime.fromtimestamp(mtime)
-            now = datetime.datetime.now()
-            if (now - mtime).total_seconds() < max_age:
-                res = pickle.load(pickle_file)
-            else:
-                res = default
-    except IOError:
-        res = default
-    return res
-
-
-def write_cache(data, filename, cachedir='~/.cache'):
-    """ Write ``data`` do pickle cache
-    :param data: Data to cache
-    :param filename: Filename for cache file
-    :type filename: str
-    :param cachedir: Dir for cachefile
-    :type cachedir: str
-    """
-    cache_file = os.path.expanduser(os.path.join(cachedir, filename))
-    with open(cache_file, "wb") as pickle_file:
-        pickle.dump(data, pickle_file)
-
-
-class PKGDBInfo(object):
-    def __init__(self, package, branch=RAWHIDE_RELEASE["branch"]):
+class PagureInfo(object):
+    def __init__(self, package, branch=RAWHIDE_RELEASE["branch"], ns='rpms'):
         self.package = package
         self.branch = branch
 
         try:
-            pkginfo = pkgdb.get_package(package, branches=branch)
-        except Exception as e:
+            response = requests.get(PAGURE_URL + '/api/0/' + ns + '/' + package)
+            self.pkginfo = response.json()
+            if 'error' in self.pkginfo:
+                # This is likely a "project not found" 404 error.
+                raise ValueError(self.pkginfo['error'])
+        except Exception:
             sys.stderr.write(
-                "Error getting pkgdb info for {} on {}\n".format(
-                    package, branch))
-            # FIXME: Write proper traceback
-            sys.stderr.write(str(e))
+                "Error getting pagure info for {}/{} on {}\n".format(
+                    ns, package, branch))
+            traceback.print_exc(file=sys.stderr)
             self.pkginfo = None
             return
 
-        self.pkginfo = pkginfo["packages"][0]
-
     def get_people(self):
-        def associated(pkginfo, exclude=None):
-            """
-
-            :param exclude: People to exclude, e.g. the point of contact.
-            :type exclude: list
-            """
-            other_people = set()
-            for acl in pkginfo.get("acls", []):
-                if acl["status"] == "Approved":
-                    fas_name = acl["fas_name"]
-                    if fas_name != "group::provenpackager" and \
-                            fas_name not in exclude:
-                        other_people.add(fas_name)
-            return sorted(other_people)
-
-        if self.pkginfo is not None:
-            people_ = [self.pkginfo["point_of_contact"]]
-            people_.extend(associated(self.pkginfo, exclude=people_))
-            return people_
-        else:
+        if self.pkginfo is None:
             return []
+        people = set()
+        for kind in ['access_users', 'access_groups']:
+            for persons in self.pkginfo[kind].values():
+                for person in persons:
+                    people.add(person)
+        return list(sorted(people))
 
     @property
     def age(self):
+        then = self.status_change
         now = datetime.datetime.utcnow()
-        age = now - self.status_change
-        return age
+        return now - then
 
     @property
     def status_change(self):
-        status_change = self.pkginfo["status_change"]
+        if self.pkginfo is None:
+            return datetime.datetime.utcnow()
+        # See https://pagure.io/pagure/issue/2412
+        if "date_modified" in self.pkginfo:
+            status_change = float(self.pkginfo["date_modified"])
+        else:
+            status_change = float(self.pkginfo["date_created"])
         status_change = datetime.datetime.utcfromtimestamp(status_change)
         return status_change
 
@@ -260,23 +218,15 @@ def setup_yum(repo=RAWHIDE_RELEASE["repo"],
     return yb
 
 
-def orphan_packages(branch=RAWHIDE_RELEASE["branch"]):
-    cache_filename = 'orphans-{}.pickle'.format(branch)
-    orphans = get_cache(cache_filename, default={})
-
-    if orphans:
-        return orphans
-    else:
-        pkgdbresponse = pkgdb.get_packages(
-            "*", orphaned=True, branches=branch, page="all")
-        pkgs = pkgdbresponse["packages"]
-        for p in pkgs:
-            orphans[p["name"]] = p
-        try:
-            write_cache(orphans, cache_filename)
-        except IOError, e:
-            sys.stderr.write("Caching of orphans failed: {0}\n".format(e))
-        return orphans
+@cache.cache_on_arguments()
+def orphan_packages(namespace='rpms'):
+    url = PAGURE_URL + '/api/0/projects'
+    params = dict(owner=ORPHAN_UID, namespace=namespace)
+    response = requests.get(url, params=params)
+    if not bool(response):
+        raise IOError("%r gave %r" % (response.request.url, response))
+    pkgs = response.json()['projects']
+    return dict([(p['name'], p) for p in pkgs])
 
 
 def unblocked_packages(packages, tagID=RAWHIDE_RELEASE["tag"]):
@@ -293,9 +243,13 @@ def unblocked_packages(packages, tagID=RAWHIDE_RELEASE["tag"]):
     for pkgname, result in zip(packages, listings):
         if isinstance(result, list):
             [pkg] = result
-            if not pkg[0]['blocked']:
-                package_name = pkg[0]['package_name']
-                unblocked.append(package_name)
+            if pkg:
+                if not pkg[0]['blocked']:
+                    package_name = pkg[0]['package_name']
+                    unblocked.append(package_name)
+            else:
+                # TODO - what state does this condition represent?
+                pass
         else:
             print("ERROR: {pkgname}: {error}".format(
                 pkgname=pkgname, error=result))
@@ -303,7 +257,7 @@ def unblocked_packages(packages, tagID=RAWHIDE_RELEASE["tag"]):
 
 
 class DepChecker(object):
-    def __init__(self, release, repo=None, source_repo=None):
+    def __init__(self, release, repo=None, source_repo=None, namespace='rpms'):
         self._src_by_bin = None
         self._bin_by_src = None
         self.release = release
@@ -315,9 +269,8 @@ class DepChecker(object):
 
         yumbase = setup_yum(repo=repo, source_repo=source_repo)
         self.yumbase = yumbase
-        self.pkgdbinfo_queue = Queue()
-        self.pkgdb_cache = "orphans-pkgdb-{}.pickle".format(release)
-        self.pkgdb_dict = get_cache(self.pkgdb_cache, default={})
+        self.pagureinfo_queue = Queue()
+        self.pagure_dict = {}
         self.not_in_repo = []
 
     def create_mapping(self):
@@ -437,22 +390,22 @@ class DepChecker(object):
                         prov)
         return OrderedDict(sorted(dependent_packages.items()))
 
-    def pkgdb_worker(self):
+    def pagure_worker(self):
         branch = RELEASES[self.release]["branch"]
         while True:
-            package = self.pkgdbinfo_queue.get()
-            if package not in self.pkgdb_dict:
-                pkginfo = PKGDBInfo(package, branch)
-                #  sys.stderr.write("Got info for {} on {}, todo: {}\n".format(
-                #      package, branch, self.pkgdbinfo_queue.qsize()))
-                self.pkgdb_dict[package] = pkginfo
-            self.pkgdbinfo_queue.task_done()
+            package = self.pagureinfo_queue.get()
+            if package not in self.pagure_dict:
+                pkginfo = PagureInfo(package, branch)
+                sys.stderr.write("Got info for {} on {}, todo: {}\n".format(
+                    package, branch, self.pagureinfo_queue.qsize()))
+                self.pagure_dict[package] = pkginfo
+            self.pagureinfo_queue.task_done()
 
     def recursive_deps(self, packages, max_deps=20):
         incomplete = []
         # Start threads to get information about (co)maintainers for packages
         for i in range(0, 2):
-            people_thread = Thread(target=self.pkgdb_worker)
+            people_thread = Thread(target=self.pagure_worker)
             people_thread.daemon = True
             people_thread.start()
         # keep pylint silent
@@ -460,7 +413,7 @@ class DepChecker(object):
         # get a list of all rpm_pkgs that are to be removed
         rpm_pkg_names = []
         for name in packages:
-            self.pkgdbinfo_queue.put(name)
+            self.pagureinfo_queue.put(name)
             # Empty list if pkg is only for a different arch
             bin_pkgs = self.by_src.get(name, [])
             rpm_pkg_names.extend([p.name for p in bin_pkgs])
@@ -503,7 +456,7 @@ class DepChecker(object):
                             ).setdefault(pkg, set()).add(dep)
 
                     for srpm_name in new_srpm_names:
-                        self.pkgdbinfo_queue.put(srpm_name)
+                        self.pagureinfo_queue.put(srpm_name)
 
                     ignore.extend(new_names)
                     if allow_more:
@@ -530,9 +483,8 @@ class DepChecker(object):
                                  " completed\n".format(max_deps, name))
 
         sys.stderr.write("Waiting for (co)maintainer information...")
-        self.pkgdbinfo_queue.join()
+        self.pagureinfo_queue.join()
         sys.stderr.write("done\n")
-        write_cache(self.pkgdb_dict, self.pkgdb_cache)
         return dep_map, incomplete
 
     # This function was stolen from pungi
@@ -554,7 +506,7 @@ class DepChecker(object):
             sys.exit(1)
 
 
-def maintainer_table(packages, pkgdb_dict):
+def maintainer_table(packages, pagure_dict):
     affected_people = {}
 
     if with_table:
@@ -566,7 +518,7 @@ def maintainer_table(packages, pkgdb_dict):
         table = ""
 
     for package_name in packages:
-        pkginfo = pkgdb_dict[package_name]
+        pkginfo = pagure_dict[package_name]
         people = pkginfo.get_people()
         for p in people:
             affected_people.setdefault(p, set()).add(package_name)
@@ -584,18 +536,18 @@ def maintainer_table(packages, pkgdb_dict):
     return table, affected_people
 
 
-def dependency_info(dep_map, affected_people, pkgdb_dict, incomplete):
+def dependency_info(dep_map, affected_people, pagure_dict, incomplete):
     info = ""
     for package_name, subdict in dep_map.items():
         if subdict:
-            pkginfo = pkgdb_dict[package_name]
+            pkginfo = pagure_dict[package_name]
             status_change = pkginfo.status_change.strftime("%Y-%m-%d")
             age = pkginfo.age.days / 7
             fmt = "Depending on: {} ({}), status change: {} ({} weeks ago)\n"
             info += fmt.format(package_name, len(subdict.keys()),
                                status_change, age)
             for fedora_package, dependent_packages in subdict.items():
-                people = pkgdb_dict[fedora_package].get_people()
+                people = pagure_dict[fedora_package].get_people()
                 for p in people:
                     affected_people.setdefault(p, set()).add(package_name)
                 p = ", ".join(people)
@@ -625,12 +577,12 @@ def maintainer_info(affected_people):
 def package_info(unblocked, dep_map, depchecker, orphans=None, failed=None,
                  week_limit=6, release="", incomplete=[]):
     info = ""
-    pkgdb_dict = depchecker.pkgdb_dict
+    pagure_dict = depchecker.pagure_dict
 
-    table, affected_people = maintainer_table(unblocked, pkgdb_dict)
+    table, affected_people = maintainer_table(unblocked, pagure_dict)
     info += table
     info += "\n\nThe following packages require above mentioned packages:\n"
-    info += dependency_info(dep_map, affected_people, pkgdb_dict, incomplete)
+    info += dependency_info(dep_map, affected_people, pagure_dict, incomplete)
 
     info += "Affected (co)maintainers\n"
     info += maintainer_info(affected_people)
@@ -662,7 +614,7 @@ def package_info(unblocked, dep_map, depchecker, orphans=None, failed=None,
 
         orphans_breaking_deps_stale = [
             o for o in orphans_breaking_deps if
-            (pkgdb_dict[o].age.days / 7) >= week_limit]
+            (pagure_dict[o].age.days / 7) >= week_limit]
 
         info += wrap_and_format(
             "Orphans{} for at least {} weeks (dependend on)".format(
@@ -677,7 +629,7 @@ def package_info(unblocked, dep_map, depchecker, orphans=None, failed=None,
 
         orphans_not_breaking_deps_stale = [
             o for o in orphans_not_breaking_deps if
-            (pkgdb_dict[o].age.days / 7) >= week_limit]
+            (pagure_dict[o].age.days / 7) >= week_limit]
 
         if orphans_not_breaking_deps_stale:
             sys.stderr.write("fedretire --orphan --branch {} -- {}\n".format(
@@ -779,9 +731,9 @@ def main():
     if args.skip_orphans:
         orphans = []
     else:
-        # list of orphans on the devel branch from pkgdb
-        sys.stderr.write('Contacting pkgdb for list of orphans...')
-        orphans = sorted(orphan_packages(RELEASES[args.release]["branch"]))
+        # list of orphans from pagure
+        sys.stderr.write('Contacting pagure for list of orphans...')
+        orphans = sorted(orphan_packages())
         sys.stderr.write('done\n')
 
     sys.stderr.write('Getting builds from koji...')
