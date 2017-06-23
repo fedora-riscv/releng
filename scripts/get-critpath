@@ -5,81 +5,41 @@
 #
 # Authors: Bill Nottingham <notting@redhat.com>
 #          Toshio Kuratomi <tkuratom@redhat.com>
+from __future__ import print_function
 
 import argparse
-import getpass
-import os
-import string
 import sys
 
-from configobj import ConfigObj, flatten_errors
-from validate import Validator
+import pdc_client
 
-import fedora_cert
-from fedora.client import pkgdb
-
-def get_branches(p):
-    ret = []
-    try:
-        list = p.get_collection_list(eol = False)
-        for item in list:
-            ret.append(item[0].branchname)
-    except:
-        pass
-    return ret
+def get_branches(pdc):
+    for branch in pdc.get_paged(pdc['component-branches'], active=True):
+        yield branch
 
 def setup_args():
     usage = "\nget-critpath <branch>"
-    parser = argparse.ArgumentParser(
-        usage="\nget_critpath <branch>")
+    parser = argparse.ArgumentParser(usage=usage)
     parser.add_argument('branch')
-    parser.add_argument('--user', dest="username", help="FAS username")
-    parser.add_argument('--password', dest="password", help="FAS password")
     return parser
 
-def setup_cfg(cfg_file='/etc/update-critpath.cfg'):
-    config_spec = '''
-    [global]
-    pkgdb.url = string(default = 'https://admin.fedoraproject.org/pkgdb')
-    pkgdb.username = string(default = 'critpathbot')
-    pkgdb.password = string(default='')
-    '''.splitlines()
-    cfg = ConfigObj(cfg_file, configspec=config_spec)
-    user_cfg = ConfigObj(os.path.expanduser('~/.fedora/update-critpath.cfg'),
-            configspec=config_spec)
-    cfg.merge(user_cfg)
-    results = cfg.validate(Validator(), preserve_errors=True)
-
-    for entry in flatten_errors(cfg, results):
-        section_list, key, error = entry
-        section_list.append(key)
-        if error == False:
-            error = 'Missing value or section'
-        print '%s: %s' % ('::'.join(section_list), error)
-        sys.exit(1)
-    return cfg['global']
-
-def merge_options(cfg, args):
-    args.username = getattr(args, 'username') or cfg['pkgdb.username']
-    args.password = getattr(args, 'password') or cfg['pkgdb.password']
-    args.pkgdb_url = cfg['pkgdb.url']
-    return args
-
 def main():
-    cfg = setup_cfg()
     parser = setup_args()
     args = parser.parse_args()
-    args = merge_options(cfg, args)
-    p = pkgdb.PackageDB(args.pkgdb_url)
-    branches = get_branches(p)
-    if args.branch not in branches:
-        print "%s not a valid branch. Valid branches: %s." % (args.branch, branches)
+
+    pdc = pdc_client.PDCClient('fedora')
+
+    endpoint = pdc['component-branches']
+    kwargs = dict(name=args.branch, active=True)
+    existing = pdc.get_paged(endpoint, **kwargs)
+    try:
+        existing.next()
+    except StopIteration:
+        print("%s not a valid branch." % args.branch, file=sys.stderr)
         sys.exit(1)
-    critpath = p.get_critpath_pkgs([args.branch])
-    critpath_pkgs = critpath[args.branch]
-    critpath_pkgs.sort()
-    for item in critpath_pkgs:
-        print item
+
+    critpath_packages = pdc.get_paged(endpoint, critical_path=True, **kwargs)
+    for package in critpath_packages:
+        print(package['global_component'])
 
 if __name__ == '__main__':
     main()
