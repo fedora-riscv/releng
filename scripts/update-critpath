@@ -16,8 +16,7 @@
 # license.
 """ update_critpath - a commandline frontend for updating the critpath
 
-Critpath updating SOP:
-http://fedoraproject.org/wiki/Update_Critpath_SOP
+Critpath updating SOP: https://docs.pagure.org/releng/sop_update_critpath.html
 
 How to use:
  $ python update-critpath <critpath.txt> <branch>
