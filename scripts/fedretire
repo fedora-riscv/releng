@@ -9,7 +9,23 @@ import shutil
 import subprocess
 import tempfile
 
-import pkgdb2client
+import requests
+import pdc_client
+
+NAMESPACES = {
+    'rpms': 'rpm',
+    'modules': 'module',
+    'container': 'container',
+}
+
+RETIRED = 'Retired'
+ORPHANED = 'Orphaned'
+ACTIVE = 'Active'
+
+# This is a user in pagure.
+ORPHAN_UID = 'orphan'
+
+PAGURE_URL = 'https://src.fedoraproject.org/pagure'
 
 ORPHAN_REASON = """Retired orphaned package, because it was orphaned for
 more than six weeks.
@@ -31,17 +47,51 @@ BRANCH_HIERARCHY = {
     "el6": ""
 }
 
-def get_status(name, branch="master"):
-    pkgdb = pkgdb2client.PkgDB()
-    response = pkgdb.get_package(name, branches=branch)
+def get_status(name, branch="master", namespace='rpms'):
+    # First, check to see if it is retired.
+    # PDCClient pulls connection information from /etc/pdc.d/
+    # develop=True means: don't authenticate.
+    pdc = pdc_client.PDCClient('fedora', develop=True)
+    kwargs = dict(global_component=name, name=branch, type=NAMESPACES[namespace])
+    results = pdc.get_paged(pdc['component-branches'], **kwargs)
+    try:
+        pdc_branch = results.next()
+    except StopIteration:
+        raise ValueError("branch %r of package %r does not exist in PDC." % (
+            branch, name))
+    retired = not pdc_branch['active']
+    if retired:
+        return RETIRED
 
-    for p in response.get("packages", []):
-        if p.get("package", {}).get("name") == name:
-            status = p.get("status")
-            return status
-    return ""
+    # OK, if it isn't retired, it *might* be orphaned.. but we have to check
+    # pagure for that.
+    kwargs = dict(name=name, namespace=namespace)
+    response = requests.get(PAGURE_URL + "/api/0/packages", params=kwargs)
+    if not bool(response):
+        raise IOError("%r gave a %r" % (response.request.url, response))
+    data = response.json()
+    if not data['projects']:
+        raise ValueError("%r found no pagure repos" % (response.request.url))
+    people = set()
+    for kind in ('access_groups', 'access_users'):
+        people.extend(data[kind].values())
 
-def check_status(name, branch, status="Orphaned", dep_status="Retired"):
+    if len(people) == 0:
+        raise ValueError("%r has no people.. not even the orphan user.  "
+                         "Should not be possible." % response.request.url)
+
+    # See if 'orphan' is in there
+    if ORPHAN_UID in people:
+        # Sanity check
+        if len(people) > 1:
+            raise ValueError("%r is both orphaned and not." % response.request.url)
+        return ORPHANED
+
+    # If it is neither Retired nor Orphaned, then it must be active.
+    return ACTIVE
+
+
+def check_status(name, branch, status=ORPHANED, dep_status=RETIRED):
     current_status = get_status(name, branch)
     if current_status != status:
         return False
@@ -59,6 +109,7 @@ def check_status(name, branch, status="Orphaned", dep_status="Retired"):
         if current_status != dep_status:
             return False
     return True
+
 
 def retire(pkg, branch, reason, dryrun=False):
     def run(cmd, cwd):
@@ -141,7 +192,7 @@ if __name__ == "__main__":
                           "branches".format(pkg, branch))
                     continue
             elif args.orphan_dependent:
-                if not check_status(args.orphan_dependent, branch, "Retired"):
+                if not check_status(args.orphan_dependent, branch, RETIRED):
                     print("Skipped pkg '{}' on '{}' because "
                           "package '{}' is not retired in one or more checked "
                           "branches".format(
