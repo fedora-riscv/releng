@@ -6,7 +6,6 @@ import argparse
 import datetime
 import getpass
 import logging
-import os
 import subprocess
 import time
 
@@ -171,28 +170,6 @@ def pkgdb_retirement_status(package, branch="master", staging=False, namespace=D
     return dict(retired=retired, status_change=status_change)
 
 
-def get_retirement_info(message):
-    """ Check whether a message is a retire message.
-
-    :param message: Message to check
-    :returns: (str, str, bool) or (None, None, None): package name and
-    branch the package was retired on, bool: True: package was retired, False:
-        package was unretired
-
-    """
-    if message['topic'] == \
-            u'org.fedoraproject.prod.pkgdb.package.update.status':
-        msg = message['msg']
-        pkgname = msg['package_listing']['package']['name']
-        branch = msg['package_listing']['collection']['branchname']
-        res = dict(name=pkgname, branch=branch)
-        if msg["prev_status"] != "Retired" and msg["status"] == "Retired":
-            res["retired"] = True
-        elif msg["prev_status"] == "Retired" and \
-                msg["status"] != "Retired":
-            res["retired"] = False
-        return res
-    return None
 
 
 def run_koji(koji_params, staging=False):
@@ -240,34 +217,6 @@ def block_package(packages, branch="master", staging=False, namespace=DEFAULT_NS
         catch_koji_errors(cmd)
 
     return errors
-
-
-def handle_message(message, retiring_branches=RETIRING_BRANCHES,
-                   staging=False):
-    messageinfo = get_retirement_info(message)
-    msg_id = message["msg_id"]
-    if messageinfo is None:
-        return None
-
-    if messageinfo["retired"] is False:
-        return False
-
-    branch = messageinfo["branch"]
-    if branch not in retiring_branches:
-        log.error("Message '%s' for the wrong branch '%s'", msg_id,
-                  branch)
-        return None
-
-    package = messageinfo["name"]
-
-    pkgdbinfo = pkgdb_retirement_status(package, branch, staging)
-
-    if pkgdbinfo["retired"] is not True:
-        log.error("Processing '%s', package '%s' not retired",
-                  msg_id, package)
-
-    log.debug("'%s' retired on '%s'", package, pkgdbinfo["status_change"])
-    return block_package(package, branch, staging=staging)
 
 
 def block_all_retired(branches=RETIRING_BRANCHES, staging=False, namespace=DEFAULT_NS):
