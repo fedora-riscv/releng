@@ -82,9 +82,10 @@ def retire(pkg, branch, reason, dryrun=False):
     finally:
         shutil.rmtree(tempdir)
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Helper to retire packages")
-    parser.add_argument("--branch", default="master", nargs="*",
+    parser.add_argument("--branch", default=["master"], nargs="*",
                         choices=BRANCH_HIERARCHY.keys())
     parser.add_argument("--dry-run", default=False, action="store_true")
     parser.add_argument("--reasonfile", default=None)
