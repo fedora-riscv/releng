@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: GPL-2.0+
 
 import argparse
-import datetime
 import getpass
 import logging
 import subprocess
@@ -139,37 +138,6 @@ def get_retired_packages(branch="master", staging=False, namespace=DEFAULT_NS):
     retiredinfo = retiredresponse["packages"]
     retiredpkgs = [p["name"] for p in retiredinfo]
     return retiredpkgs
-
-
-def pkgdb_retirement_status(package, branch="master", staging=False, namespace=DEFAULT_NS):
-    """ Returns retirement info for `package` in `branch`
-
-    :returns: dict: retired: True - if retired, False if not, None if
-    there was an error, status_change: last status change as datetime object
-    """
-
-    url = PRODUCTION_PKGDB if not staging else STAGING_PKGDB
-    pkgdb = pkgdb2client.PkgDB(url)
-    retired = None
-    status_change = None
-    try:
-        pkgdbresult = pkgdb.get_package(package, branches=branch, namespace=namespace)
-        if pkgdbresult["output"] == "ok":
-            for pkginfo in pkgdbresult["packages"]:
-                if pkginfo["package"]["name"] == package:
-                    if pkginfo["status"] == "Retired":
-                        retired = True
-                    else:
-                        retired = False
-                    status_change = datetime.datetime.fromtimestamp(
-                        pkginfo["status_change"])
-                    break
-    except:
-        pass
-
-    return dict(retired=retired, status_change=status_change)
-
-
 
 
 def run_koji(koji_params, staging=False):
