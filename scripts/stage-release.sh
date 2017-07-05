@@ -26,8 +26,12 @@ fi
 BASE="/mnt/koji/compose/"
 
 for checksum in $(find $BASE/$SHORTRELEASEVER/$COMPOSEID/compose/ -name  *CHECKSUM)
-do 
-  cat $checksum >/tmp/sum && NSS_HASH_ALG_SUPPORT=+MD5 sigul sign-text -o /tmp/signed $KEY /tmp/sum && chmod 644 /tmp/signed && sudo mv /tmp/signed $checksum
+do
+  if grep -q SHA256 $checksum; then
+    echo "$checksum is already signed"
+  else
+    cat $checksum >/tmp/sum && NSS_HASH_ALG_SUPPORT=+MD5 sigul sign-text -o /tmp/signed $KEY /tmp/sum && chmod 644 /tmp/signed && sudo mv /tmp/signed $checksum
+  fi
 done
 
 sudo -u ftpsync mkdir -p $DESTDIR/$RELPREFIX$RELEASEVER/
