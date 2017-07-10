@@ -557,19 +557,33 @@ def prune_old_composes(prune_base_dir, prune_limit):
                     "prune_old_composes: command failed: {}".format(prune_cmd)
                 )
 
+def generate_static_delta(release, old_commit, new_commit):
+    """
+    generate_static_delta
 
-def move_tree_commit(release, old_commit, new_commit):
-    log.info("Creating diff")
+        Generate a static delta betwee two commits
+
+    :param release - the Fedora release to target (25,26,etc)
+    :param old_commit - starting point for delta
+    :param new_commit - ending point for delta
+    """
     # Run as apache user because the files we are editing/creating
     # need to be owned by the apache user
     diff_cmd = ["/usr/bin/sudo", "-u", "apache",
                 "ostree", "static-delta", "generate", "--repo",
                 ATOMIC_DIR % release, "--if-not-exists", "--from", old_commit,
                 "--to", new_commit]
+    log.info("Creating Static Delta from %s to %s" % (old_commit, new_commit))
     if subprocess.call(diff_cmd):
-        log.error("move_tree_commit: diff generation failed: %s", diff_cmd)
+        log.error("generate_static_delta: diff generation failed: %s", diff_cmd)
         exit(3)
 
+def move_tree_commit(release, old_commit, new_commit):
+    generate_static_delta(release=release,
+                          old_commit=old_commit,
+                          new_commit=new_commit)
+
+    log.info("Moving ref %s to commit %s" %(TARGET_REF, new_commit))
     reset_cmd = ['/usr/bin/sudo', '-u', 'apache',
                  'ostree', 'reset', TARGET_REF % release,
                  new_commit, '--repo', ATOMIC_DIR % release]
