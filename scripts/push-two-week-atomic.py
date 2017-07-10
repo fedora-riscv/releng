@@ -47,6 +47,7 @@ log = logging.getLogger(os.path.basename(sys.argv[0]))
 
 # Define "constants"
 ATOMIC_DIR = "/mnt/koji/mash/atomic/%s"
+PREVIOUS_MAJOR_RELEASE_FINAL_COMMIT = None
 TARGET_REF = "fedora/%s/x86_64/atomic-host"
 COMPOSE_BASEDIR = "/mnt/koji/compose/twoweek/"
 MASHER_LOCKFILE_GLOB = "/mnt/koji/mash/updates/MASHING*"
@@ -728,6 +729,14 @@ if __name__ == '__main__':
     else:
         log.info("Moving tree commit %s => %s (%s)", previous_commit, tree_commit, tree_version)
         move_tree_commit(pargs.release, previous_commit, tree_commit)
+
+    # Also, if existing previous release commit is defined, then
+    # generate a static delta from it
+    if PREVIOUS_MAJOR_RELEASE_FINAL_COMMIT is not None:
+        generate_static_delta(release=pargs.release,
+                              old_commit=PREVIOUS_MAJOR_RELEASE_FINAL_COMMIT,
+                              new_commit=tree_commit)
+        update_ostree_summary_file(pargs.release)
 
     log.info("Staging release content in /pub/alt/atomic/stable/")
     stage_atomic_release(compose_id)
