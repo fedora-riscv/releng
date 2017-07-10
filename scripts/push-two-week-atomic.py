@@ -47,7 +47,7 @@ log = logging.getLogger(os.path.basename(sys.argv[0]))
 
 # Define "constants"
 ATOMIC_DIR = "/mnt/koji/mash/atomic/%s"
-TARGET_REF = "fedora-atomic/%s/x86_64/docker-host"
+TARGET_REF = "fedora/%s/x86_64/atomic-host"
 COMPOSE_BASEDIR = "/mnt/koji/compose/twoweek/"
 MASHER_LOCKFILE_GLOB = "/mnt/koji/mash/updates/MASHING*"
 
