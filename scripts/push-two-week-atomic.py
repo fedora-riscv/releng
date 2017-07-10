@@ -578,6 +578,24 @@ def generate_static_delta(release, old_commit, new_commit):
         log.error("generate_static_delta: diff generation failed: %s", diff_cmd)
         exit(3)
 
+def update_ostree_summary_file(release):
+    """
+    update_ostree_summary_file
+
+        Update the summary file for the ostree repo
+
+    :param release - the Fedora release to target (25,26,etc)
+    """
+    # Run as apache user because the files we are editing/creating
+    # need to be owned by the apache user
+    summary_cmd = ["/usr/bin/sudo", "-u", "apache",
+                   "ostree", "summary", "-u", "--repo",
+                   ATOMIC_DIR % release]
+    log.info("Updating Summary file")
+    if subprocess.call(summary_cmd):
+        log.error("update_ostree_summary_file: update failed: %s", summary_cmd)
+        exit(3)
+
 def move_tree_commit(release, old_commit, new_commit):
     generate_static_delta(release=release,
                           old_commit=old_commit,
@@ -591,12 +609,8 @@ def move_tree_commit(release, old_commit, new_commit):
         log.error("move_tree_commit: resetting ref to new commit failed: %s", reset_cmd)
         exit(3)
 
-    summary_cmd = ["/usr/bin/sudo", "-u", "apache",
-                   "ostree", "summary", "-u", "--repo",
-                   ATOMIC_DIR % release]
-    if subprocess.call(summary_cmd):
-        log.error("move_tree_commit: summary update failed: %s", summary_cmd)
-        exit(3)
+    update_ostree_summary_file(release)
+
 
 
 if __name__ == '__main__':
