@@ -46,7 +46,7 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(os.path.basename(sys.argv[0]))
 
 # Define "constants"
-ATOMIC_DIR = "/mnt/koji/mash/atomic/%s"
+ATOMIC_DIR = "/mnt/koji/atomic/%s"
 PREVIOUS_MAJOR_RELEASE_FINAL_COMMIT = 'ce555fa89da934e6eef23764fb40e8333234b8b60b6f688222247c958e5ebd5b'
 TARGET_REF = "fedora/%s/x86_64/atomic-host"
 COMPOSE_BASEDIR = "/mnt/koji/compose/twoweek/"
