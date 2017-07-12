@@ -88,6 +88,14 @@ to update rawhide and create the new collection in the database.  If only a few
 cleanups a re needed it might be better to do that with the regular branch
 commands.
 
+PDC
+---
+
+The "product-release" needs to be created in PDC.
+
+In the ``scripts/pdc/`` directory, run:
+
+    $ python create-product-release.py fedora $TOKEN fedora $NEW_VERSION
 
 Ansible
 -------
