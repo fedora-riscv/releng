@@ -25,7 +25,7 @@ tags = [tag for tag in tags if not tag.endswith('-build')]
 
 if not tags:
     print("Build %r is not associated with any tags." % buildid)
-    print("Bother threebean to finish this:  https://pagure.io/fm-orchestrator/issue/375")"
+    print("Bother threebean to finish this:  https://pagure.io/fm-orchestrator/issue/375")
     sys.exit(1)
 
 for tag in tags:
