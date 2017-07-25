@@ -64,6 +64,7 @@ Standard Operating Procedures
     sop_package_blocking
     sop_package_unblocking
     sop_pdc
+    sop_promoting_container_content
     sop_signing_builds
     sop_pushing_updates
     sop_release_package_signing
