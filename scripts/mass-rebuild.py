@@ -17,14 +17,14 @@ import operator
 
 # Set some variables
 # Some of these could arguably be passed in as args.
-buildtag = 'f26-rebuild' # tag to build from
-targets = ['f26-candidate', 'rawhide', 'f26'] # tag to build from
-epoch = '2017-02-05 09:04:08.000000' # rebuild anything not built after this date
+buildtag = 'f27-rebuild' # tag to build from
+targets = ['f27-candidate', 'rawhide', 'f27'] # tag to build from
+epoch = '2017-07-25 20:27:50.000000' # rebuild anything not built after this date
 user = 'Fedora Release Engineering <releng@fedoraproject.org>'
-comment = '- Rebuilt for https://fedoraproject.org/wiki/Fedora_26_Mass_Rebuild'
+comment = '- Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Mass_Rebuild'
 workdir = os.path.expanduser('~/massbuild')
 enviro = os.environ
-target = 'f26-rebuild'
+target = 'f27-rebuild'
 
 pkg_skip_list = ['fedora-release', 'fedora-repos', 'generic-release', 'redhat-rpm-config', 'shim', 'shim-signed', 'kernel', 'linux-firmware', 'grub2', 'openh264']
 
