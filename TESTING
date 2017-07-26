@@ -1,0 +1,18 @@
+Code testing helps shake out issues before they get into the wider world.
+
+A very basic vagrant file is provided to allow contributors to work on issues
+without installing all of the python3 libaries to their local workstation.
+
+Tests may be added via the tests directory in the format:
+  tests/<class|script>_test.py
+
+'make test' - runs current tests
+'make pylint' - runs the python3 linter
+'make pep8' - runs pep8 checks against the code
+'make install-requires' - installs required python libraries
+'make check' - runs pylint and pep8 against all code
+'make flake8' - runs fake8 test against scripts/push-two-week-atomic.py
+
+The testing framework is written for Python3 to help fix issues during the
+conversion to Python3 scheduled for Fedora 27.
+
