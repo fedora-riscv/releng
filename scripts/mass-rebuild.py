@@ -64,7 +64,7 @@ def runmeoutput(cmd, action, pkg, env, cwd=workdir):
 
 
 # Create a koji session
-kojisession = koji.ClientSession('http://koji.fedoraproject.org/kojihub')
+kojisession = koji.ClientSession('https://koji.fedoraproject.org/kojihub')
 
 # Generate a list of packages to iterate over
 pkgs = kojisession.listPackages(buildtag, inherited=True)

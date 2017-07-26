@@ -29,10 +29,7 @@ newbuilds = {}
 tasks = {}
 # List of Kojihubs to be searched
 kojihubs = [
-'http://koji.fedoraproject.org/kojihub',
-'http://s390.koji.fedoraproject.org/kojihub',
-'http://ppc.koji.fedoraproject.org/kojihub',
-'http://arm.koji.fedoraproject.org/kojihub',
+'https://koji.fedoraproject.org/kojihub',
 ]
 
 #'http://sparc.koji.fedoraproject.org/kojihub',

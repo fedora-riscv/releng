@@ -86,7 +86,7 @@ def get_failed_builds(kojisession, epoch, buildtag, desttag):
 
 if __name__ == '__main__':
     # Create a koji session
-    kojisession = koji.ClientSession('http://koji.fedoraproject.org/kojihub')
+    kojisession = koji.ClientSession('https://koji.fedoraproject.org/kojihub')
 
     failbuilds = get_failed_builds(kojisession, epoch, buildtag, desttag)
 
@@ -95,7 +95,7 @@ if __name__ == '__main__':
     for build in failbuilds:
         if not build['taskinfo']['request'][1] == buildtag:
             continue
-        taskurl = 'http://koji.fedoraproject.org/koji/taskinfo?taskID=%s' % build['task_id']
+        taskurl = 'https://koji.fedoraproject.org/koji/taskinfo?taskID=%s' % build['task_id']
         owner = build['package_owner']
         pkg = build['package_name']
         if not pkg in failed:
