@@ -50,8 +50,9 @@ Team Composition
 * `Jon Disnard (masta) <https://fedoraproject.org/wiki/User:parasense>`_
 * `Dan Horák (sharkcz) <https://fedoraproject.org/wiki/User:sharkcz>`_ (secondary arches)
 * `Peter Robinson (pbrobinson) <https://fedoraproject.org/wiki/User:pbrobinson>`_
-* `Pavol Babincak (pbabinca) <https://fedoraproject.org/wiki/User:pbabinca>`_
 * `Adam Miller (maxamillion) <https://fedoraproject.org/wiki/User:maxamillion>`_
+* `Patrick Uiterwijk (puiterwijk) <https://fedoraproject.org/wiki/User:puiterwijk>`_
+* `Ralph Bean (threebean) <https://fedoraproject.org/wiki/User:ralph>`_
 
 Release Team members are approved by FESCo.  However, FESCo has
 delegated this power to the Release Team itself.  If you want to join
