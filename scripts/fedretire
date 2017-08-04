@@ -25,7 +25,7 @@ ACTIVE = 'Active'
 # This is a user in pagure.
 ORPHAN_UID = 'orphan'
 
-PAGURE_URL = 'https://src.fedoraproject.org/pagure'
+PAGURE_URL = 'https://src.fedoraproject.org'
 
 ORPHAN_REASON = """Retired orphaned package, because it was orphaned for
 more than six weeks.
