@@ -69,7 +69,7 @@ def get_pkg_branch_status(branch_name):
     component_branch_page_one = \
         get_component_branch_page(branch_name, page=1, page_size=1)
     # Get the total number of pages
-    num_pages = int(ceil(component_branch_page_one['count'] / 100))
+    num_pages = int(ceil(component_branch_page_one['count'] / 100.0))
     # Since we are going to multi-thread, we need to make a partial function
     # call so that all the function needs is an iterable to run
     partial_get_pkgs_from_page = partial(get_pkgs_from_page, branch_name)
