@@ -38,8 +38,15 @@ def main():
         sys.exit(1)
 
     critpath_packages = pdc.get_paged(endpoint, critical_path=True, **kwargs)
+
+    # De-duplicate and print the list.
+    seen = set()
     for package in critpath_packages:
-        print(package['global_component'])
+        name = package['global_component']
+        if name in seen:
+            continue
+        print(name)
+        seen.add(name)
 
 if __name__ == '__main__':
     main()
