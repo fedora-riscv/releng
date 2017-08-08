@@ -224,9 +224,7 @@ do this, simply run the ansible playbook::
 Taskotron
 ---------
 `File a Taskotron ticket`_ and ask for the newly branched release support to
-be added. (Log in to Phabricator using your FAS_account@fedoraproject.org
-email address).
-
+be added.
 
 Koji
 ----
@@ -401,7 +399,7 @@ issues in the database of pkgdb:
 .. _pkgdb configuration file:
     https://infrastructure.fedoraproject.org/infra/ansible/roles/pkgdb2/templates/pkgdb2.cfg
 .. _File a Taskotron ticket:
-    https://phab.qadevel.cloud.fedoraproject.org/maniphest/task/edit/form/default/?title=new%20release%20branched&priority=80&tags=libtaskotron
+    https://pagure.io/taskotron/new_issue?title=Fedora%20Branched%20notification&content=Fedora%20NN%20is%20now%20Branched
 .. _Bodhi SOP: https://infrastructure.fedoraproject.org/infra/docs/bodhi.rst
 .. _spin: http://spins.fedoraproject.org
 .. _dnf: https://fedoraproject.org/wiki/Dnf

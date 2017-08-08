@@ -114,7 +114,6 @@ Taskotron tasks
 ---------------
 
 `File Taskotron ticket`_ and ask for the EOL'd release support to be removed.
-(Log in to Phabricator using your FAS_account@fedoraproject.org email address).
 
 Final announcement
 ------------------
@@ -171,4 +170,5 @@ Consider Before Running
 .. _cold undead hands:
     https://pagure.io/fedora-badges-assets/blob/master/f/rules/you-can-pry-it-from-my-cold-undead-hands.yml
 .. _File Taskotron ticket:
-    https://phab.qadevel.cloud.fedoraproject.org/maniphest/task/edit/form/default/?title=release%20is%20EOL&priority=80&tags=libtaskotron
+    https://pagure.io/taskotron/new_issue?title=Fedora%20EOL%20notification&content=Fedora%20NN%20is%20now%20EOL
+
