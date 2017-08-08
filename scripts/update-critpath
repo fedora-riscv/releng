@@ -73,8 +73,7 @@ def list_critpath(branch):
     ''' Return the set of packages flagged as critpatch in the specified
     branch.
 
-    :arg branch: one or more branch used to restrict the list of packages
-        returned.
+    :arg branch: branch used to restrict the list of packages returned.
     :type branch: str
     :return: a set of package names with PDC branch IDs
     :rtype: set
