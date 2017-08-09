@@ -1,8 +1,8 @@
 .. SPDX-License-Identifier:    CC-BY-SA-3.0
 
-=================================
-Process dist-git-requests tickets
-=================================
+===================================
+Process fedora-scm-requests tickets
+===================================
 
 Description
 ===========
@@ -10,9 +10,11 @@ Description
 When a packager wants a new package added to Fedora or a new dist-git branch
 blessed, they need to go through the new package process and, once their
 package review is approved, they use the `fedrepo-req` cli tool to file a
-ticket in the `dist-git-requests queue <https://pagure.io/dist-git-requests>`_.
+ticket in the `fedora-scm-requests queue
+<https://pagure.io/releng/fedora-scm-requests>`_.
 
-Periodically, (daily?) release engineering will need to review and process this queue using the `fedrepo-req-admin` tool.
+Periodically, (daily?) release engineering will need to review and process this
+queue using the `fedrepo-req-admin` tool.
 
 Setup
 =====
