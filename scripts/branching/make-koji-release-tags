@@ -4,22 +4,16 @@ RELEASE=$1
 
 OLDRELEASE=$(bc -l <<< "$RELEASE-1")
 
-primary_arches="armv7hl i686 x86_64 aarch64 ppc64 ppc64le"
+primary_arches="armv7hl i686 x86_64 aarch64 ppc64 ppc64le s390x"
 #arm_arches=aarch64
 #ppc_arches="ppc64 ppc64le"
-s390_arches=s390x
+#s390_arches=s390x
 
 
-for arch in primary s390
+for arch in $primary_arches
 do
 
-arches=$(echo "$arch"_arches)
-
-if [ "$arch" == "primary" ]; then
 kojicli=koji
-else
-kojicli=$arch-koji
-fi
 
 $kojicli clone-tag --all --latest-only f$OLDRELEASE f$RELEASE
 $kojicli edit-tag -x mock.package_manager=dnf f$RELEASE
@@ -32,11 +26,11 @@ $kojicli add-tag --parent f$RELEASE-updates f$RELEASE-updates-testing
 $kojicli add-tag --parent f$RELEASE-updates-testing f$RELEASE-updates-testing-pending
 $kojicli add-tag --parent f$RELEASE-updates f$RELEASE-updates-pending
 $kojicli add-tag --parent f$RELEASE-updates f$RELEASE-override
-$kojicli add-tag --parent f$RELEASE-override --arches=$(echo \$"$arches") f$RELEASE-build
+$kojicli add-tag --parent f$RELEASE-override --arches=$primary_arches f$RELEASE-build
 $kojicli add-tag --parent f$RELEASE-updates-testing-pending f$RELEASE-signing-pending
 $kojicli add-tag --parent f$RELEASE-updates  f$RELEASE-pending
-$kojicli add-tag --parent f$RELEASE-build --arches=$(echo \$"$arches") f$RELEASE-infra
-$kojicli add-tag --parent f$RELEASE-infra --arches=$(echo \$"$arches") f$RELEASE-infra-stg
+$kojicli add-tag --parent f$RELEASE-build --arches=$primary_arches f$RELEASE-infra
+$kojicli add-tag --parent f$RELEASE-infra --arches=$primary_arches f$RELEASE-infra-stg
 $kojicli add-tag --parent f$RELEASE-infra-stg f$RELEASE-infra-candidate
 $kojicli add-tag --parent f$RELEASE f$RELEASE-modularity
 $kojicli add-tag --parent f$RELEASE f$RELEASE-openh264
