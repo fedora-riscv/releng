@@ -1,6 +1,7 @@
 """ Common PDC utility functions, shared by scripts. """
 from __future__ import print_function
 
+import copy
 import sys
 
 
@@ -73,3 +74,32 @@ def ensure_component_branches(pdc, package, slas, eol, branch, type, critpath, f
         print("Applied %r to %r (critpath %r)" % (modified, base, critpath))
     else:
         print("Did not apply any slas to %r (critpath %r)" % (base, critpath))
+
+
+
+def patch_eol(pdc, package, eol, branch, type, force):
+    endpoint = pdc['component-branch-slas']
+    # A base query
+    query = dict(branch=branch, global_component=package, branch_type=type)
+    slas = list(pdc.get_paged(endpoint, **query))
+    fmt = lambda s: "({type}){global_component}#{name} {sla}:{eol}".format(**s)
+    modified = []
+    for sla in slas:
+        flattened = copy.copy(sla)
+        flattened.update(sla['branch'])
+
+        # See if user wants intervention
+        message = "Adjust eol of %s to %s?" % (fmt(flattened), eol)
+        if not prompt(message, force):
+            print("Not adjusting eol.")
+            continue
+
+        # Do it.
+        modified.append(fmt(flattened))
+        endpoint['%i/' % sla['id']] += dict(eol=eol)
+
+    # Report at the end.
+    if modified:
+        print("Set eol to %s on %r" % (eol, modified))
+    else:
+        print("Did adjust any EOLs.")
