@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
-
-"""
-# update_critpath - a commandline frontend for updating the critpath
-#
+# vi: ft=python
 # Copyright (C) 2014 Red Hat Inc
 # Copyright (C) 2014 Pierre-Yves Chibon, Chaoyi Zha, Toshio Kuratomi,
 #                    Bill Nottingham
 # Authors: Pierre-Yves Chibon <pingou@pingoured.fr>
-           Chaoyi Zha <summermontreal@gmail.com>
-           Bill Nottingham <notting@fedoraproject.org>
-           Toshio Kuratomi <toshio@fedoraproject.org>
+#          Chaoyi Zha <summermontreal@gmail.com>
+#          Bill Nottingham <notting@fedoraproject.org>
+#          Toshio Kuratomi <toshio@fedoraproject.org>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,51 +14,38 @@
 # your option) any later version.
 # See http://www.gnu.org/copyleft/gpl.html  for the full text of the
 # license.
-#
-# Critpath updating SOP:
-# http://fedoraproject.org/wiki/Update_Critpath_SOP
-#
-# How to use:
-#  $ python update-critpath <critpath.txt> <branch>
-# for example
-#  $ python update-critpath critpath.txt f20
-#
+""" update_critpath - a commandline frontend for updating the critpath
+
+Critpath updating SOP: https://docs.pagure.org/releng/sop_update_critpath.html
+
+How to use:
+ $ python update-critpath <critpath.txt> <branch>
+for example
+ $ python update-critpath critpath.txt f20
 """
 
-from pkgdb2client import PkgDB, PkgDBException
-import pkgdb2client
 import argparse
+import json
 import logging
+import sys
+
+import pdc_client
+import dogpile.cache
 
 
-pkgdbclient = PkgDB('https://admin.fedoraproject.org/pkgdb',
-                    login_callback=pkgdb2client.ask_password)
+# Here, 'fedora' is the name of the production instance, configured in
+# /etc/pdc.d/.  See the PDC SOP for more information on authenticating.
+pdc = pdc_client.PDCClient('fedora')
+
+# This is an on-disk cache to avoid hitting PDC over and over.
+cache_filename = "/var/tmp/pdc-branch-cache.dbm"
+def key_generator(ns, fn, **kw):
+    return lambda **kwargs: "%r_%r|%r" % (ns, fn.__name__, json.dumps(kwargs))
+cache = dogpile.cache.make_region(function_key_generator=key_generator)
 
 # Initial simple logging stuff
 logging.basicConfig()
-PKGDBLOG = logging.getLogger("pkgdb2client")
 LOG = logging.getLogger("update_critpath")
-
-
-def _get_active_branch(packagename=None):
-    ''' Return a list of the active branch for a specific package or simply
-    all the active branches if no package is specified.
-    '''
-    LOG.debug("Retrieving all the active branches")
-    branches = []
-    if packagename:
-        output = pkgdbclient.get_package(packagename)
-        for pkg in output['packages']:
-            if pkg['collection']['status'] != 'EOL':
-                branches.append(pkg['collection']['branchname'])
-    else:
-        output = pkgdbclient.get_collections(
-            clt_status=['Active', 'Under Development'])
-        for collect in output['collections']:
-            if collect['status'] == 'EOL':
-                continue
-            branches.append(collect['branchname'])
-    return branches
 
 
 def setup_parser():
@@ -70,15 +54,10 @@ def setup_parser():
     '''
     parser = argparse.ArgumentParser(prog="update_critpath")
     # General connection options
-    parser.add_argument('--user', dest="username",
-                        help="FAS username")
-    parser.add_argument('--password', dest="password",
-                        help="FAS password (if not provided, will be asked "
-                        "later)")
     parser.add_argument('--debug', action='store_true',
                         help="Outputs bunches of debugging info")
     parser.add_argument('--test', action='store_true',
-                        help="Uses a test instance instead of the real pkgdb.")
+                        help="Uses the stg instance instead of the real pdc.")
 
     parser.add_argument(
         'branch', default='master',
@@ -90,61 +69,72 @@ def setup_parser():
     return parser
 
 
-def list_critpath(branches):
-    ''' Return the list of packages flagged as critpatch in the specified
-    branches.
+def list_critpath(branch):
+    ''' Return the set of packages flagged as critpatch in the specified
+    branch.
 
-    :arg branches: one or more branches used to restrict the list of packages
-        returned.
-    :type branches: str or list
-    :return: a list of package names
-    :rtype: list
+    :arg branch: branch used to restrict the list of packages returned.
+    :type branch: str
+    :return: a set of package names with PDC branch IDs
+    :rtype: set
     '''
-    if isinstance(branches, basestring):
-        branches = [branches]
+    if not isinstance(branch, basestring):
+        raise TypeError('branch *must* be a string')
 
-    args = {
-        'branches': branches,
-        'format': 'json',
-    }
-    output = pkgdbclient.handle_api_call('/critpath', params=args)
+    LOG.debug("Retrieving existing critpath list from PDC.")
+    args = { 'name': branch, 'type': 'rpm', 'critical_path': True }
+    results = pdc.get_paged(pdc['component-branches'], **args)
 
     pkgs = set()
-    if output:
-        for branch in branches:
-            if branch in output['pkgs']:
-                pkgs.update(output['pkgs'][branch])
+    for result in results:
+        pkgs.add("{id}:{global_component}".format(**result))
+    LOG.debug("Done retrieving existing critpath list from PDC.")
+    return pkgs
 
+
+def prepend_pdc_branch_ids(global_components, branch):
+    LOG.debug("Finding PDC branch IDs for supplied critpath list."
+              "  (See cache in %s)" % cache_filename)
+    pkgs = set()
+    endpoint = pdc['component-branches']
+
+    @cache.cache_on_arguments()
+    def _get_pdc_branch_id(**args):
+        results = list(pdc.get_paged(endpoint, **args))
+        assert len(results) == 1
+        return results[0]
+
+    for i, component in enumerate(global_components):
+        args = {'name': branch, 'type': 'rpm', 'global_component': component}
+        result = _get_pdc_branch_id(**args)
+
+        pkgs.add("{id}:{global_component}".format(**result))
+    LOG.debug("Done finding PDC branch IDs for supplied critpath list.")
     return pkgs
 
 
 def update_critpath(current_critpath, new_critpath, branch):
-    ''' Change critpath status of packages in PkgDB
+    ''' Change critpath status of packages in PDC
 
     :arg current_critpath: a set listing all the packages that currently have
         the critpath package
     '''
-    # Remove the critpath flag to the package that should not have it
 
+    # Remove the critpath flag from packages which do not have it, but should.
     new_no = current_critpath - new_critpath
-    if new_no:
-        try:
-            pkgdbclient.update_critpath(new_no, branch, False)
-        except PkgDBException, err:
-            LOG.debug('PkgDBException')
-            print '{0}'.format(err)
-    else:
-        print 'No packages to which the critpath flag should be removed'
+    LOG.debug('%i packages need critpath removed.' % len(new_no))
+    for item in new_no:
+        idx, name = item.split(':', 1)
+        LOG.debug('  Sending PATCH for %s, (idx: %s)' % (name, idx))
+        pdc['component-branches'][idx + '/'] += dict(critical_path=False)
 
+    # Add the critpath flag to packages which should have it, but do not.
     new_yes = new_critpath - current_critpath
-    if new_yes:
-        try:
-            pkgdbclient.update_critpath(new_yes, branch, True)
-        except PkgDBException, err:
-            LOG.debug('PkgDBException')
-            print '{0}'.format(err)
-    else:
-        print 'No packages to which the critpath flag should be added'
+    LOG.debug('%i packages need critpath added.' % len(new_yes))
+    for item in new_yes:
+        idx, name = item.split(':', 1)
+        LOG.debug('  Sending PATCH for %s, (idx: %s)' % (name, idx))
+        pdc['component-branches'][idx + '/'] += dict(critical_path=True)
 
 
 def main():
@@ -160,41 +150,45 @@ def main():
 
     if arg.debug:
         LOG.setLevel(logging.DEBUG)
-        PKGDBLOG.setLevel(logging.DEBUG)
 
     if arg.test:
-        global pkgdbclient
-        print "Testing environment"
-        pkgdbclient = PkgDB(
-            'https://admin.stg.fedoraproject.org/pkgdb',
-            login_callback=pkgdb2client.ask_password,
-            insecure=True)
+        global pdc
+        LOG.info("Using staging environment")
+        pdc = pdc_client.PDCClient('staging')
+
+
+    LOG.debug("Using pdc branch cache %r" % cache_filename)
+    cache.configure(
+        "dogpile.cache.dbm",
+        expiration_time=-1,  # Never!!
+        arguments={"filename": cache_filename}
+    )
 
     return_code = 0
 
-    if arg.password:
-        pkgdbclient.password = arg.password
-    if arg.username:
-        pkgdbclient.username = arg.username
-
-    current_critpath = list_critpath(arg.branch)
     new_critpath = []
+    LOG.debug("Reading supplied %r" % arg.txtlist)
     with open(arg.txtlist) as f:
         for line in f.readlines():
             new_critpath.append(line.strip())
 
+    # At this point, the new_critpath list contains only package names.  We
+    # need to enrich that with the IDs of the branch mappings from PDC
+    new_critpath = prepend_pdc_branch_ids(new_critpath, arg.branch)
+
+    current_critpath = list_critpath(arg.branch)
+
     try:
         update_critpath(set(current_critpath), set(new_critpath), arg.branch)
     except KeyboardInterrupt:
-        print "\nInterrupted by user."
+        LOG.info("\nInterrupted by user.")
         return_code = 1
     except Exception, err:
-        print 'Error: {0}'.format(err)
-        logging.exception("Generic error catched:")
+        LOG.exception("Caught generic error")
         return_code = 2
 
     return return_code
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
