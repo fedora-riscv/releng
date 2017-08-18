@@ -87,7 +87,8 @@ def main():
 
         print("Starting transfers")
         for package, custodian in transfers:
-            utilities.give_package(session, package, custodian)
+            namespace, name = package['namespace'], package['name']
+            utilities.give_package(session, namespace, name, custodian)
 
 
 if __name__ == "__main__":
