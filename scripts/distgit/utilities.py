@@ -6,6 +6,7 @@
 # Authors:
 #     Ralph Bean <rbean@redhat.com>
 
+import json
 import pprint
 import sys
 import traceback
@@ -46,7 +47,7 @@ def give_package(session, namespace, package, custodian):
         namespace, package, custodian))
 
     url = PAGURE_URL + namespace + '/' + package
-    payload = {'main_admin': custodian}
+    payload = json.dumps({'main_admin': custodian})
     response = session.patch(
         url,
         data=payload,
