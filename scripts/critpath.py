@@ -34,12 +34,12 @@ updatepath = {
     'rawhide': ''
 }
 
-for r in ['12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24']: # 13, 14, ...
+for r in ['12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26']: # 13, 14, ...
     releasepath[r] = 'releases/%s/Everything/$basearch/os/' % r
     updatepath[r] = 'updates/%s/$basearch/' % r
 
 # Branched Fedora goes here
-branched = '25'
+branched = '27'
 releasepath['branched'] = 'development/%s/Everything/$basearch/os' % branched
 updatepath['branched'] = ''
 
@@ -130,10 +130,14 @@ def setup_yum(url=None, release=None, arch=None):
     my.conf.cachedir = cachedir
     my.conf.installroot = cachedir
     my.repos.disableRepo('*')
-    my.add_enable_repo('critpath-repo-%s' % arch, baseurls=[url+releasepath[release]])
-    print "adding critpath-repo-%s at %s" % (arch, url+releasepath[release])
-    if updatepath[release]:
-        my.add_enable_repo('critpath-repo-updates-%s' % arch, baseurls=[url+updatepath[release]])
+    if "/mnt/koji/compose/" not in args.url:
+        my.add_enable_repo('critpath-repo-%s' % arch, baseurls=[url+releasepath[release]])
+        print "adding critpath-repo-%s at %s" % (arch, url+releasepath[release])
+        if updatepath[release]:
+            my.add_enable_repo('critpath-repo-updates-%s' % arch, baseurls=[url+updatepath[release]])
+    else:
+        my.add_enable_repo('critpath-repo-%s' % arch, baseurls=[url+'$basearch/os/'])
+        print "adding critpath-repo-%s at %s" % (arch, url+'$basearch/os/')
     return (my, cachedir)
 
 def nvr(p):
@@ -174,9 +178,11 @@ if __name__ == '__main__':
         print "ERROR: --nvr and --srpm are mutually exclusive"
         sys.exit(1)
 
-    if args.url != fedora_baseurl:
+    if args.url != fedora_baseurl and "/mnt/koji/compose/" not in args.url:
         releasepath[release] = releasepath[release].replace('development/','')
-    print "Using URL %s" % (args.url + releasepath[release])
+        print "Using URL %s" % (args.url + releasepath[release])
+    else:
+        print "Using URL %s" % (args.url)
 
     # Do the critpath expansion for each arch
     critpath = set()
@@ -187,7 +193,10 @@ if __name__ == '__main__':
             if args.noaltarch:
                 continue
             else:
-                url = args.alturl
+                if "/mnt/koji/compose/" not in args.url:
+                    url = args.alturl
+                else:
+                    url = args.url
         else:
             raise Exception('Invalid architecture')
         print "Expanding critical path for %s" % arch
