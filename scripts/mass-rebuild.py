@@ -9,6 +9,7 @@
 #     Jesse Keating <jkeating@redhat.com>
 #
 
+from __future__ import print_function
 import koji
 import os
 import subprocess
@@ -74,7 +75,7 @@ pkgs = kojisession.listPackages(buildtag, inherited=True)
 pkgs = sorted([pkg for pkg in pkgs if not pkg['blocked']],
               key=operator.itemgetter('package_name'))
 
-print 'Checking %s packages...' % len(pkgs)
+print('Checking %s packages...' % len(pkgs))
 
 # Loop over each package
 for pkg in pkgs:
@@ -83,7 +84,7 @@ for pkg in pkgs:
 
     # some package we just dont want to ever rebuild
     if name in pkg_skip_list:
-        print 'Skipping %s, package is explicitely skipped'
+        print('Skipping %s, package is explicitely skipped')
         continue
 
     # Query to see if a build has already been attempted
@@ -100,15 +101,15 @@ for pkg in pkgs:
                 newbuild = True
                 break
         except:
-            print 'Skipping %s, no taskinfo.' % name
+            print('Skipping %s, no taskinfo.' % name)
             continue
     if newbuild:
-        print 'Skipping %s, already attempted.' % name
+        print('Skipping %s, already attempted.' % name)
         continue
 
     # Check out git
     fedpkgcmd = ['fedpkg', '--user', 'releng', 'clone', name]
-    print 'Checking out %s' % name
+    print('Checking out %s' % name)
     if runme(fedpkgcmd, 'fedpkg', name, enviro):
         continue
 
@@ -120,7 +121,7 @@ for pkg in pkgs:
     # Check for a noautobuild file
     if os.path.exists(os.path.join(workdir, name, 'noautobuild')):
         # Maintainer does not want us to auto build.
-        print 'Skipping %s due to opt-out' % name
+        print('Skipping %s due to opt-out' % name)
         continue
 
     # Find the spec file
@@ -138,20 +139,20 @@ for pkg in pkgs:
     # rpmdev-bumpspec
     bumpspec = ['rpmdev-bumpspec', '-u', user, '-c', comment,
                 os.path.join(workdir, name, spec)]
-    print 'Bumping %s' % spec
+    print('Bumping %s' % spec)
     if runme(bumpspec, 'bumpspec', name, enviro):
         continue
 
     # git commit
     commit = ['fedpkg', 'commit', '-p', '-m', comment]
-    print 'Committing changes for %s' % name
+    print('Committing changes for %s' % name)
     if runme(commit, 'commit', name, enviro,
                  cwd=os.path.join(workdir, name)):
         continue
 
     # get git url
     urlcmd = ['fedpkg', 'giturl']
-    print 'Getting git url for %s' % name
+    print('Getting git url for %s' % name)
     url = runmeoutput(urlcmd, 'giturl', name, enviro,
                  cwd=os.path.join(workdir, name))
     if not url:
@@ -159,6 +160,6 @@ for pkg in pkgs:
 
     # build
     build = ['fedpkg', 'build', '--nowait', '--background', '--target', target]
-    print 'Building %s' % name
+    print('Building %s' % name)
     runme(build, 'build', name, enviro, 
           cwd=os.path.join(workdir, name))

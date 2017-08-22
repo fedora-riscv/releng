@@ -21,6 +21,7 @@
 # as well as send a mail to a mailing list with an overall report.
 
 
+from __future__ import print_function
 import koji
 import rpm
 import sys
@@ -33,14 +34,14 @@ domain = '@fedoraproject.org'
 smtpserver = 'localhost'
 
 def usage():
-    print """
+    print("""
     check-upgrade-paths.py tag1 [/]tag2 [[/]tag3 [/]tag4]
     tags must be in ascending order, f8-gold dist-f8-updates dist-f8-updates-testing dist-f9-updates ...
     prepending a / is special: A /B C means A will not be checked against B, but against the union of B and C
     Only A is affected, everything preceding A will still be checked against B normally, as will B against C.
     The usecase for this feature is updates-testing, e.g.:
     dist-f8-updates dist-f8-updates-testing /dist-f9-updates dist-f9-updates-testing
-    """
+    """)
 
 def compare(pkgA, pkgB):
     pkgdictA = koji.parse_NVR(pkgA)
@@ -82,7 +83,7 @@ Subject: Broken upgrade path(s) detected for: %s
         server.set_debuglevel(1)
         server.sendmail(fromaddr, [addy+domain for addy in addresses], msg)
     except:
-        print 'sending mail failed'
+        print('sending mail failed')
 
 if len(sys.argv) > 1 and sys.argv[1] in ['-h', '--help', '-help', '--usage']:
     usage()
@@ -194,4 +195,4 @@ try:
     server.set_debuglevel(1)
     server.sendmail(fromaddr, toaddr, msg)
 except:
-    print 'sending mail failed'
+    print('sending mail failed')

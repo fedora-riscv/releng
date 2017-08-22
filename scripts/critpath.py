@@ -6,6 +6,7 @@
 # Authors: Will Woods <wwoods@redhat.com>
 #          Seth Vidal <skvidal@fedoraproject.org>
 
+from __future__ import print_function
 import sys
 import yum
 import argparse
@@ -61,7 +62,7 @@ def resolve_deps(pkg, base):
         try:
             po = base.returnPackageByDep(req)
         except yum.Errors.YumBaseError, e:
-            print "ERROR: unresolved dep for %s of pkg %s" % (req[0], pkg.name)
+            print("ERROR: unresolved dep for %s of pkg %s" % (req[0], pkg.name))
             raise
         provides_cache[req] = po.name
         deps.append(po.name)
@@ -75,14 +76,14 @@ def expand_critpath(my, start_list):
     # Expand the start_list to a list of names
     for name in start_list:
         if name.startswith('@'):
-            print "expanding %s" % name
+            print("expanding %s" % name)
             count = 0
             group = my.comps.return_group(name[1:])
             for groupmem in group.mandatory_packages.keys() + group.default_packages.keys():
                 if groupmem not in name_list:
                     name_list.append(groupmem)
                     count += 1
-            print "%s packages added" % count
+            print("%s packages added" % count)
         else:
             if name not in name_list:
                 name_list.append(name)
@@ -98,21 +99,21 @@ def expand_critpath(my, start_list):
         handled.append(name)
         if name in blacklist:
             continue
-        print "depsolving %4u done/%4u remaining (%s)" % (count, len(name_list), name)
+        print("depsolving %4u done/%4u remaining (%s)" % (count, len(name_list), name))
         p = my.pkgSack.searchNevra(name=name)
         if not p:
-            print "WARNING: unresolved package name: %s" % name
+            print("WARNING: unresolved package name: %s" % name)
             skipped_list.append(name)
             continue
         for pkg in p:
             pkg_list.append(pkg)
             for dep in resolve_deps(pkg, my):
                 if dep not in handled and dep not in skipped_list and dep not in name_list:
-                    print "    added %s" % dep
+                    print("    added %s" % dep)
                     name_list.append(dep)
-    print "depsolving complete."
-    print "%u packages in critical path" % (count)
-    print "%u rejected package names: %s" % (len(skipped_list),
+    print("depsolving complete.")
+    print("%u packages in critical path" % (count))
+    print("%u rejected package names: %s" % (len(skipped_list),)
                                              " ".join(skipped_list))
     return pkg_list
 
@@ -132,7 +133,7 @@ def setup_yum(url=None, release=None, arch=None):
     my.repos.disableRepo('*')
     if "/mnt/koji/compose/" not in args.url:
         my.add_enable_repo('critpath-repo-%s' % arch, baseurls=[url+releasepath[release]])
-        print "adding critpath-repo-%s at %s" % (arch, url+releasepath[release])
+        print("adding critpath-repo-%s at %s" % (arch, url+releasepath[release]))
         if updatepath[release]:
             my.add_enable_repo('critpath-repo-updates-%s' % arch, baseurls=[url+updatepath[release]])
     else:
@@ -168,21 +169,21 @@ if __name__ == '__main__':
         parser.error("must choose a release from the list: %s" % releases)
     (maj, min, sub) = yum.__version_info__
     if (maj < 3 or min < 2 or (maj == 3 and min == 2 and sub < 24)) and args.arches != getBaseArch():
-        print "WARNING: yum < 3.2.24 may be unable to depsolve other arches."
-        print "Get a newer yum or run this on an actual %s system." % args.arches
+        print("WARNING: yum < 3.2.24 may be unable to depsolve other arches.")
+        print("Get a newer yum or run this on an actual %s system." % args.arches)
     # Sanity checking done, set some variables
     release = extras[0]
     check_arches = args.arches.split(',')
     alternate_check_arches = args.altarches.split(',')
     if args.nvr and args.srpm:
-        print "ERROR: --nvr and --srpm are mutually exclusive"
+        print("ERROR: --nvr and --srpm are mutually exclusive")
         sys.exit(1)
 
     if args.url != fedora_baseurl and "/mnt/koji/compose/" not in args.url:
         releasepath[release] = releasepath[release].replace('development/','')
-        print "Using URL %s" % (args.url + releasepath[release])
+        print("Using URL %s" % (args.url + releasepath[release]))
     else:
-        print "Using URL %s" % (args.url)
+        print("Using URL %s" % (args.url))
 
     # Do the critpath expansion for each arch
     critpath = set()
@@ -199,10 +200,10 @@ if __name__ == '__main__':
                     url = args.url
         else:
             raise Exception('Invalid architecture')
-        print "Expanding critical path for %s" % arch
+        print("Expanding critical path for %s" % arch)
         (my, cachedir) = setup_yum(url = url, release=release, arch=arch)
         pkgs = expand_critpath(my, critpath_groups)
-        print "%u packages for %s" % (len(pkgs), arch)
+        print("%u packages for %s" % (len(pkgs), arch))
         if args.nvr:
             critpath.update([nvr(p).encode('utf8') for p in pkgs])
         elif args.srpm:
@@ -218,4 +219,4 @@ if __name__ == '__main__':
     for packagename in sorted(critpath):
         f.write(packagename + "\n")
     f.close()
-    print "Wrote %u items to %s" % (len(critpath), args.output)
+    print("Wrote %u items to %s" % (len(critpath), args.output))

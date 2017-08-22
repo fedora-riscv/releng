@@ -3,6 +3,7 @@
 # Copyright (C) 2013 Red Hat Inc.
 # SPDX-License-Identifier:	GPL-2.0+
 
+from __future__ import print_function
 import os
 import shutil
 from stat import *
@@ -207,7 +208,7 @@ Subject: Broken dependencies: %s
             server.set_debuglevel(1)
             server.sendmail(fromaddr, toaddrs, msg)
         except:
-            print 'sending mail failed'
+            print('sending mail failed')
 
 def doit(dir, treename, mail=True, testing=False):
     for arch in os.listdir(dir):
@@ -232,8 +233,8 @@ def doit(dir, treename, mail=True, testing=False):
         tmplist.sort()
         pkgs = [x for (key, x) in tmplist]
         if len(pkgs) > 0:
-            print "Broken deps for %s" % (arch,)
-            print "----------------------------------------------------------"
+            print("Broken deps for %s" % (arch,))
+            print("----------------------------------------------------------")
         for pkg in pkgs:
             if not pkg.repoid.startswith('epel'):
                 continue
@@ -251,7 +252,7 @@ def doit(dir, treename, mail=True, testing=False):
 
             broken = []
             for (n, f, v) in baddeps[pkg]:
-                print "\t%s" % printableReq(pkg, (n, f, v))
+                print("\t%s" % printableReq(pkg, (n, f, v)))
 
                 blamelist = assignBlame(my, n, owners)
 
@@ -259,7 +260,7 @@ def doit(dir, treename, mail=True, testing=False):
 
             deps[srcpkg][pkgid][arch] = broken
 
-        print "\n\n"
+        print("\n\n")
         os.unlink(conffile)
         shutil.rmtree(cachedir, ignore_errors = True)
 

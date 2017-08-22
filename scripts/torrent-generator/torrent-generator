@@ -15,6 +15,7 @@
 # size=629M
 # group is optional. if not listed group == description
 
+from __future__ import print_function
 import ConfigParser
 import sys
 import glob
@@ -120,7 +121,7 @@ class Torrent(object):
 class Config(object):
     def __init__(self, cpobj):
         if not cpobj.has_section('main'):
-            print >> sys.stderr, "no main section in config, exiting"
+            print("no main section in config, exiting", file=sys.stderr)
             sys.exit(1)
         try:
             self.inidir = cpobj.get('main', 'inidir')
@@ -132,7 +133,7 @@ class Config(object):
             self.htmlout =  cpobj.get('main', 'htmlout')
             self.rssout = cpobj.get('main', 'rssout')
         except ConfigParser.NoOptionError, e:
-            print >> sys.stderr, "Config file missing required option: %s" % e
+            print("Config file missing required option: %s" % e, file=sys.stderr)
             sys.exit(1)
             
 def main():
@@ -147,7 +148,7 @@ def main():
         c.read(fn)
         for s in c.sections():
             if 'releasedate' not in c.options(s) or 'description' not in c.options(s):
-                print >> sys.stderr,  "bad torrent config for %s" % s
+                print("bad torrent config for %s" % s, file=sys.stderr)
                 continue
             if c.has_option(s,'group'):
                 g = c.get(s, 'group')

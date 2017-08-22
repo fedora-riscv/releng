@@ -10,6 +10,7 @@
 #     Stanislav Ochotnicky <sochotnicky@redhat.com>
 #
 
+from __future__ import print_function
 import koji
 import getpass
 import tempfile
@@ -61,11 +62,10 @@ def report_failure(product, component, version, summary, comment, logs):
     bzclient = RHBugzilla(url="%s/xmlrpc.cgi" % bzurl)
 
     try:
-        print 'Creating the bug report'
+        print('Creating the bug report')
         bug = bzclient.createbug(**data)
-        #print "Running bzcreate: %s" % data
         bug.refresh()
-        print bug
+        print(bug)
         for log in logs:
             name = log.rsplit('/', 1)[-1]
             response = urllib2.urlopen(log)
@@ -73,15 +73,15 @@ def report_failure(product, component, version, summary, comment, logs):
             fp.write(response.read())
             fp.seek(0)
             try:
-                print 'Attaching file %s to the ticket' % name
+                print('Attaching file %s to the ticket' % name)
                 attid = bzclient.attachfile(
                     bug.id, fp, name, content_type='text/plain')
             except Fault, ex:
-                print ex
+                print(ex)
             finally:
                 fp.close()
     except Fault, ex:
-        print ex
+        print(ex)
         username = raw_input('Bugzilla username: ')
         bzclient.login(user=username,
                        password=getpass.getpass())
@@ -115,9 +115,9 @@ def get_task_failed(kojisession, task_id):
 
 if __name__ == '__main__':
     kojisession = koji.ClientSession('https://koji.fedoraproject.org/kojihub')
-    print 'Getting the list of failed builds...'
+    print('Getting the list of failed builds...')
     failbuilds = get_failed_builds(kojisession, epoch, buildtag, desttag)
-    print 'Getting the list of filed bugs...'
+    print('Getting the list of filed bugs...')
     filed_bugs = get_filed_bugs(tracking_bug)
     filed_bugs_components = [bug.component for bug in filed_bugs]
     for build in failbuilds:
@@ -129,8 +129,8 @@ if __name__ == '__main__':
 
         child_id = get_task_failed(kojisession, task_id)
         if not child_id:
-            print 'No children failed for task: %s (%s)' % (
-                task_id, component)
+            print('No children failed for task: %s (%s)' % (
+                task_id, component))
             logs = []
         else:
             base_path = koji.pathinfo.taskrelpath(child_id)
@@ -148,9 +148,9 @@ For details on mass rebuild see https://fedoraproject.org/wiki/Fedora_26_Mass_Re
 """ % (component, task_id)
 
         if component not in filed_bugs_components:
-            print "Filing bug for %s" % component
+            print("Filing bug for %s" % component)
             report_failure(
                 product, component, version, summary, comment, logs=logs)
             filed_bugs_components.append(component)
         else:
-            print "Skipping %s, bug already filed" % component
+            print("Skipping %s, bug already filed" % component)

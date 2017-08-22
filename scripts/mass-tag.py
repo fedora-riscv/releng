@@ -9,6 +9,7 @@
 #     Jesse Keating <jkeating@redhat.com>
 #
 
+from __future__ import print_function
 import koji
 import os
 import operator
@@ -40,7 +41,7 @@ builds = sorted(kojisession.listTagged(holdingtag, latest=True),
 pkgs = kojisession.listPackages(target, inherited=True)
 pkgs = [pkg['package_name'] for pkg in pkgs if not pkg['blocked']]
 
-print 'Checking %s builds...' % len(builds)
+print('Checking %s builds...' % len(builds))
 
 # Get the task creation time from our builds
 kojisession.multicall = True
@@ -94,7 +95,7 @@ taglist = []
 pkgcount = 0
 for build in builds:
     if not build['package_name'] in pkgs:
-        print 'Skipping %s, blocked in %s' % (build['package_name'], target)
+        print('Skipping %s, blocked in %s' % (build['package_name'], target))
         continue
     newer = False
     if build['package_name'] in newbuilds.keys():
@@ -103,24 +104,24 @@ for build in builds:
             try:
                 if tasks[newbuild['task_id']]['request'][1] in (target, '%s-candidate' % target, 'rawhide', 'dist-rawhide') \
                 and newbuild['state'] == 1:
-                    print 'Newer build found for %s.' % build['package_name']
+                    print('Newer build found for %s.' % build['package_name'])
                     newer = True
                     break
             except:
-                print 'Skipping %s, no taskinfo.' % newbuild['nvr']
+                print('Skipping %s, no taskinfo.' % newbuild['nvr'])
                 continue
     if not newer:
-        print 'Tagging %s into %s' % (build['nvr'], target)
+        print('Tagging %s into %s' % (build['nvr'], target))
         taglist.append(build['nvr'])
         kojisession.tagBuildBypass(target, build)
         pkgcount += 1
     if pkgcount == 1000:
-        print 'Tagging %s builds.' % pkgcount
+        print('Tagging %s builds.' % pkgcount)
         results = kojisession.multiCall()
         pkgcount = 0
         kojisession.multicall = True
 
-print 'Tagging %s builds.' % pkgcount
+print('Tagging %s builds.' % pkgcount)
 results = kojisession.multiCall()
-print 'Tagged %s builds.' % len(taglist)
+print('Tagged %s builds.' % len(taglist))
 

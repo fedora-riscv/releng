@@ -25,6 +25,7 @@
 # NOTE: This is bad and I feel bad for having written it, here there be dragons
 # NOTE2: The atomic tree ref code is also ugly. Blame to Patrick, credits to Adam.
 
+from __future__ import print_function
 import os
 import sys
 import json
@@ -35,9 +36,7 @@ import smtplib
 import argparse
 import logging
 import subprocess
-
 import requests
-
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -362,7 +361,7 @@ Fedora Release Engineering
         s = smtplib.SMTP(sender_smtp)
         s.sendmail(sender_email, mail_receivers, msg.as_string())
     except smtplib.SMTPException, e:
-        print "ERROR: Unable to send email:\n{}\n".format(e)
+        print("ERROR: Unable to send email:\n{}\n".format(e))
 
 def stage_atomic_release(
         compose_id,

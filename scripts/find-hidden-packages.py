@@ -3,6 +3,7 @@
 # Copyright (C) 2013 Red Hat Inc,
 # SPDX-License-Identifier:	GPL-2.0+
 
+from __future__ import print_function
 import sys
 import koji
 import pprint
@@ -21,7 +22,7 @@ def ensure_connection(session):
     except xmlrpclib.ProtocolError:
         error(_("Error: Unable to connect to server"))
     if ret != koji.API_VERSION:
-        print _("WARNING: The server is at API version %d and the client is at %d" % (ret, koji.API_VERSION))
+        print(_("WARNING: The server is at API version %d and the client is at %d" % (ret, koji.API_VERSION)))
     return True
 
 def error(msg=None, code=1):
@@ -43,7 +44,6 @@ def compare_pkgs(pkg1, pkg2):
     e2 = str(pkg2['epoch'] or 0)
     v2 = str(pkg2['version'])
     r2 = str(pkg2['release'])
-    #print "(%s, %s, %s) vs (%s, %s, %s)" % (e1, v1, r1, e2, v2, r2)
     return rpm.labelCompare((e1, v1, r1), (e2, v2, r2))
 
 def diff_changelogs(session, pkg1, pkg2):
@@ -63,7 +63,7 @@ def print_hidden_packages(session, tag, opts, pkg_list=None):
     if opts['parent']:
         comp_tags = [session.getTag(opts['parent'])]
         if not comp_tags[0]:
-            print "Parent tag unknown, ignoring --parent"
+            print("Parent tag unknown, ignoring --parent")
             comp_tags = session.getFullInheritance(tag['id'], None, opts['reverse'], opts['stop'], opts['jump'])
         else:
             # makes the parent tag look more like data returned from getFullInheritance()
@@ -80,24 +80,24 @@ def print_hidden_packages(session, tag, opts, pkg_list=None):
         ctag_id_key = 'parent_id'
 
     if opts['verbose']:
-        print "\nComparing %s (%d) to the following tags:" % (tag['name'], tag['id'])
+        print("\nComparing %s (%d) to the following tags:" % (tag['name'], tag['id']))
         for ct in comp_tags:
             try:
-                print "%s%s (%d)" % (" "*ct.get('currdepth',0), ct['name'], ct[ctag_id_key])
+                print("%s%s (%d)" % (" "*ct.get('currdepth',0), ct['name'], ct[ctag_id_key]))
             except KeyError:
                 pass
 
     if opts['verbose']:
-        print "\nBuilding package lists:"
+        print("\nBuilding package lists:")
 
     # Build {package_name: pkg} list for all our tags
     main_latest = {}    #latest by nvr
     main_top = {}       #latest by tag ordering
     if opts['verbose']:
-        print "%s ..." % tag['name']
+        print("%s ..." % tag['name'])
     tagged_pkgs = session.listTagged(tag['id'], latest=True)
     if opts['verbose']:
-        print " [%d packages]" % len(tagged_pkgs)
+        print(" [%d packages]" % len(tagged_pkgs))
     for pkg in tagged_pkgs:
         if pkg_list and not pkg['package_name'] in pkg_list:
             continue
@@ -110,10 +110,10 @@ def print_hidden_packages(session, tag, opts, pkg_list=None):
     comp_top = {}       #latest by tag ordering
     for ctag in comp_tags:
         if opts['verbose']:
-            print "%s ..." % ctag['name']
+            print("%s ..." % ctag['name'])
         tagged_pkgs = session.listTagged(ctag[ctag_id_key], latest=True)
         if opts['verbose']:
-            print " [%d packages]" % len(tagged_pkgs)
+            print(" [%d packages]" % len(tagged_pkgs))
         comp_latest[ctag['name']] = {}
         comp_top[ctag['name']] = {}
         for pkg in tagged_pkgs:
@@ -128,32 +128,32 @@ def print_hidden_packages(session, tag, opts, pkg_list=None):
     if pkg_list and opts['verbose']:
         for pkg in pkg_list:
             if not pkg in main_latest:
-                print "%s is not a valid package in tag %s" % (pkg, tag['name'])
+                print("%s is not a valid package in tag %s" % (pkg, tag['name']))
             for ctag in comp_latest.keys():
                 if not pkg in comp_latest[ctag]:
-                    print "%s is not a valid package in tag %s" % (pkg, ctag)
+                    print("%s is not a valid package in tag %s" % (pkg, ctag))
 
     if main_latest:
         keys = main_latest.keys()
         keys.sort()
         if not opts['tag_order']:
             if opts['verbose']:
-                print "\nComparing packages within %s:" % tag['name']
+                print("\nComparing packages within %s:" % tag['name'])
             for pkg in keys:
                 #compare latest by tag order to latest by nvr (within original tag)
                 if opts['debug']:
-                    print "comparing %s to %s (%s)" % (main_latest[pkg], main_top[pkg], tag['name'])
+                    print("comparing %s to %s (%s)" % (main_latest[pkg], main_top[pkg], tag['name']))
                 if opts['reverse']:
                     if (compare_pkgs(main_top[pkg], main_latest[pkg]) == 1):
-                        print "%s < %s (%s)" % (main_latest[pkg]['nvr'], main_top[pkg]['nvr'], tag['name'])
+                        print("%s < %s (%s)" % (main_latest[pkg]['nvr'], main_top[pkg]['nvr'], tag['name']))
                 else:
                     if (compare_pkgs(main_top[pkg], main_latest[pkg]) == -1):
-                        print "%s > %s (%s)" % (main_latest[pkg]['nvr'], main_top[pkg]['nvr'], tag['name'])
+                        print("%s > %s (%s)" % (main_latest[pkg]['nvr'], main_top[pkg]['nvr'], tag['name']))
                         if opts['changelogs']:
                             for cl in diff_changelogs(session, main_top[pkg], main_latest[pkg]):
-                                print "%(date)s - %(author)s\n%(text)s\n" % cl
+                                print("%(date)s - %(author)s\n%(text)s\n" % cl)
         if opts['verbose']:
-            print "\nComparing Packages:"
+            print("\nComparing Packages:")
         if opts['tag_order']:
             main_latest = main_top
             comp_latest = comp_top
@@ -161,20 +161,20 @@ def print_hidden_packages(session, tag, opts, pkg_list=None):
             for ctag in comp_latest.keys():
                 if comp_latest[ctag].has_key(pkg):
                     if opts['debug']:
-                        print "comparing %s (%s) to %s (%s)" % (comp_latest[ctag][pkg]['nvr'], ctag, main_latest[pkg]['nvr'], tag['name'])
+                        print("comparing %s (%s) to %s (%s)" % (comp_latest[ctag][pkg]['nvr'], ctag, main_latest[pkg]['nvr'], tag['name']))
                     if opts['reverse']:
                         if (compare_pkgs(main_latest[pkg], comp_latest[ctag][pkg]) == 1):
-                            print "%s (%s) < %s (%s)" % (comp_latest[ctag][pkg]['nvr'], ctag, main_latest[pkg]['nvr'], tag['name'])
+                            print("%s (%s) < %s (%s)" % (comp_latest[ctag][pkg]['nvr'], ctag, main_latest[pkg]['nvr'], tag['name']))
                     else:
                         if (compare_pkgs(main_latest[pkg], comp_latest[ctag][pkg]) == -1):
-                            print "%s (%s) > %s (%s)" % (comp_latest[ctag][pkg]['nvr'], ctag, main_latest[pkg]['nvr'], tag['name'])
+                            print("%s (%s) > %s (%s)" % (comp_latest[ctag][pkg]['nvr'], ctag, main_latest[pkg]['nvr'], tag['name']))
                             if opts['changelogs']:
                                 for cl in diff_changelogs(session, main_latest[pkg], comp_latest[ctag][pkg]):
-                                    print "%(date)s - %(author)s\n%(text)s\n" % cl
+                                    print("%(date)s - %(author)s\n%(text)s\n" % cl)
 
     else:
         if opts['verbose']:
-            print "Oops, no packages to compare in the main tag (%s)" % tag['name']
+            print("Oops, no packages to compare in the main tag (%s)" % tag['name'])
 
 if __name__ == "__main__":
     usage = _("find-hidden-packages [options] tag <pkg> [<pkg>...]")
@@ -220,7 +220,7 @@ if __name__ == "__main__":
         # make sure we can connect to the server
         ensure_connection(kojihub)
         if args.debug:
-            print "Successfully connected to hub"
+            print("Successfully connected to hub")
     except (KeyboardInterrupt,SystemExit):
         pass
     except:
@@ -229,7 +229,7 @@ if __name__ == "__main__":
         else:
             exctype, value = sys.exc_info()[:2]
             rv = 1
-            print "%s: %s" % (exctype, value)
+            print("%s: %s" % (exctype, value))
 
     # validate the tag
     tag = kojihub.getTag(extras[0])

@@ -3,6 +3,7 @@
 # Copyright (C) 2013 Red Hat Inc.
 # SPDX-License-Identifier:  GPL-2.0+
 
+from __future__ import print_function
 import os
 import sys
 import sets
@@ -147,20 +148,20 @@ def main():
         else:
             cachedir = getCacheDir()
             if cachedir is None:
-                print "Error: Could not make cachedir, exiting"
+                print("Error: Could not make cachedir, exiting")
                 sys.exit(50)
 
         for repo in solvers.values():
             repo.repos.setCacheDir(cachedir)
 
     if not opts.quiet:
-        print 'Reading in repository metadata - please wait....'
+        print('Reading in repository metadata - please wait....')
 
     for dist in solvers.keys():
         try:
             solvers[dist].readMetadata()
         except yum.Errors.RepoError, e:
-            print 'Metadata read error for dist %s, excluding it' % dist
+            print('Metadata read error for dist %s, excluding it' % dist)
             del solvers[dist]
 
     pkgdict = {}
@@ -274,11 +275,11 @@ def main():
             s.sendmail(mail_from, [mail_to], msg.as_string())
             s.close()
         else:
-            print report
+            print(report)
 
     if missing_report:
         for line in missing_report:
-            print line
+            print(line)
 
 if __name__ == "__main__":
     main()

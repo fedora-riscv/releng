@@ -24,14 +24,13 @@ for example
  $ python update-critpath critpath.txt f20
 """
 
+from __future__ import print_function
 import argparse
 import json
 import logging
 import sys
-
 import pdc_client
 import dogpile.cache
-
 
 # Here, 'fedora' is the name of the production instance, configured in
 # /etc/pdc.d/.  See the PDC SOP for more information on authenticating.
@@ -145,7 +144,7 @@ def main():
     try:
         arg = parser.parse_args()
     except argparse.ArgumentTypeError, err:
-        print "\nError: {0}".format(err)
+        print("\nError: {0}".format(err))
         return 2
 
     if arg.debug:

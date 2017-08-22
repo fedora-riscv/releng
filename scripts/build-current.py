@@ -4,6 +4,7 @@
 # SPDX-License-Identifier:	GPL-2.0+
 
 
+from __future__ import print_function
 import os
 import koji
 import logging
@@ -68,7 +69,7 @@ def isNoarch(rpms):
 def tagSuccessful(nvr, tag):
     """tag completed builds into final tags"""
     localkojisession.tagBuildBypass(tag, nvr)
-    print "tagged %s to %s" % (nvr, tag)
+    print("tagged %s to %s" % (nvr, tag))
 
 
 def _downloadURL(url, destf):
@@ -95,14 +96,14 @@ def _importURL(url, fn):
     # for now, though, just use uploadWrapper
     koji.ensuredir(workpath)
     dst = "%s/%s" % (workpath, fn)
-    print "Downloading %s to %s..." % (url, dst)
+    print("Downloading %s to %s..." % (url, dst))
     _downloadURL(url, dst)
     # fsrc = urllib2.urlopen(url)
     # fdst = file(dst, 'w')
     # shutil.copyfileobj(fsrc, fdst)
     # fsrc.close()
     # fdst.close()
-    print "Uploading %s..." % dst
+    print("Uploading %s..." % dst)
     localkojisession.uploadWrapper(dst, serverdir, blocksize=65536)
     localkojisession.importRPM(serverdir, fn)
 
@@ -150,7 +151,7 @@ pkgs = remotekojisession.listPackages(tagID=tag, inherited=True)
 pkgs = sorted([pkg for pkg in pkgs if not pkg['blocked']],
               key=operator.itemgetter('package_name'))
 
-print 'Checking %s packages...' % len(pkgs)
+print('Checking %s packages...' % len(pkgs))
 
 pg = progress.TextMeter()
 

@@ -11,6 +11,7 @@
 #       Dennis Gilmore <dennis@ausil.us>
 #       Dan Horák <dhorak@redhat.com>
 
+from __future__ import print_function
 import rpm
 import os
 import sys
@@ -55,7 +56,6 @@ for srpm in srpms:
         pkgname = hdr[rpm.RPMTAG_NAME]
         if pkgname not in pkglist:
             pkglist.append(pkgname)
-            #print "Excluding: %s" % pkgname
 
 if args.list:
     for pkg in pkglist:
@@ -65,4 +65,4 @@ else:
     for pkg in pkglist:
         output +=  pkg + " "
 
-    print output
+    print(output)

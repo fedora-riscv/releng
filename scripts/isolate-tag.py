@@ -10,6 +10,7 @@
 #     Nick Petrov <npetrov@redhat.com>
 
 
+from __future__ import print_function
 import koji
 import os
 import argparse
@@ -51,17 +52,17 @@ batch = 1
 # tag builds
 for build in tagbuilds:
     pkgcount += 1
-    print "tag %s into %s" % (build, tag)
+    print("tag %s into %s" % (build, tag))
     kojisession.tagBuildBypass(tag, build)
     if pkgcount == 1000:
         batch += 1
-        print 'tagging %s builds' % pkgcount
+        print('tagging %s builds' % pkgcount)
         result = kojisession.multiCall()
         pkgcount = 0
         kojisession.multicall = True
 
-print 'Tagging %s builds.' % pkgcount
-print 'Tagged %s batches' % batch
+print('Tagging %s builds.' % pkgcount)
+print('Tagged %s batches' % batch)
 
 result = kojisession.multiCall()
 

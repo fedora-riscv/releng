@@ -11,6 +11,7 @@
 #     Dennis Gilmore <ausil@fedoraproject.org>
 #     Dan Horák <dan@danny.cz>
 
+from __future__ import print_function
 import koji
 import os
 import sys
@@ -45,7 +46,7 @@ def getTagged(kojisession, tag):
     #for pkg in pkgs:
     #    tagged.append({"name": pkg['name'], "nvr": pkg['nvr']})
             
-    #    print "tagged build %s" % pkg['nvr']
+    #    print("tagged build %s" % pkg['nvr'])
     return pkgs
 
 def rpmvercmp ((e1, v1, r1), (e2, v2, r2)):
@@ -62,7 +63,7 @@ def rpmvercmp ((e1, v1, r1), (e2, v2, r2)):
         return -1
 
 
-print "=== Working on arch: %s ====" % args.arch
+print("=== Working on arch: %s ====" % args.arch)
 # Create a koji session
 koji_module = koji.get_profile_module("fedora")
 kojisession = koji_module.ClientSession(koji_module.config.server)
@@ -77,7 +78,7 @@ else:
         seckojisession.krb_login()
 
 for tag in args.tag:
-    print "=== Working on tag: %s ====" % tag
+    print("=== Working on tag: %s ====" % tag)
     secblocked = [] # holding for blocked pkgs
     totag = []
     tountag = []
@@ -98,7 +99,7 @@ for tag in args.tag:
             # see if we have the build on secondary koji and make sure its complete
             if not secpkg is None and secpkg['state'] == 1 :
                 totag.append(pkg['nvr'])
-                print "need to tag %s" % pkg['nvr']
+                print("need to tag %s" % pkg['nvr'])
 
     for pkg in secpkgs:
         if pkg['nvr'] not in pripkgnvrs:
@@ -106,25 +107,25 @@ for tag in args.tag:
             pripkg = kojisession.tagHistory(tag=tag, package=pkg['name'])
             if pripkg == []:
                 # if the package only exists on secondary let it be
-                print "Secondary arch only package %s" % pkg['nvr']
+                print("Secondary arch only package %s" % pkg['nvr'])
             # secondary arch evr is higher than primary untag ours
 	    elif pripkg[0]['active'] == None:
                 # get the latest build from primary in the tag
                 pripkg = kojisession.listTagged(tag, latest=True, package=pkg['name'])
                 if pripkg == [] or rpmvercmp((str(pkg['epoch']), pkg['version'], pkg['release']),  (str(pripkg[0]['epoch']), pripkg[0]['version'], pripkg[0]['release'])) == 1:
                     tountag.append(pkg['nvr'])
-                    print "need to untag %s" % pkg['nvr']
+                    print("need to untag %s" % pkg['nvr'])
 
     if args.dry_run:
         continue
 
     seckojisession.multicall = True
     for pkg in totag:
-        print "Tagging: Arch: %s Tag: %s Package: %s" % (args.arch, tag, pkg)
+        print("Tagging: Arch: %s Tag: %s Package: %s" % (args.arch, tag, pkg))
         seckojisession.tagBuildBypass(tag, pkg)
 
     for pkg in tountag:
-        print "Untagging: Arch: %s Tag: %s Package: %s" % (args.arch, tag, pkg)
+        print("Untagging: Arch: %s Tag: %s Package: %s" % (args.arch, tag, pkg))
         seckojisession.untagBuildBypass(tag, pkg)
 
     listings = seckojisession.multiCall()

@@ -10,6 +10,7 @@
 # Authors: 
 #   David Aquilina <dwa@redhat.com>
 
+from __future__ import print_function
 import os
 import subprocess
 import koji
@@ -38,7 +39,7 @@ secondary.krb_login()
 # do the thing: 
 
 for pkg in pkgs: 
-    print 'Parsing package '+pkg
+    print('Parsing package '+pkg)
     # get build info: 
     buildinfo = primary.getBuild(pkg)
     # reset the build on secondary: 

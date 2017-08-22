@@ -2,14 +2,12 @@
 # vim: fileencoding=utf8
 # SPDX-License-Identifier: GPL-2.0+
 
+from __future__ import print_function
 import argparse
 import getpass
 import logging
 import time
-
-
 from block_retired import get_packages, run_koji, SubjectSMTPHandler
-
 
 log = logging.getLogger(__name__)
 
@@ -81,10 +79,10 @@ if __name__ == "__main__":
             print("Tag: " + tag)
             problems = check_tag(tag, args.staging)
             for problem in problems:
-                print problem["package"]
+                print(problem["package"])
                 log.debug(problem["latest_build"])
     else:
         problems = check_tag(args.tag, args.staging)
         for problem in problems:
-            print problem["package"]
+            print(problem["package"])
             log.debug(problem["latest_build"])

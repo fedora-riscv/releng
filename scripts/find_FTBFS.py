@@ -8,9 +8,9 @@
 # Authors:
 #     Till Maas <opensource@till.name>
 #
+from __future__ import print_function
 import argparse
 import operator
-
 import koji
 
 branched_tag = 'f23'
@@ -64,4 +64,4 @@ last_builds = kojisession.multiCall()
 last_builds_map = zip(unbuilt, last_builds)
 ftbfs = [p for p, b in last_builds_map if b != [[[], []]]]
 
-print " ".join(ftbfs)
+print(" ".join(ftbfs))

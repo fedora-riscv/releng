@@ -9,14 +9,15 @@
 # Copyright (C) 2013 Red Hat Inc,
 # SPDX-License-Identifier:	GPL-2.0+
 
+from __future__ import print_function
 import koji
 import rpm
 import sys
 
 def usage():
-    print """
+    print("""
     clean-overrides.py overridetag updatetag
-    """
+    """)
 
 def compare(pkgA, pkgB):
     pkgdictA = koji.parse_NVR(pkgA)
@@ -67,16 +68,16 @@ for build in f7overrides:
             older.append(buildToNvr(build))
 
 if equal:
-    print "Builds that exist both in %s and %s:" % (overtag, updatetag)
+    print("Builds that exist both in %s and %s:" % (overtag, updatetag))
     for build in equal:
-        print build
-    print ""
+        print(build)
+    print("")
 
 if older:
-    print "Builds that are older in %s than in %s." % (overtag, updatetag)
+    print("Builds that are older in %s than in %s." % (overtag, updatetag))
     for build in older:
-        print build
-    print ""
+        print(build)
+    print("")
 
 if equal or older:
-    print "Suggest: koji untag-pkg %s %s %s" % (overtag, ' '.join([printBuild(e) for e in equal]), ' '.join([printBuild(o) for o in older]))
+    print("Suggest: koji untag-pkg %s %s %s" % (overtag, ' '.join([printBuild(e) for e in equal]), ' '.join([printBuild(o) for o in older])))

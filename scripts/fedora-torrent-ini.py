@@ -7,8 +7,8 @@
 #
 # Bencode parsing code from http://effbot.org/zone/bencode.htm
 
+from __future__ import print_function
 import sys, re, time, os
-
 import re
 
 def tokenize(text, match=re.compile("([idel])|(\d+):|(-?\d+)").match):
@@ -58,7 +58,7 @@ def decode(text):
 
 def main(argv):
     if len(argv) < 2:
-        print "Usage: %s <group> <date>" % (argv[0])
+        print("Usage: %s <group> <date>" % (argv[0]))
         sys.exit(0)
     group = argv[1]
     if len(argv) >= 3:

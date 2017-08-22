@@ -3,6 +3,7 @@
 # Copyright (C) 2013 Red Hat, Inc.
 # SPDX-License-Identifier:      GPL-2.0
 
+from __future__ import print_function
 import os
 
 keys = ['069C8460', '30C9ECF8',
@@ -33,7 +34,7 @@ for root, dirs, files in os.walk(rootpath, topdown=False):
         filepath = os.path.join(root, name)
         for key in keys:
             if os.path.join(prefix, str.lower(key)) in filepath:
-                print filepath
+                print(filepath)
                 if os.path.exists(filepath):
                     os.remove(filepath)
                 continue
@@ -41,7 +42,7 @@ for root, dirs, files in os.walk(rootpath, topdown=False):
         filepath = os.path.join(root, name)
         for key in keys:
             if os.path.join(prefix, str.lower(key)) in filepath:
-                print filepath
+                print(filepath)
                 if os.path.exists(filepath):
                     os.rmdir(filepath)
                 continue

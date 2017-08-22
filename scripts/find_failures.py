@@ -11,6 +11,7 @@
 #     Jesse Keating <jkeating@redhat.com>
 #
 
+from __future__ import print_function
 import koji
 import operator
 import datetime
@@ -104,21 +105,21 @@ if __name__ == '__main__':
 
     now = datetime.datetime.now()
     now_str = "%s UTC" % str(now.utcnow())
-    print '<html><head>'
-    print '<title>Packages that failed to build as of %s</title>' % now_str
-    print '<style type="text/css"> dt { margin-top: 1em } </style>'
-    print '</head><body>'
-    print "<p>Last run: %s</p>" % now_str
+    print('<html><head>')
+    print('<title>Packages that failed to build as of %s</title>' % now_str)
+    print('<style type="text/css"> dt { margin-top: 1em } </style>')
+    print('</head><body>')
+    print("<p>Last run: %s</p>" % now_str)
 
-    print '%s failed builds:<p>' % len(failed)
+    print('%s failed builds:<p>' % len(failed))
 
     # Print the results
-    print '<dl>'
-    print '<style type="text/css"> dt { margin-top: 1em } </style>'
+    print('<dl>')
+    print('<style type="text/css"> dt { margin-top: 1em } </style>')
     for owner in sorted(failures.keys()):
-        print '<dt>%s (%s):</dt>' % (owner, len(failures[owner]))
+        print('<dt>%s (%s):</dt>' % (owner, len(failures[owner])))
         for pkg in sorted(failures[owner].keys()):
-            print '<dd><a href="%s">%s</a></dd>' % (failures[owner][pkg], pkg)
-    print '</dl>'
-    print '</body>'
-    print '</html>'
+            print('<dd><a href="%s">%s</a></dd>' % (failures[owner][pkg], pkg))
+    print('</dl>')
+    print('</body>')
+    print('</html>')

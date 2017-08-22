@@ -9,6 +9,7 @@
 #
 
 
+from __future__ import print_function
 import sys
 import os
 import koji
@@ -56,10 +57,8 @@ def _countMissing (build):
     cnt = 0
     local_evr = (str(build['epoch']), build['version'], build['release'])
 
-#    print "local=%s" % build
 
     for b in builds:
-#	print "remote[%d]=%s" % (cnt, b)
 	remote_evr = (str(b['epoch']), b['version'], b['release'])
 	newestRPM = _rpmvercmp(local_evr, remote_evr)
 	if newestRPM == 0 or newestRPM == 1:
@@ -91,13 +90,8 @@ remote_pkgs = sorted(remotekojisession.listTagged(tag, inherit=inherit, latest=T
 local_num = len(local_pkgs)
 remote_num = len(remote_pkgs)
 
-#print "pkgs local=%d remote=%d" % (local_num, remote_num)
-
-#print "local[0]=%s" % (local_pkgs[0])
-#exit(0)
 
 while (local < local_num) or (remote < remote_num):
-#    print "local=%d remote=%d" % (local, remote)
 
     if remote_pkgs[remote]['package_name'] == local_pkgs[local]['package_name']:
         local_evr = (str(local_pkgs[local]['epoch']), local_pkgs[local]['version'], local_pkgs[local]['release'])
@@ -105,10 +99,10 @@ while (local < local_num) or (remote < remote_num):
 
 	newestRPM = _rpmvercmp(local_evr, remote_evr)
 	if newestRPM == 0:
-	    print "same: local and remote: %s " % local_pkgs[local]['nvr']
+	    print("same: local and remote: %s " % local_pkgs[local]['nvr'])
 	    cnt['same'] += 1
         if newestRPM == 1:
-            print "newer locally: local: %s remote: %s" % (local_pkgs[local]['nvr'], remote_pkgs[remote]['nvr'])
+            print("newer locally: local: %s remote: %s" % (local_pkgs[local]['nvr'], remote_pkgs[remote]['nvr']))
 	    cnt['newer'] += 1
         if newestRPM == -1:
 	    missing = _countMissing(local_pkgs[local])
@@ -117,7 +111,7 @@ while (local < local_num) or (remote < remote_num):
 	    else:
 		txt = "%d" % missing
 
-            print "newer remote: local: %s remote: %s with %s build(s) missing" % (local_pkgs[local]['nvr'], remote_pkgs[remote]['nvr'], txt)
+            print("newer remote: local: %s remote: %s with %s build(s) missing" % (local_pkgs[local]['nvr'], remote_pkgs[remote]['nvr'], txt))
 	    cnt['total_missing_builds'] += missing
 	    cnt['older'] += 1
 
@@ -125,16 +119,16 @@ while (local < local_num) or (remote < remote_num):
 	remote += 1
 
     elif remote_pkgs[remote]['package_name'] > local_pkgs[local]['package_name']:
-    	print "only locally: %s" % local_pkgs[local]['nvr']
+    	print("only locally: %s" % local_pkgs[local]['nvr'])
 	local += 1
 	cnt['local_only'] += 1
 
     elif remote_pkgs[remote]['package_name'] < local_pkgs[local]['package_name']:
-    	print "only remote: %s" % remote_pkgs[remote]['nvr']
+    	print("only remote: %s" % remote_pkgs[remote]['nvr'])
 	remote += 1
 	cnt['remote_only'] += 1
 
 #    if cnt['older'] == 5:
 #	break
 
-print "statistics: %s" % cnt
+print("statistics: %s" % cnt)

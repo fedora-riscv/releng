@@ -7,6 +7,7 @@
 # SPDX-License-Identifier:      GPL-2.0+
 # Author(s):  Dennis Gilmore <dennis@ausil.us>
 
+from __future__ import print_function
 import rpm
 import os
 import logging
@@ -109,7 +110,7 @@ def _run_command(cmd, shell=False, env=None, pipe=[], cwd=None):
                                       cwd=cwd)
                 (output, err) = proc.communicate()
                 if proc.returncode:
-                   print 'Non zero exit'
+                   print('Non zero exit')
             else:
                 proc = subprocess.Popen(command, env=environ,
                                         stdout=subprocess.PIPE,
@@ -122,9 +123,9 @@ def _run_command(cmd, shell=False, env=None, pipe=[], cwd=None):
                     output += line
         except (subprocess.CalledProcessError,
                 OSError), e:
-            print e
+            print(e)
         except KeyboardInterrupt:
-            print "interputed by user"
+            print("interputed by user")
     else:
         # Ok, we're not on a live tty, so pipe and log.
         if pipe:
@@ -156,7 +157,7 @@ def _run_command(cmd, shell=False, env=None, pipe=[], cwd=None):
             raise rpkgError(e)
         log.info(output)
         if proc.returncode:
-            print ('Command %s returned code %s with error: %s' %
+            print('Command %s returned code %s with error: %s' %
                               (' '.join(cmd),
                                proc.returncode,
                                error))
@@ -197,7 +198,7 @@ def syncArch(arch, repodata, fedmsg=False):
             results = dict(deleted=deleted, bytes=transferred, arch=arch)
             notify(results)
     else:
-        print cmd
+        print(cmd)
 
 def syncSRPM(srpm, arch, dest, source, fedmsg=False):
     if not os.path.isdir(dest):
@@ -210,7 +211,7 @@ def syncSRPM(srpm, arch, dest, source, fedmsg=False):
             results = dict(deleted=deleted, bytes=transferred, arch=arch)
             notify(results)
     else:
-        print cmd
+        print(cmd)
 
 def getSRPM(rpmfilename):
     """ get the SRPM of a given RPM. """
@@ -222,12 +223,12 @@ def getSRPM(rpmfilename):
         h = ts.hdrFromFdno(fd)
     except rpm.error, e:
         if str(e) == "error reading package header ":
-           print "rpmfile: %s" % rpmfilename
-           print str(e)
+           print("rpmfile: %s" % rpmfilename)
+           print(str(e))
            return None
     os.close(fd)
     if h == None:
-         print "Issues with rpm: %s" % rpmfilename
+         print("Issues with rpm: %s" % rpmfilename)
          return None
     return h.sprintf('%{SOURCERPM}')
 
@@ -285,24 +286,24 @@ def main(opts):
             if name.endswith('rpm') and not name.endswith('src.rpm'):
                 srpmfile = getSRPM(os.path.join( root, name))
                 if not srpmfile == None:
-                    print "getting data for %s" % name
+                    print("getting data for %s" % name)
                     srpms[srpmfile] = srpmLocation(root, name)
             if name.endswith('src.rpm'):
                 existing_srpms[name] = root
 
     for srpm in zip(srpms.keys(), srpms.values()):
         if srpm[0] not in existing_srpms.keys() and srpm[0] not in to_sync_srpms.keys():
-            print "Need: %s  At: %s" % (srpm[0], srpm[1])
+            print("Need: %s  At: %s" % (srpm[0], srpm[1]))
             to_sync_srpms[srpm[0]] = srpm[1] 
 
     for srpm in zip(existing_srpms.keys(), existing_srpms.values()):
         if srpm[0] not in srpms.keys() and srpm[0] not in to_delete_srpms.keys():
-            print "To Delete: %s" % srpm[0]
+            print("To Delete: %s" % srpm[0])
             to_delete_srpms[srpm[0]] = srpm[1]
 
 
     for files in zip(to_sync_srpms.keys(), to_sync_srpms.values()):
-        print files
+        print(files)
         srpm = files[0]
         arch = files[1][0]
         dest = files[1][1]
@@ -312,21 +313,21 @@ def main(opts):
 
     for files in zip(to_delete_srpms.keys(), to_delete_srpms.values()):
         srpmfile = os.path.join(files[1], files[0])
-        print "Removing: %s" % srpmfile
+        print("Removing: %s" % srpmfile)
         if not opts.only_show:
             os.unlink(srpmfile)
 
     for repo in sourcerepo:
-        print "updating repo metadata in %s" % repo
+        print("updating repo metadata in %s" % repo)
         if not opts.only_show:
             cmd = ['createrepo', '-d', '--update', '--unique-md-filenames', repo]
-            print cmd
+            print(cmd)
             try:
                 proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                         cwd=repo, stderr=subprocess.PIPE)
                 output, error = proc.communicate()
             except OSError, e:
-                print e
+                print(e)
             if error:
                 if sys.stdout.isatty():
                     sys.stderr.write(error)
@@ -335,7 +336,7 @@ def main(opts):
                     # case of no local tty, but I don't have a better way to do this.
                     #self.log.info(error)
             if proc.returncode:
-                print "error making repodata %s", proc.returncode
+                print("error making repodata %s", proc.returncode)
         
 
 if __name__ == '__main__':

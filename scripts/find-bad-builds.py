@@ -6,6 +6,7 @@
 # template for finding builds that meet some time/buildroot component critera.
 # Edit to suit.
 
+from __future__ import print_function
 import koji
 
 kojisession = koji.ClientSession('http://koji.fedoraproject.org/kojihub')
@@ -39,7 +40,7 @@ for build in tocheck:
                             if not build in needbuild:
                                 needbuild.append(build)
                         else:
-                            print "%s had binutils, but it was %s" % (build['nvr'], pkg['nvr'])
+                            print("%s had binutils, but it was %s" % (build['nvr'], pkg['nvr']))
 
 rebuildnames = []
 for build in needbuild:
@@ -51,4 +52,4 @@ for build in needbuild:
 
 rebuildnames.sort()
 for build in rebuildnames:
-    print build
+    print(build)

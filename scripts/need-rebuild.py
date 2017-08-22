@@ -10,6 +10,7 @@
 #     Milos Jakubicek <xjakub@fi.muni.cz>
 #
 
+from __future__ import print_function
 import koji
 import os
 import operator
@@ -42,9 +43,9 @@ def needRebuild(kojihub):
     try:
         pkgs = kojisession.listPackages(target, inherited=True)
     except:
-        print >> sys.stderr, "Failed to get the packages list from koji: %s (skipping)" % kojihub
+        print("Failed to get the packages list from koji: %s (skipping)" % kojihub, file=sys.stderr)
         return -1
-    print "%s<br/>" % kojihub
+    print("%s<br/>" % kojihub)
 
     # reduce the list to those that are not blocked and sort by package name
     pkgs = sorted([pkg for pkg in pkgs if not pkg['blocked']],
@@ -69,7 +70,7 @@ def needRebuild(kojihub):
     try:
         requests = kojisession.multiCall()
     except:
-        print >> sys.stderr, "Failed to get the build request information: %s (skipping)" % kojihub
+        print("Failed to get the build request information: %s (skipping)" % kojihub, file=sys.stderr)
         return -1
 
 
@@ -95,13 +96,13 @@ def needRebuild(kojihub):
 
 now = datetime.datetime.now()
 now_str = "%s UTC" % str(now.utcnow())
-print '<html><head>'
-print '<title>Packages that need to be rebuild as of %s</title>' % now_str
-print '<style type="text/css"> dt { margin-top: 1em } </style>'
-print '</head><body>'
-print "<p>Last run: %s</p>" % now_str
-print "<p>Included build tags: %s</p>" % [target, buildtag, updates, rawhide]
-print "<p>Included Koji instances:<br/>"
+print('<html><head>')
+print('<title>Packages that need to be rebuild as of %s</title>' % now_str)
+print('<style type="text/css"> dt { margin-top: 1em } </style>')
+print('</head><body>')
+print("<p>Last run: %s</p>" % now_str)
+print("<p>Included build tags: %s</p>" % [target, buildtag, updates, rawhide])
+print("<p>Included Koji instances:<br/>")
 
 # Go through all Kojis to get unbuilt packages
 for kojihub in kojihubs:
@@ -112,7 +113,7 @@ for kojihub in kojihubs:
         unbuilt = unbuiltnew
     else:
         unbuilt = unbuilt & unbuiltnew
-print "</p>"
+print("</p>")
 
 # Update the maintainer-package list
 for owner in tobuild.keys():
@@ -123,17 +124,17 @@ for owner in tobuild.keys():
         del tobuild[owner]
 
 
-print "<p>%s packages need rebuilding:</p><hr/>" % len(unbuilt)
+print("<p>%s packages need rebuilding:</p><hr/>" % len(unbuilt))
 
 # Print the results
-print '<dl>'
+print('<dl>')
 for owner in sorted(tobuild.keys()):
-    print '<dt>%s (%s):</dt>' % (owner, len(tobuild[owner]))
+    print('<dt>%s (%s):</dt>' % (owner, len(tobuild[owner])))
     for pkg in sorted(tobuild[owner]):
-        print '<dd><a href="http://koji.fedoraproject.org/koji/packageinfo?packageID=%s">%s</a></dd>' % (pkg, pkg)
-    print '</dl>'
-print '<p>The script that generated this page can be found at '
-print '<a href="https://pagure.io/releng/blob/master/f/scripts">https://pagure.io/releng/blob/master/f/scripts</a>.'
-print 'There you can also report bugs and RFEs.</p>'
-print '</body>'
-print '</html>'
+        print('<dd><a href="http://koji.fedoraproject.org/koji/packageinfo?packageID=%s">%s</a></dd>' % (pkg, pkg))
+    print('</dl>')
+print('<p>The script that generated this page can be found at ')
+print('<a href="https://pagure.io/releng/blob/master/f/scripts">https://pagure.io/releng/blob/master/f/scripts</a>.')
+print('There you can also report bugs and RFEs.</p>')
+print('</body>')
+print('</html>')

@@ -11,6 +11,7 @@
 #     Jesse Keating <jkeating@redhat.com>
 #     Till Maas <opensource@till.name>
 
+from __future__ import print_function
 from Queue import Queue
 from collections import OrderedDict
 from threading import Thread
@@ -23,7 +24,6 @@ import os
 import smtplib
 import sys
 import textwrap
-
 import koji
 import pkgdb2client
 import yum
@@ -246,7 +246,7 @@ def setup_yum(repo=RAWHIDE_RELEASE["repo"],
     yb.preconf.init_plugins = False
     # FIXME: Maybe reuse should be False here
     if not yb.setCacheDir(force=True, reuse=True):
-        print >> sys.stderr, "Can't create a tmp. cachedir. "
+        print("Can't create a tmp. cachedir.", file=sys.stderr)
         sys.exit(1)
 
     yb.conf.cache = 0
@@ -297,8 +297,8 @@ def unblocked_packages(packages, tagID=RAWHIDE_RELEASE["tag"]):
                 package_name = pkg[0]['package_name']
                 unblocked.append(package_name)
         else:
-            print "ERROR: {pkgname}: {error}".format(
-                pkgname=pkgname, error=result)
+            print("ERROR: {pkgname}: {error}".format(
+                pkgname=pkgname, error=result))
     return unblocked
 
 
@@ -808,7 +808,7 @@ def main():
     text += "\n"
     text += info
     text += FOOTER
-    print text
+    print(text)
 
     if args.mailto or args.send:
         now = datetime.datetime.utcnow()
