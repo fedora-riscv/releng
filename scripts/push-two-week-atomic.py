@@ -95,7 +95,7 @@ try:
         requests.get(MARK_ATOMIC_GOOD_URL).text
     MARK_ATOMIC_GOOD_COMPOSES = \
         json.loads(MARK_ATOMIC_GOOD_JSON)[u'good-composes']
-except Exception, e:
+except Exception as e:
     log.exception(
         "!!!!{0}!!!!\n{1}".format("Failed to fetch or parse json", e)
     )
@@ -360,7 +360,7 @@ Fedora Release Engineering
     try:
         s = smtplib.SMTP(sender_smtp)
         s.sendmail(sender_email, mail_receivers, msg.as_string())
-    except smtplib.SMTPException, e:
+    except smtplib.SMTPException as e:
         print("ERROR: Unable to send email:\n{}\n".format(e))
 
 def stage_atomic_release(
