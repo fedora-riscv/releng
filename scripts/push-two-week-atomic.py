@@ -97,7 +97,7 @@ try:
         json.loads(MARK_ATOMIC_GOOD_JSON)[u'good-composes']
 except Exception, e:
     log.exception(
-        "!!!!{0}!!!!\n{0}".format("Failed to fetch or parse json", e)
+        "!!!!{0}!!!!\n{1}".format("Failed to fetch or parse json", e)
     )
     sys.exit(1)
 
