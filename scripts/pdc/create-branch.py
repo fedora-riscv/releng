@@ -51,4 +51,5 @@ if __name__ == '__main__':
     utilities.ensure_global_component(
         pdc, args.package, args.yes)
     utilities.ensure_component_branches(
-        pdc, args.package, slas, args.eol, args.branch, args.type, args.yes)
+        pdc, args.package, slas, args.eol, args.branch, args.type,
+        critpath=False, force=args.yes)
