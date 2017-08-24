@@ -111,7 +111,7 @@ class KojiHelper(object):
             self.kojihub = arch
         else:
             self.kojihub = "koji"
-        self.koji_module = koji.get_profile_module(self.kojihub) 
+        self.koji_module = koji.get_profile_module(self.kojihub)
         self.kojisession = self.koji_module.ClientSession(self.koji_module.config.server)
         self.kojisession.krb_login()
 
@@ -121,7 +121,7 @@ class KojiHelper(object):
         builds = [build['nvr'] for build in
                   self.kojisession.listTagged(tag, latest=True,
                                               inherit=inherit)
-                  ]
+                 ]
         return builds
 
     def get_build_ids(self, nvrs):
@@ -344,34 +344,34 @@ if __name__ == "__main__":
     # Create a parser to parse our arguments
     parser = argparse.ArgumentParser(usage=usage)
     parser.add_argument('-v', '--verbose', action='count', default=0,
-                      help='Be verbose, specify twice for debug')
+                        help='Be verbose, specify twice for debug')
     parser.add_argument('--tag',
-                      help='Koji tag to sign, use instead of listing builds')
+                        help='Koji tag to sign, use instead of listing builds')
     parser.add_argument('--inherit', action='store_true', default=False,
-                      help='Use tag inheritance to find builds.')
+                        help='Use tag inheritance to find builds.')
     parser.add_argument('--just-write', action='store_true', default=False,
-                      help='Just write out signed copies of the rpms')
+                        help='Just write out signed copies of the rpms')
     parser.add_argument('--just-sign', action='store_true', default=False,
-                      help='Just sign and import the rpms')
+                        help='Just sign and import the rpms')
     parser.add_argument('--just-list', action='store_true', default=False,
-                      help='Just list the unsigned rpms')
+                        help='Just list the unsigned rpms')
     parser.add_argument('--write-all', action='store_true', default=False,
-                      help='Write every rpm, not just unsigned')
+                        help='Write every rpm, not just unsigned')
     parser.add_argument('--password',
-                      help='Password for the key')
+                        help='Password for the key')
     parser.add_argument('--batch-mode', action="store_true", default=False,
-                      help='Read null-byte terminated password from stdin')
+                        help='Read null-byte terminated password from stdin')
     parser.add_argument('--arch',
-                      help='Architecture when singing secondary arches')
+                        help='Architecture when singing secondary arches')
     parser.add_argument('--sigul-batch-size',
-                      help='Amount of RPMs to sign in a sigul batch',
-                      default=50, type=int)
+                        help='Amount of RPMs to sign in a sigul batch',
+                        default=50, type=int)
     parser.add_argument('--sigul-config-file',
-                      help='Config file to use for sigul',
-                      default=None, type=str)
+                        help='Config file to use for sigul',
+                        default=None, type=str)
     parser.add_argument('--gpg-agent',
-                      help='Use GPG Agent to ask for password',
-                      default=False, action='store_true')
+                        help='Use GPG Agent to ask for password',
+                        default=False, action='store_true')
     # Get our options and arguments
     args, extras = parser.parse_known_args()
 
@@ -509,7 +509,7 @@ if __name__ == "__main__":
         global status
         logging.info('Signing batch %s/%s with %s rpms' % (
             batchnr, (total + batchsize - 1) / batchsize, len(rpms))
-        )
+                    )
         command = sigul_helper.build_sign_cmdline(rpms)
         logging.debug('Running %s' % subprocess.list2cmdline(command))
         ret = sigul_helper.run_command(command, False)[0]
