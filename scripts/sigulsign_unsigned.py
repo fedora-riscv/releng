@@ -17,6 +17,7 @@ import getpass
 import subprocess
 import logging
 import koji
+import cccolutils
 
 errors = {}
 
@@ -254,7 +255,7 @@ def writeRPMs(status, kojihelper, batch=None):
 
 class SigulHelper(object):
     def __init__(self, key, password=None, config_file=None, arch=None,
-                 ask_with_agent=False, ask=False):
+                 ask_with_agent=False, ask=False, use_staging=False):
         """ If password is None, ask for it
 
         """
@@ -262,8 +263,11 @@ class SigulHelper(object):
 
         if password is None:
             try:
-                import fedora_cert
-                fas_username = fedora_cert.read_user_cert()
+                krb_realm = "FEDORAPROJECT.ORG"
+                if use_staging:
+                    krb_realm = "STAGING.FEDORAPROJECT.ORG"
+
+                fas_username = cccolutils.get_user_for_realm(krb_realm)
             except:
                 fas_username = getpass.getuser()
 
@@ -369,6 +373,8 @@ if __name__ == "__main__":
     parser.add_argument('--gpg-agent',
                         help='Use GPG Agent to ask for password',
                         default=False, action='store_true')
+    parser.add_argument('--staging', action='store_true', default=False,
+                        help='Sign packages in the staging environment')
     # Get our options and arguments
     args, extras = parser.parse_known_args()
 
@@ -423,7 +429,8 @@ if __name__ == "__main__":
             sigul_helper = SigulHelper(key, passphrase,
                                        config_file=args.sigul_config_file,
                                        arch=args.arch, ask=True,
-                                       ask_with_agent=args.gpg_agent)
+                                       ask_with_agent=args.gpg_agent,
+                                       use_staging=args.staging)
         except ValueError as error:
             logging.error('Error validating passphrase for key %s: %s', key,
                           error)
