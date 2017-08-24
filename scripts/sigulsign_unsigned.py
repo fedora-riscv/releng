@@ -11,15 +11,12 @@
 #
 # This program requires koji and sigul installed, as well as configured.
 
-import os
 import argparse
 import sys
-import koji
 import getpass
-import shutil
 import subprocess
-import tempfile
 import logging
+import koji
 
 errors = {}
 
