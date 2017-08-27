@@ -4,6 +4,8 @@ from __future__ import print_function
 import copy
 import sys
 
+from fedrepo_req import STANDARD_BRANCH_SLAS
+
 
 def prompt(message, force):
     return force or raw_input(message + " [y/N]: ").lower() in ('y', 'yes')
@@ -78,6 +80,7 @@ def ensure_component_branches(pdc, package, slas, eol, branch, type, critpath, f
 
 
 def patch_eol(pdc, package, eol, branch, type, force):
+    specified_eol = eol
     endpoint = pdc['component-branch-slas']
     # A base query
     query = dict(branch=branch, global_component=package, branch_type=type)
@@ -87,6 +90,15 @@ def patch_eol(pdc, package, eol, branch, type, force):
     for sla in slas:
         flattened = copy.copy(sla)
         flattened.update(sla['branch'])
+
+        if specified_eol == 'default':
+            if branch not in STANDARD_BRANCH_SLAS:
+                raise KeyError("%r is not a standard branch, so we don't know "
+                               "a `default` SLA." % branch)
+            if sla['sla'] not in STANDARD_BRANCH_SLAS[branch]:
+                raise KeyError("%r does not have a default eol for %r" % (
+                    sla['sla'], branch))
+            eol = STANDARD_BRANCH_SLAS[branch][sla['sla']]
 
         # See if user wants intervention
         message = "Adjust eol of %s to %s?" % (fmt(flattened), eol)

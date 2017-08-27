@@ -31,7 +31,7 @@ parser.add_argument('package', help='Name of the package')
 parser.add_argument('type', help='Type of the package (rpm, module, container, ..)')
 parser.add_argument('branch', help='Name of the branch (f26, or 1.12, or master)')
 parser.add_argument('eol', help='End of life date for the SLAs, '
-                    'in the format of "2020-01-01"')
+                    'in the format of "2020-01-01".  May also be "default".')
 parser.add_argument('-y', '--yes', dest='yes', action='store_true',
                     default=False,
                     help='Force "yes" to every question.')
