@@ -102,4 +102,4 @@ def patch_eol(pdc, package, eol, branch, type, force):
     if modified:
         print("Set eol to %s on %r" % (eol, modified))
     else:
-        print("Did adjust any EOLs.")
+        print("Did not adjust any EOLs.")
