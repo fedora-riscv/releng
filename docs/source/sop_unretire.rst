@@ -31,7 +31,7 @@ Unretiring a package consists of the following actions:
 - Set the PDC EOLs for the branch to appropriate future values::
 
     export PYTHONPATH=scripts/pdc/
-    python scripts/pdc/adjust-eol.py fedora TOKEN TurboGears2 rpm epel7 2024-06-30
+    python scripts/pdc/adjust-eol.py fedora TOKEN TurboGears2 rpm epel7 default
 
 - Refresh the pagure acl config to allow pushes.  ssh to `pkgs02` and run::
 
