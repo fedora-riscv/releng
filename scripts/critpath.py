@@ -5,14 +5,19 @@
 #
 # Authors: Will Woods <wwoods@redhat.com>
 #          Seth Vidal <skvidal@fedoraproject.org>
+#          Robert Marshall <rmarshall@redhat.com>
 
 from __future__ import print_function
 import sys
-import yum
 import argparse
 import shutil
-import tempfile
-from rpmUtils.arch import getBaseArch
+from tempfile import mkdtemp
+import dnf
+
+class SackError(Exception):
+    pass
+
+major_version = sys.version_info[0]
 
 # Set some constants
 # Old definition
@@ -24,6 +29,8 @@ critpath_groups = [
 ]
 primary_arches=('armhfp', 'x86_64')
 alternate_arches=('i386','aarch64','ppc64','ppc64le','s390x')
+# There is not current a programmatic way to generate this list
+fakearch = {'i386':'i686', 'x86_64':'x86_64', 'ppc64':'ppc64', 'ppc':'ppc64', 'armhfp':'armv7hl', 'aarch64':'aarch64', 'ppc64le':'ppc64', 's390x':'s390x'}
 fedora_baseurl = 'http://dl.fedoraproject.org/pub/fedora/linux/'
 fedora_alternateurl = 'http://dl.fedoraproject.org/pub/fedora-secondary/'
 releasepath = {
@@ -35,7 +42,8 @@ updatepath = {
     'rawhide': ''
 }
 
-for r in ['12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26']: # 13, 14, ...
+for x in range(12,27,1):
+    r = str(x)
     releasepath[r] = 'releases/%s/Everything/$basearch/os/' % r
     updatepath[r] = 'updates/%s/$basearch/' % r
 
@@ -61,8 +69,9 @@ def resolve_deps(pkg, base):
             continue
         try:
             po = base.returnPackageByDep(req)
-        except yum.Errors.YumBaseError, e:
-            print("ERROR: unresolved dep for %s of pkg %s" % (req[0], pkg.name))
+        except yum.Errors.YumBaseError:
+            print("ERROR: unresolved dep for %s of pkg %s" % (req[0],
+                  pkg.name))
             raise
         provides_cache[req] = po.name
         deps.append(po.name)
@@ -71,7 +80,7 @@ def resolve_deps(pkg, base):
 
     return deps
 
-def expand_critpath(my, start_list):
+def expand_yum_critpath(my, start_list):
     name_list = []
     # Expand the start_list to a list of names
     for name in start_list:
@@ -121,12 +130,10 @@ def expand_critpath(my, start_list):
 def setup_yum(url=None, release=None, arch=None):
     my = yum.YumBase()
     basearch = getBaseArch()
-    cachedir = tempfile.mkdtemp(dir='/tmp', prefix='critpath-')
+    cachedir = mkdtemp(dir='/tmp', prefix='critpath-')
     if arch is None:
         arch = basearch
     elif arch != basearch:
-        # try to force yum to use the supplied arch rather than the host arch
-        fakearch = {'i386':'i686', 'i386':'i586', 'x86_64':'x86_64', 'ppc64':'ppc64', 'ppc':'ppc64', 'armhfp':'armv7hl', 'aarch64':'aarch64', 'ppc64le':'ppc64', 's390x':'s390x'}
         my.preconf.arch = fakearch[arch]
     my.conf.cachedir = cachedir
     my.conf.installroot = cachedir
@@ -138,11 +145,83 @@ def setup_yum(url=None, release=None, arch=None):
             my.add_enable_repo('critpath-repo-updates-%s' % arch, baseurls=[url+updatepath[release]])
     else:
         my.add_enable_repo('critpath-repo-%s' % arch, baseurls=[url+'/$basearch/os/'])
-        print "adding critpath-repo-%s at %s" % (arch, url+'/$basearch/os/')
+        print("adding critpath-repo-%s at %s" % (arch, url+'/$basearch/os/'))
     return (my, cachedir)
 
 def nvr(p):
     return '-'.join([p.name, p.ver, p.rel])
+
+def expand_dnf_critpath(release):
+    print("Resolving %s dependencies with DNF" % arch)
+    base = dnf.Base()
+
+    temp_cache_dir = mkdtemp(suffix='-critpath')
+    temp_install_root = mkdtemp(suffix='-critpath-installroot')
+
+    conf = base.conf
+    # cache download data somewhere else
+    conf.cachedir = temp_cache_dir
+    # do not use the data from the previous runs of system dnf or groups will
+    # be marked incorrectly
+    conf.persistdir = temp_cache_dir
+    conf.installroot = temp_install_root
+    # dnf needs arches, not basearches to work
+    conf.arch = fakearch[arch]
+
+    try:
+        packages = set()
+
+        # add a new repo requires an id, a conf object, and a baseurl
+        repo_url = url + releasepath[release]
+
+        # make sure we don't load the system repo and get local data
+        print("Basearch: %s" % conf.basearch)
+        print("Arch:     %s" % conf.arch)
+        print("%s repo %s" % (arch, repo_url))
+
+        # mark all critpath groups in base object
+        for group in critpath_groups:
+            base.reset(repos=True, goal=True, sack=True)
+            base.repos.add_new_repo(arch, conf, baseurl=[repo_url])
+            base.fill_sack(load_system_repo=False)
+            if base.repos[arch].enabled is False:
+                raise SackError
+
+            # load up the comps data from configured repositories
+            base.read_comps()
+            group = group.replace('@','')
+            base.group_install(group, ['mandatory', 'default', 'optional'], strict=False)
+            # resolve the groups marked in base object
+            base.resolve()
+            packages = packages.union(base.transaction.install_set)
+
+        return packages
+
+
+    except Exception as ex:
+        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        message = template.format(type(ex).__name__, ex.args)
+        print(message)
+        print("DNF failed to synchronize the repository and cannot proceed.")
+    finally:
+        base.close()
+        del base
+        del conf
+        shutil.rmtree(temp_cache_dir)
+        shutil.rmtree(temp_install_root)
+
+def solves_with_dnf(release_version):
+    if release_version == 'branched':
+        return True
+    elif release_version == 'rawhide':
+        return True
+    elif release_version == 'devel':
+        return True
+    elif (int(release_version) > 26):
+        return True
+    else:
+        return False
+
 
 if __name__ == '__main__':
     # Option parsing
@@ -164,26 +243,47 @@ if __name__ == '__main__':
                       help="Output source RPMS instead of binary RPMS (for pkgdb)")
     parser.add_argument("--noaltarch", action='store_true', default=False,
                       help="Not to run for alternate architectures")
+    parser.add_argument("--dnf", action='store_true', default=False,
+                      help="Use DNF for dependency solving")
     args, extras = parser.parse_known_args()
+
+    # Input & Sanity Validation
     if (len(extras) != 1) or (extras[0] not in releases):
         parser.error("must choose a release from the list: %s" % releases)
-    (maj, min, sub) = yum.__version_info__
-    if (maj < 3 or min < 2 or (maj == 3 and min == 2 and sub < 24)) and args.arches != getBaseArch():
-        print("WARNING: yum < 3.2.24 may be unable to depsolve other arches.")
-        print("Get a newer yum or run this on an actual %s system." % args.arches)
-    # Sanity checking done, set some variables
+
+    # Parse values
     release = extras[0]
     check_arches = args.arches.split(',')
     alternate_check_arches = args.altarches.split(',')
+    package_count = 0
+
+    using_dnf = False
+    if (args.dnf == True) or (major_version >= 3) or solves_with_dnf(release):
+        using_dnf = True
+
+    if not using_dnf:
+        import yum
+        from rpmUtils.arch import getBaseArch
+        if yum.__version_info__ < (3, 2, 24) and args.arches != getBaseArch():
+            print("WARNING: yum < 3.2.24 may be unable to depsolve other arches.")
+            print("Get a newer yum or run this on an actual %s system." % args.arches)
+            sys.exit(1)
+    else:
+        dnf_version = tuple(map(int, dnf.const.VERSION.split(".")))
+        if dnf_version < (2, 0, 0):
+            print("This script requires the DNF version 2.0 API.")
+            sys.exit(1)
+
+
     if args.nvr and args.srpm:
         print("ERROR: --nvr and --srpm are mutually exclusive")
         sys.exit(1)
 
     if args.url != fedora_baseurl and "/mnt/koji/compose/" not in args.url:
         releasepath[release] = releasepath[release].replace('development/','')
-        print("Using URL %s" % (args.url + releasepath[release]))
+        print("Using Base URL %s" % (args.url + releasepath[release]))
     else:
-        print("Using URL %s" % (args.url))
+        print("Using Base URL %s" % (args.url))
 
     # Do the critpath expansion for each arch
     critpath = set()
@@ -201,22 +301,47 @@ if __name__ == '__main__':
         else:
             raise Exception('Invalid architecture')
         print("Expanding critical path for %s" % arch)
-        (my, cachedir) = setup_yum(url = url, release=release, arch=arch)
-        pkgs = expand_critpath(my, critpath_groups)
-        print("%u packages for %s" % (len(pkgs), arch))
+        my = None
+        cachedir = None
+        pkgs = None
+
+        if using_dnf:
+            pkgs = expand_dnf_critpath(release)
+        else:
+            print("Resolving %s dependencies with YUM" % arch)
+            (my, cachedir) = setup_yum(url = url, release=release, arch=arch)
+            pkgs = expand_yum_critpath(my, critpath_groups)
+
+        if pkgs is None:
+            package_count = 0
+        else:
+            package_count = len(pkgs)
+
+        print("%u packages for %s" % (package_count, arch))
+
         if args.nvr:
             critpath.update([nvr(p).encode('utf8') for p in pkgs])
         elif args.srpm:
             critpath.update([get_source(p.sourcerpm) for p in pkgs])
         else:
             critpath.update([p.name.encode('utf8') for p in pkgs])
-        del my
-        if cachedir.startswith("/tmp/"):
-            shutil.rmtree(cachedir)
-        print
+
+        del pkgs
+
+        # deleting the cache dir has to happen after the above or
+        # massive errors occur
+        if not using_dnf:
+            del my
+            if cachedir.startswith("/tmp/"):
+                shutil.rmtree(cachedir)
+        print()
     # Write full list
-    f = open(args.output,"w")
+    f = open(args.output,"wb")
     for packagename in sorted(critpath):
-        f.write(packagename + "\n")
+        f.write(packagename + b'\n')
     f.close()
-    print("Wrote %u items to %s" % (len(critpath), args.output))
+    if critpath == None:
+        package_count = 0
+    else:
+        package_count = len(critpath)
+    print("Wrote %u items to %s" % (package_count, args.output))
