@@ -136,8 +136,8 @@ def setup_yum(url=None, release=None, arch=None):
         if updatepath[release]:
             my.add_enable_repo('critpath-repo-updates-%s' % arch, baseurls=[url+updatepath[release]])
     else:
-        my.add_enable_repo('critpath-repo-%s' % arch, baseurls=[url+'$basearch/os/'])
-        print "adding critpath-repo-%s at %s" % (arch, url+'$basearch/os/')
+        my.add_enable_repo('critpath-repo-%s' % arch, baseurls=[url+'/$basearch/os/'])
+        print "adding critpath-repo-%s at %s" % (arch, url+'/$basearch/os/')
     return (my, cachedir)
 
 def nvr(p):
