@@ -5,9 +5,6 @@ RELEASE=$1
 OLDRELEASE=$(bc -l <<< "$RELEASE-1")
 
 primary_arches="armv7hl i686 x86_64 aarch64 ppc64 ppc64le s390x"
-#arm_arches=aarch64
-#ppc_arches="ppc64 ppc64le"
-#s390_arches=s390x
 
 kojicli=koji
 
