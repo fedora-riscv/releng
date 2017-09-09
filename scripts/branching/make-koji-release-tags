@@ -9,10 +9,6 @@ primary_arches="armv7hl i686 x86_64 aarch64 ppc64 ppc64le s390x"
 #ppc_arches="ppc64 ppc64le"
 #s390_arches=s390x
 
-
-for arch in $primary_arches
-do
-
 kojicli=koji
 
 $kojicli clone-tag --all --latest-only f$OLDRELEASE f$RELEASE
@@ -57,4 +53,3 @@ $kojicli edit-target rawhide-docker-candidate --dest-tag=f$RELEASE-docker --buil
 
 $kojicli remove-tag-inheritance rawhide f$OLDRELEASE
 $kojicli add-tag-inheritance rawhide f$RELEASE
-done
