@@ -1,4 +1,4 @@
-#! /usr/bin/python -tt
+#! /usr/bin/python3 -tt
 """ Orphan all packages of a given set of users.
 
 If there are other committers on a package, the first one is promoted to be the
@@ -80,7 +80,7 @@ def main():
             print("%s/%s will be given to %s" % (
                 package['namespace'], package['name'], custodian))
 
-        response = raw_input("Is this okay? [y/N]")
+        response = input("Is this okay? [y/N]")
         if response.lower() not in ('y', 'yes'):
             print("!! OK.  Bailing out for %r" % user)
             continue
