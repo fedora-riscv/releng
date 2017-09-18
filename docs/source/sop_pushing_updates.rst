@@ -35,7 +35,7 @@ Decide what releases you're going to push.
   will request in a releng ticket.
 
 * If there is no Freeze ongoing you can push all Fedora and EPEL releases at
-  the same time if you wish. 
+  the same time if you wish.
 
 * From time to time there may be urgent requests in some branches, you can only
   push those if requested. Note however that bodhi2 will automatically push
@@ -88,7 +88,15 @@ Pushing Stable updates during freeze
 ------------------------------------
 
 During feezes we need to push to stable builds included in the compose.  QA
-will file a ticket with the nvrs to push
+will file a ticket with the nvrs to push.
+
+.. note::
+
+    If you are pushing a bodhi update that contains multiple builds, you need
+    only pass bodhi-push a single build nvr and all the others in that update
+    will be detected and pushed along with it. However, if you are pushing
+    multiple disjoint bodhi updates then each build will need to be listed
+    individually.
 
 ::
 
@@ -129,7 +137,7 @@ Verification
         bodhi.mashtask.complete -- bodhi masher successfully mashed f23-updates
         bodhi.mashtask.sync.wait -- bodhi masher is waiting for f22-updates-testing to hit the master mirror
 
-#. Seach for problems with a particular push: 
+#. Seach for problems with a particular push:
 
    ::
 
@@ -172,7 +180,7 @@ Common issues / problems with pushes
 * When signing fails, you may need to ask that the sigul bridge or server be
   restarted.
 
-* If the updates push fails with a: 
+* If the updates push fails with a:
   ``OSError: [Errno 16] Device or resource busy: '/var/lib/mock/*-x86_64/root/var/tmp/rpm-ostree.*'``
   You need to umount any tmpfs mounts still open on the backend and resume the push.
 
@@ -185,7 +193,7 @@ Common issues / problems with pushes
   This issue will be resolved with NFSv4, but in the mean time it can be worked around by removing the `.repocache` directory and resuming the push.
   ``$ sudo rm -fr /mnt/koji/mash/updates/epel7.repocache``
 
-* If the Atomic OSTree compose fails with some sort of `Device or Resource busy` error, then run `mount` to see if there are any stray `tmpfs` mounts still active:  
+* If the Atomic OSTree compose fails with some sort of `Device or Resource busy` error, then run `mount` to see if there are any stray `tmpfs` mounts still active:
   ``tmpfs on /var/lib/mock/fedora-22-updates-testing-x86_64/root/var/tmp/rpm-ostree.bylgUq type tmpfs (rw,relatime,seclabel,mode=755)``
   You can then
   ``$ sudo umount /var/lib/mock/fedora-22-updates-testing-x86_64/root/var/tmp/rpm-ostree.bylgUq`` and resume the push.
