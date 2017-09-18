@@ -113,8 +113,8 @@ def expand_critpath(my, start_list):
                     name_list.append(dep)
     print("depsolving complete.")
     print("%u packages in critical path" % (count))
-    print("%u rejected package names: %s" % (len(skipped_list),)
-                                             " ".join(skipped_list))
+    print("%u rejected package names: %s" % (len(skipped_list),
+                                             " ".join(skipped_list)))
     return pkg_list
 
 
