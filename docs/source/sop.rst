@@ -74,6 +74,7 @@ Standard Operating Procedures
     sop_sigul_client_setup
     sop_stage_final_release_for_mirrors
     sop_two_week_atomic
+    sop_unretire
     sop_update_branch_last_known_good
     sop_update_critpath
     sop_update_releng_docs
