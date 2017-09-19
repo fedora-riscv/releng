@@ -20,6 +20,19 @@ Run the following commands in the bodhi backend.
 ::
     $ bodhi-manage-releases create --name F25 --long-name "Fedora 25" --id-prefix FEDORA --version 25 --branch f25 --dist-tag f25 --stable-tag f25-updates --testing-tag f25-updates-testing --candidate-tag f25-updates-candidate --pending-stable-tag f25-updates-pending --pending-testing-tag f25-updates-testing-pending --override-tag f25-override --state pending -- username <user_name>
 
+Now edit the Bodhi ``production.ini.j2`` template in the Infrastructure Ansible repository to
+configure the new release's pre-beta policy
+
+::
+    f25.status = pre_beta
+    f25.post_beta.mandatory_days_in_testing = 7
+    f25.post_beta.critpath.num_admin_approvals = 0
+    f25.post_beta.critpath.min_karma = 2
+    f25.post_beta.critpath.stable_after_days_without_negative_karma = 14
+    f25.pre_beta.mandatory_days_in_testing = 3
+    f25.pre_beta.critpath.num_admin_approvals = 0
+    f25.pre_beta.critpath.min_karma = 1
+
 Now the Koji tags should be edited so that Bodhi can push updates.
 
 ::
