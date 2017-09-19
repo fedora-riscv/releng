@@ -34,6 +34,19 @@ Run the following commands in the bodhi backend.
         --state pending \
         --username <user_name>
 
+Now edit the Bodhi ``production.ini.j2`` template in the Infrastructure Ansible repository to
+configure the new release's pre-beta policy
+
+::
+    f25.status = pre_beta
+    f25.post_beta.mandatory_days_in_testing = 7
+    f25.post_beta.critpath.num_admin_approvals = 0
+    f25.post_beta.critpath.min_karma = 2
+    f25.post_beta.critpath.stable_after_days_without_negative_karma = 14
+    f25.pre_beta.mandatory_days_in_testing = 3
+    f25.pre_beta.critpath.num_admin_approvals = 0
+    f25.pre_beta.critpath.min_karma = 1
+
 Now the Koji tags should be edited so that Bodhi can push updates.
 
 ::
