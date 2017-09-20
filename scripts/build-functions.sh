@@ -74,7 +74,7 @@ send_fedmsg "${fedmsg_json_start}" ${DIST} start
 if [[ -z "${ARCH}" ]]; then
     log "blocking retired packages"
     if [ "$ENVIRONMENT" == "production" ]; then
-        ./scripts/block_retired.py
+        ./scripts/block_retired.py --profile compose_koji
     else
         ./scripts/block_retired.py  --staging
     fi

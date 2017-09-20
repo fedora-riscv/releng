@@ -303,8 +303,8 @@ if __name__ == "__main__":
         "--staging", default=False, action="store_true",
         help="Talk to staging services (pkgdb/pdc), instead of production")
     parser.add_argument(
-        "-p", "--profile", default="compose_koji",
-        help="Koji profile to use, default: %(default)s")
+        "-p", "--profile", default="koji",
+        help="Koji profile to use, default: %(default)s (ignored with --staging)")
     parser.add_argument(
         "--namespace", default=DEFAULT_NS,
         help="pkgdb/pdc namespace to use, default: %(default)s")
