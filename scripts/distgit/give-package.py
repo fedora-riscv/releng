@@ -31,7 +31,7 @@ PAGURE_URL = 'https://src.fedoraproject.org/api/0/'
 
 
 def main():
-    parser = argparse.ArgumentParser(usage=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("package", help="The package that should be given.")
     parser.add_argument("custodian", help="The user taking over the package.")
     args = parser.parse_args()
