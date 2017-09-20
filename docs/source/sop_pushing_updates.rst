@@ -100,7 +100,38 @@ will file a ticket with the nvrs to push.
 
 ::
 
-    $ sudo -u apache bodhi-push --builds '<nvr1> <nvr2> ...' --username <username>
+    $ sudo -u apache bodhi-push --builds '<nvr1>,<nvr2>,...' --username <username>
+
+
+There are no updates to push.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you are getting the message ``There are no updates to push.`` or the list of
+packages you are seeing to push out for the Stable updates request is not
+correct compared to what you specified in the ``--builds`` section of the
+command above then one of two things likely happened.
+
+#. The update hasn't yet reached appropriate karma
+
+   This should be handled case-by-case, if the QA Team has requested this be
+   pushed as stable to fix a blocker but there's not yet enough karma for an
+   autostable prompt to occur then you should verify with QA that these are
+   ready to go out even without karma. If they are, then log into the Bodhi
+   WebUI and modify the karma threshold of the update to 1 and add karma (if
+   necessary). This is not something we should do as normal practice and is
+   considered an edge case. When update requests come to RelEng, it should have
+   appropriate karma. Sometimes it doesn't and as long as QA approves, we need
+   not block on it.
+
+#. The update was never requested for stable
+
+   It's possible the update wasn't requested for stable, you can resolve this by
+   running the following on one of the bodhi-backend systems:
+
+   ::
+
+    bodhi updates request <BODHI-REQUEST-ID> stable
+
 
 
 Perform the bodhi push
@@ -119,6 +150,7 @@ Verification
 #. Check the processes
 
    ::
+
     $ ps axf|grep bodhi
 
 #. Watch for fedmsgs through the process. It will indicate what releases it's
@@ -143,7 +175,7 @@ Verification
 
         sudo journalctl --since=yesterday -o short -u fedmsg-hub | grep dist-6E-epel (or f22-updates, etc)
 
-4. Note: Bodhi will look at the things you have told it to push and see if any have security updates, those branches will be started first. It will then fire off threads (up to 3 at a time) and do the rest.
+#. Note: Bodhi will look at the things you have told it to push and see if any have security updates, those branches will be started first. It will then fire off threads (up to 3 at a time) and do the rest.
 
 Consider Before Running
 =======================
