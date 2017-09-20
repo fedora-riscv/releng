@@ -1,4 +1,4 @@
-#! /usr/bin/python -tt
+#! /usr/bin/python3 -tt
 """ Give a package in pagure-on-dist-git from one user to another.
 
 This can also be used to give the package to the 'orphan' user.
