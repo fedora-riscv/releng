@@ -62,7 +62,7 @@ def triage_packages(packages, user):
 
 
 def main():
-    parser = argparse.ArgumentParser(usage=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("users", nargs="*",
                         help="Users to remove.")
     args = parser.parse_args()
