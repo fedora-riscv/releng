@@ -9,12 +9,18 @@
 #
 # Authors:
 #     Jesse Keating <jkeating@redhat.com>
+#     Ralph Bean <rbean@redhat.com>
 #
 
 from __future__ import print_function
 import koji
 import operator
 import datetime
+
+import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
+
 
 # Set some variables
 # Some of these could arguably be passed in as args.
@@ -23,6 +29,21 @@ desttag = 'f27' # Tag where fixed builds go
 epoch = '2017-07-31 11:20:00.000000' # Date to check for failures from
 failures = {} # dict of owners to lists of packages that failed.
 failed = [] # raw list of failed packages
+
+
+def retry_session():
+    session = requests.Session()
+    retry = Retry(
+        total=5,
+        read=5,
+        connect=5,
+        backoff_factor=0.3,
+        status_forcelist=(500, 502, 504),
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    return session
 
 
 def get_failed_builds(kojisession, epoch, buildtag, desttag):
@@ -70,19 +91,17 @@ def get_failed_builds(kojisession, epoch, buildtag, desttag):
     for build, [taskinfo] in zip(failbuilds, taskinfos):
         build['taskinfo'] = taskinfo
     # Get owners of the packages with failures
-    kojisession.multicall = True
+    http = retry_session()
     for build in failbuilds:
-        kojisession.listPackages(tagID=buildtag,
-                                 pkgID=build['package_id'],
-                                 inherited=True)
-    pkginfo = kojisession.multiCall()
-
-    for build, [pkg] in zip(failbuilds, pkginfo):
-        if len(pkg) > 0:
-            build['package_owner'] = pkg[0]['owner_name']
-        else:
-            continue
+        build['package_owner'] = get_package_owner(http, build['package_name'])
     return failbuilds
+
+def get_package_owner(http, package):
+    url = 'https://src.fedoraproject.org/api/0/rpms/{0}'.format(package)
+    response = http.get(url, timeout=30)
+    if not bool(response):
+        return 'releng'
+    return response.json()['access_users']['owner'][0]
 
 
 if __name__ == '__main__':
