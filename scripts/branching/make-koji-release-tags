@@ -10,8 +10,8 @@ kojicli=koji
 
 $kojicli clone-tag --all --latest-only f$OLDRELEASE f$RELEASE
 $kojicli edit-tag -x mock.package_manager=dnf f$RELEASE
-$kojicli add-tag f$RELEASE-docker
-$kojicli add-tag --parent f$RELEASE-docker --arches=x86_64 f$RELEASE-docker-build
+$kojicli add-tag f$RELEASE-container
+$kojicli add-tag --parent f$RELEASE-container --arches=x86_64 f$RELEASE-container-build
 $kojicli add-tag --parent f$RELEASE f$RELEASE-updates
 $kojicli add-tag --parent f$RELEASE f$RELEASE-compose
 $kojicli add-tag --parent f$RELEASE-updates f$RELEASE-updates-candidate
@@ -44,9 +44,9 @@ $kojicli tag-pkg f$RELEASE-build $($kojicli latest-build f$OLDRELEASE-build glib
 $kojicli add-target f$RELEASE f$RELEASE-build
 $kojicli add-target f$RELEASE-candidate f$RELEASE-build f$RELEASE
 $kojicli add-target f$RELEASE-infra f$RELEASE-infra f$RELEASE-infra-candidate
-$kojicli add-target f$RELEASE-docker-candidate f$RELEASE-docker-build f$RELEASE-docker
+$kojicli add-target f$RELEASE-container-candidate f$RELEASE-container-build f$RELEASE-container
 $kojicli edit-target rawhide --dest-tag=f$RELEASE --build-tag=f$RELEASE-build
-$kojicli edit-target rawhide-docker-candidate --dest-tag=f$RELEASE-docker --build-tag=f$RELEASE-docker-build
+$kojicli edit-target rawhide-container-candidate --dest-tag=f$RELEASE-container --build-tag=f$RELEASE-container-build
 
 $kojicli remove-tag-inheritance rawhide f$OLDRELEASE
 $kojicli add-tag-inheritance rawhide f$RELEASE
