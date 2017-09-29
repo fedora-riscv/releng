@@ -27,7 +27,7 @@ BASE="/mnt/koji/compose/"
 
 for checksum in $(find $BASE/$SHORTRELEASEVER/$COMPOSEID/compose/ -name  *CHECKSUM)
 do
-  if grep -q SHA256 $checksum; then
+  if grep -q BEGIN $checksum; then
     echo "$checksum is already signed"
   else
     cat $checksum >/tmp/sum && NSS_HASH_ALG_SUPPORT=+MD5 sigul sign-text -o /tmp/signed $KEY /tmp/sum && chmod 644 /tmp/signed && sudo mv /tmp/signed $checksum
@@ -43,7 +43,7 @@ sudo -u ftpsync chmod 700 $ALTARCHDESTDIR/$RELPREFIX$RELEASEVER
 
 sudo -u ftpsync compose-partial-copy --arch=armhfp --arch=x86_64 --arch src \
      $BASE/$SHORTRELEASEVER/$COMPOSEID/compose/$dir/ $DESTDIR/$RELPREFIX$RELEASEVER/$dir/ \
-     --variant Everything --variant CloudImages --variant Docker --variant Server --variant Spins --variant Workstation \
+     --variant Everything --variant CloudImages --variant Docker --variant Server --variant Spins --variant Workstation --variant WorkstationOstree \
      --link-dest=/pub/fedora/linux/development/$SHORTRELEASEVER/Everything/ --link-dest=$STAGEDIR/$STAGE/Everything/ --link-dest=$STAGEDIR/$STAGE/$dir/
 
 sudo -u ftpsync compose-partial-copy --arch=armhfp --arch=x86_64 --arch src \
@@ -55,7 +55,7 @@ sudo -u ftpsync compose-partial-copy --arch=armhfp --arch=x86_64 --arch src \
 sudo -u ftpsync compose-partial-copy --arch=aarch64 --arch=i386 --arch=ppc64 --arch=ppc64le \
      $BASE/$SHORTRELEASEVER/$COMPOSEID/compose/$dir /$ALTARCHDESTDIR/$RELPREFIX$RELEASEVER/$dir/ \
      --exclude=s390x \
-     --variant Everything --variant Cloud --variant CloudImages --variant Docker --variant Labs --variant Server --variant Spins --variant Workstation \
+     --variant Everything --variant Cloud --variant CloudImages --variant Docker --variant Labs --variant Server --variant Spins --variant Workstation --variant WorkstationOstree \
      --link-dest=/pub/fedora/linux/development/$SHORTRELEASEVER/Everything/ --link-dest=$STAGEDIR/$STAGE/Everything/ --link-dest=$STAGEDIR/$STAGE/$dir/
 
 sudo -u ftpsync scripts/build_composeinfo $DESTDIR/$RELPREFIX$RELEASEVER/
