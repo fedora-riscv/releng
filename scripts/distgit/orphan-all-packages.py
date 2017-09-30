@@ -55,7 +55,7 @@ def triage_packages(packages, user):
                 pass
             if others:
                 # Select the first one to become the new owner.
-                yield package, sorted(others)[0]
+                yield package, others[0]
                 break
         else:
             yield package, 'orphan'
