@@ -47,7 +47,7 @@ elif len(sys.argv) < 3:
 else:
     overtag, updatetag = sys.argv[1:]
 
-kojisession = koji.ClientSession('http://koji.fedoraproject.org/kojihub')
+kojisession = koji.ClientSession('https://koji.fedoraproject.org/kojihub')
 
 f7overrides = kojisession.listTagged(overtag, inherit=False)
 f7stables = kojisession.listTagged(updatetag, latest=True)
