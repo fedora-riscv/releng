@@ -143,7 +143,7 @@ for pkg in pkgs:
         continue
 
     # git commit
-    commit = ['fedpkg', 'commit', '-p', '-m', comment]
+    commit = ['fedpkg', 'commit', '-s', '-p', '-m', comment]
     print('Committing changes for %s' % name)
     if runme(commit, 'commit', name, enviro,
                  cwd=os.path.join(workdir, name)):
