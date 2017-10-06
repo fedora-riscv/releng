@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# push-two-week-atomic.py - An utility to sync two-week Atomic releases
+# push-two-week-atomic.py - An utility to sync two-week Atomic Host releases
 #
-# For more information about two-week Atomic releases please visit:
+# For more information about two-week Atomic Host releases please visit:
 #   https://fedoraproject.org/wiki/Changes/Two_Week_Atomic
 #
 # Copyright (C) 2015 Red Hat, Inc.
@@ -45,17 +45,17 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(os.path.basename(sys.argv[0]))
 
 # Define "constants"
-ATOMIC_DIR = "/mnt/koji/mash/atomic/%s"
+ATOMIC_HOST_DIR = "/mnt/koji/mash/atomic/%s"
 PREVIOUS_MAJOR_RELEASE_FINAL_COMMIT = None
 TARGET_REF = "fedora/%s/x86_64/atomic-host"
 COMPOSE_BASEDIR = "/mnt/koji/compose/twoweek/"
 MASHER_LOCKFILE_GLOB = "/mnt/koji/mash/updates/MASHING*"
 
 # FIXME ???? Do we need a real STMP server here?
-ATOMIC_EMAIL_SMTP = "localhost"
-ATOMIC_EMAIL_SENDER = "noreply@fedoraproject.org"
+ATOMIC_HOST_EMAIL_SMTP = "localhost"
+ATOMIC_HOST_EMAIL_SENDER = "noreply@fedoraproject.org"
 
-ATOMIC_EMAIL_RECIPIENTS = [
+ATOMIC_HOST_EMAIL_RECIPIENTS = [
     "cloud@lists.fedoraproject.org",
     "rel-eng@lists.fedoraproject.org",
     "atomic-devel@projectatomic.io",
@@ -65,39 +65,39 @@ ATOMIC_EMAIL_RECIPIENTS = [
 # Full path will be:
 #   /pub/alt/stage/$VERSION-$DATE/$IMAGE_TYPE/x86_64/[Images|os]/
 # http://dl.fedoraproject.org/pub/alt/atomic/stable/
-ATOMIC_STABLE_BASEDIR = "/pub/alt/atomic/stable/"
+ATOMIC_HOST_STABLE_BASEDIR = "/pub/alt/atomic/stable/"
 
 # the modname gets used to construct the fully qualified topic, like
 # 'org.fedoraproject.prod.releng.blahblahblah'
-ATOMIC_FEDMSG_MODNAME = "releng"
-ATOMIC_FEDMSG_CERT_PREFIX = "releng"
+ATOMIC_HOST_FEDMSG_MODNAME = "releng"
+ATOMIC_HOST_FEDMSG_CERT_PREFIX = "releng"
 
-MARK_ATOMIC_BAD_COMPOSES = None
-MARK_ATOMIC_GOOD_COMPOSES = None
-BLOCK_ATOMIC_RELEASE = None
+MARK_ATOMIC_HOST_BAD_COMPOSES = None
+MARK_ATOMIC_HOST_GOOD_COMPOSES = None
+BLOCK_ATOMIC_HOST_RELEASE = None
 
 try:
-    MARK_ATOMIC_BAD_JSON_URL = \
+    MARK_ATOMIC_HOST_BAD_JSON_URL = \
         'https://pagure.io/mark-atomic-bad/raw/master/f/bad-composes.json'
-    MARK_ATOMIC_BAD_JSON = requests.get(MARK_ATOMIC_BAD_JSON_URL).text
-    MARK_ATOMIC_BAD_COMPOSES = json.loads(MARK_ATOMIC_BAD_JSON)[u'bad-composes']
+    MARK_ATOMIC_HOST_BAD_JSON = requests.get(MARK_ATOMIC_HOST_BAD_JSON_URL).text
+    MARK_ATOMIC_HOST_BAD_COMPOSES = json.loads(MARK_ATOMIC_HOST_BAD_JSON)[u'bad-composes']
 
-    BLOCK_ATOMIC_RELEASE_JSON_URL = \
+    BLOCK_ATOMIC_HOST_RELEASE_JSON_URL = \
         'https://pagure.io/mark-atomic-bad/raw/master/f/block-release.json'
-    BLOCK_ATOMIC_RELEASE_JSON = \
-        requests.get(BLOCK_ATOMIC_RELEASE_JSON_URL).text
-    BLOCK_ATOMIC_RELEASE = \
-        json.loads(BLOCK_ATOMIC_RELEASE_JSON)[u'block-release']
+    BLOCK_ATOMIC_HOST_RELEASE_JSON = \
+        requests.get(BLOCK_ATOMIC_HOST_RELEASE_JSON_URL).text
+    BLOCK_ATOMIC_HOST_RELEASE = \
+        json.loads(BLOCK_ATOMIC_HOST_RELEASE_JSON)[u'block-release']
 
-    MARK_ATOMIC_GOOD_URL = \
+    MARK_ATOMIC_HOST_GOOD_URL = \
         'https://pagure.io/mark-atomic-bad/raw/master/f/good-composes.json'
-    MARK_ATOMIC_GOOD_JSON = \
-        requests.get(MARK_ATOMIC_GOOD_URL).text
-    MARK_ATOMIC_GOOD_COMPOSES = \
-        json.loads(MARK_ATOMIC_GOOD_JSON)[u'good-composes']
-except Exception, e:
+    MARK_ATOMIC_HOST_GOOD_JSON = \
+        requests.get(MARK_ATOMIC_HOST_GOOD_URL).text
+    MARK_ATOMIC_HOST_GOOD_COMPOSES = \
+        json.loads(MARK_ATOMIC_HOST_GOOD_JSON)[u'good-composes']
+except Exception as e:
     log.exception(
-        "!!!!{0}!!!!\n{0}".format("Failed to fetch or parse json", e)
+        "!!!!{0}!!!!\n{1}".format("Failed to fetch or parse json", e)
     )
     sys.exit(1)
 
@@ -112,7 +112,7 @@ DATAGREPPER_TOPIC = "org.fedoraproject.prod.autocloud.compose.complete"
 SIGUL_SIGNED_TXT_PATH = "/tmp/signed"
 
 # Number of atomic testing composes to keep around
-ATOMIC_COMPOSE_PERSIST_LIMIT = 20
+ATOMIC_HOST_COMPOSE_PERSIST_LIMIT = 20
 
 
 def construct_url(msg):
@@ -127,7 +127,7 @@ def construct_url(msg):
     iul.remove('compose')
 
     image_name = iul[-1]
-    image_url = os.path.join(ATOMIC_STABLE_BASEDIR, '/'.join(iul[4:]))
+    image_url = os.path.join(ATOMIC_HOST_STABLE_BASEDIR, '/'.join(iul[4:]))
     return image_name, image_url
 
 def get_latest_successful_autocloud_test_info(
@@ -138,7 +138,7 @@ def get_latest_successful_autocloud_test_info(
     """
     get_latest_successful_autocloud_test_info
 
-        Query datagrepper[0] to find the latest successful Atomic images via
+        Query datagrepper[0] to find the latest successful Atomic Host images via
         the autocloud[1] tests.
 
     return -> dict
@@ -170,7 +170,7 @@ def get_latest_successful_autocloud_test_info(
     # AutoCloud (the [u'msg'] payload of autocloud.compose.complete fedmsg)
     # such that the following criteria are true:
     #
-    #   - Is an Atomic compose (i.e. 'Atomic' is in the compose id)
+    #   - Is an Atomic Host compose (i.e. 'Atomic' is in the compose id)
     #   - No compose artifacts failed the tests
     #   - This is the current Fedora release we want
     #
@@ -181,7 +181,7 @@ def get_latest_successful_autocloud_test_info(
             if u'Atomic' in compose[u'msg'][u'id']
                 and compose[u'msg'][u'results'][u'failed'] == 0
                 and compose[u'msg'][u'release'] == str(release)
-                or compose[u'msg'][u'id'] in MARK_ATOMIC_GOOD_COMPOSES
+                or compose[u'msg'][u'id'] in MARK_ATOMIC_HOST_GOOD_COMPOSES
     ]
 
     filtered_composes = list(candidate_composes)
@@ -255,7 +255,7 @@ def get_latest_successful_autocloud_test_info(
     return autocloud_info
 
 
-def compose_manually_marked_bad(compose_id, bad_composes=MARK_ATOMIC_BAD_COMPOSES):
+def compose_manually_marked_bad(compose_id, bad_composes=MARK_ATOMIC_HOST_BAD_COMPOSES):
     """
     compose_manually_marked_bad
 
@@ -274,9 +274,9 @@ def compose_manually_marked_bad(compose_id, bad_composes=MARK_ATOMIC_BAD_COMPOSE
 
 def send_atomic_announce_email(
         email_filelist,
-        mail_receivers=ATOMIC_EMAIL_RECIPIENTS,
-        sender_email=ATOMIC_EMAIL_SENDER,
-        sender_smtp=ATOMIC_EMAIL_SMTP,
+        mail_receivers=ATOMIC_HOST_EMAIL_RECIPIENTS,
+        sender_email=ATOMIC_HOST_EMAIL_SENDER,
+        sender_smtp=ATOMIC_HOST_EMAIL_SMTP,
         tree_commit=None,
         tree_version=None):
     """
@@ -360,13 +360,13 @@ Fedora Release Engineering
     try:
         s = smtplib.SMTP(sender_smtp)
         s.sendmail(sender_email, mail_receivers, msg.as_string())
-    except smtplib.SMTPException, e:
+    except smtplib.SMTPException as e:
         print("ERROR: Unable to send email:\n{}\n".format(e))
 
 def stage_atomic_release(
         compose_id,
         compose_basedir=COMPOSE_BASEDIR,
-        dest_base_dir=ATOMIC_STABLE_BASEDIR):
+        dest_base_dir=ATOMIC_HOST_STABLE_BASEDIR):
     """
     stage_atomic_release
 
@@ -501,8 +501,8 @@ def fedmsg_publish(topic, msg):
         config = fedmsg.config.load_config()
 
         # And overwrite some values
-        config['modname'] = ATOMIC_FEDMSG_MODNAME
-        config['cert_prefix'] = ATOMIC_FEDMSG_CERT_PREFIX
+        config['modname'] = ATOMIC_HOST_FEDMSG_MODNAME
+        config['cert_prefix'] = ATOMIC_HOST_FEDMSG_CERT_PREFIX
         config['active'] = True
 
         # Send it.
@@ -561,7 +561,7 @@ def generate_static_delta(release, old_commit, new_commit):
     """
     generate_static_delta
 
-        Generate a static delta betwee two commits
+        Generate a static delta between two commits
 
     :param release - the Fedora release to target (25,26,etc)
     :param old_commit - starting point for delta
@@ -571,7 +571,7 @@ def generate_static_delta(release, old_commit, new_commit):
     # need to be owned by the apache user
     diff_cmd = ["/usr/bin/sudo", "-u", "apache",
                 "ostree", "static-delta", "generate", "--repo",
-                ATOMIC_DIR % release, "--if-not-exists", "--from", old_commit,
+                ATOMIC_HOST_DIR % release, "--if-not-exists", "--from", old_commit,
                 "--to", new_commit]
     log.info("Creating Static Delta from %s to %s" % (old_commit, new_commit))
     if subprocess.call(diff_cmd):
@@ -590,7 +590,7 @@ def update_ostree_summary_file(release):
     # need to be owned by the apache user
     summary_cmd = ["/usr/bin/sudo", "-u", "apache",
                    "ostree", "summary", "-u", "--repo",
-                   ATOMIC_DIR % release]
+                   ATOMIC_HOST_DIR % release]
     log.info("Updating Summary file")
     if subprocess.call(summary_cmd):
         log.error("update_ostree_summary_file: update failed: %s", summary_cmd)
@@ -604,7 +604,7 @@ def move_tree_commit(release, old_commit, new_commit):
     log.info("Moving ref %s to commit %s" %(TARGET_REF, new_commit))
     reset_cmd = ['/usr/bin/sudo', '-u', 'apache',
                  'ostree', 'reset', TARGET_REF % release,
-                 new_commit, '--repo', ATOMIC_DIR % release]
+                 new_commit, '--repo', ATOMIC_HOST_DIR % release]
     if subprocess.call(reset_cmd):
         log.error("move_tree_commit: resetting ref to new commit failed: %s", reset_cmd)
         exit(3)
@@ -658,7 +658,7 @@ if __name__ == '__main__':
 
 
     log.info("Checking to make sure release is not currently blocked")
-    if BLOCK_ATOMIC_RELEASE:
+    if BLOCK_ATOMIC_HOST_RELEASE:
         log.info("Release Blocked: Exiting.")
         sys.exit(0)
 
@@ -690,7 +690,7 @@ if __name__ == '__main__':
         tree_commit = raw_input('Tree commit: ').strip()
         try:
             print("Validating and finding version of {}".format(tree_commit))
-            tree_version = subprocess.check_output(['/usr/bin/ostree', '--repo=' + ATOMIC_DIR % pargs.release, 'show', '--print-metadata-key=version', tree_commit])
+            tree_version = subprocess.check_output(['/usr/bin/ostree', '--repo=' + ATOMIC_HOST_DIR % pargs.release, 'show', '--print-metadata-key=version', tree_commit])
         except subprocess.CalledProcessError as e:
             print('Error when validating commit: %s. Try again.' % tree_commit)
             tree_commit = None
@@ -700,7 +700,7 @@ if __name__ == '__main__':
         tree_version = tree_version.replace("'", "")
 
     rev_parse_cmd = ['/usr/bin/ostree', 'rev-parse', '--repo',
-                     ATOMIC_DIR % pargs.release, TARGET_REF % pargs.release]
+                     ATOMIC_HOST_DIR % pargs.release, TARGET_REF % pargs.release]
     previous_commit = subprocess.check_output(rev_parse_cmd).strip()
 
     # This could happen if there was a failure in this script sending the email
@@ -746,11 +746,11 @@ if __name__ == '__main__':
         msg=dict(**tested_autocloud_info)
     )
 
-    log.info("Sending Two Week Atomic announcement email")
-    # Find all the Atomic images and CHECKSUM files to include in the email
+    log.info("Sending Two Week Atomic Host announcement email")
+    # Find all the Atomic Host images and CHECKSUM files to include in the email
     email_filelist = []
     for full_dir_path, _, short_names in \
-            os.walk(os.path.join(ATOMIC_STABLE_BASEDIR, compose_id)):
+            os.walk(os.path.join(ATOMIC_HOST_STABLE_BASEDIR, compose_id)):
         for sname in fnmatch.filter(short_names, '*Atomic*'):
             email_filelist.append(
                 os.path.join(
@@ -765,10 +765,10 @@ if __name__ == '__main__':
                                tree_version=tree_version)
 
     # FIXME - The logic in this functioni is broken, leave it disabled for now
-    #log.info("Pruning old Atomic test composes")
-    #prune_old_composes(ATOMIC_STABLE_BASEDIR, 2)
+    #log.info("Pruning old Atomic Host test composes")
+    #prune_old_composes(ATOMIC_HOST_STABLE_BASEDIR, 2)
 
-    log.info("Two Week Atomic Release Complete!")
+    log.info("Two Week Atomic Host Release Complete!")
 
     print("############REMINDER##########\n#\n#\n")
     print("Reset the block-release value to false in {}".format(
