@@ -18,7 +18,7 @@ for arch in x86_64 aarch64 armhfp ppc64le
 do
    ARCHLOG=$COMPOSEDIR/logs/$DATE/$arch/
    mkdir $ARCHLOG
-   compose-koji runroot --new-chroot --use-shell --task-id --channel-override=compose --package=pungi --package=ostree --package=rpm-ostree --mount=/mnt/koji/compose/cd/ --mount=/mnt/koji/atomic-cd/ $TARGET $arch "rm -f /var/lib/rpm/__db*; rm -rf /var/cache/yum/*; set -x; pungi-make-ostree tree --log-dir=$ARCHLOG --treefile=/mnt/koji/compose/cd/fedora-atomic/fedora-atomic-docker-host.json --repo=/mnt/koji/atomic-cd/" >$ARCHLOG/koji-task.log
+   compose-koji runroot --new-chroot --use-shell --task-id --channel-override=compose --package=pungi --package=ostree --package=rpm-ostree --mount=/mnt/koji/compose/cd/ --mount=/mnt/koji/atomic-cd/ $TARGET $arch "rm -f /var/lib/rpm/__db*; rm -rf /var/cache/yum/*; set -x; pungi-make-ostree tree --log-dir=$ARCHLOG --treefile=/mnt/koji/compose/cd/fedora-atomic/fedora-atomic-host.json --repo=/mnt/koji/atomic-cd/" >$ARCHLOG/koji-task.log
 done
 
 # keep only the last weeks worth of ostree commits
