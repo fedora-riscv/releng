@@ -30,20 +30,34 @@ that host is ``bodhi-backend01.phx2.fedoraproject.org``.
 
 Running the script requires two arguements:
 
-* The Fedora Release number that you are going to release, example: ``-r 23``
+* The Fedora Release number that you are going to release, example: ``-r 26``
 * The Fedora key to sign the checksum metadata files with, example: ``-k
-  fedora-23``
+  fedora-26``
 
-.. note::
-    Before running this script, make sure that the previous compose was
-    successful by verifying that the ``Cloud-Images/x86_64/Images/`` directory
-    is populated under the compose directory:
-    http://alt.fedoraproject.org/pub/alt/atomic/testing/
+At the time of this writing, the `AutoCloud`_ tests are no longer reliable and
+are effectively abandoned by those responsible. As such, on Atomic Host Two-Week
+Release Day a member of the `Fedora Atomic WG`_ (normally ``dustymabe``) will
+email RelEng with the release candidate that should be released.
 
-    This should not always be necessary, but while the compose work is being
-    iterated on it's recommended.
+The email should contain two key pieces of information, the ostree commit hash
+and the Compose ID. They should be similar to the following.
 
-The below example shows how to perform the Two Week Atomic Release.
+::
+
+    d518b37c348eb814093249f035ae852e7723840521b4bcb4a271a80b5988c44a
+    Fedora-Atomic-26-20171016.0
+
+
+As a side effect of the current state of testing, the release script used below
+will sometimes display in it's "latest Release Candidate" Compose ID as
+something newer than what is reported above by the `Fedora Atomic WG`_. Such as:
+
+.. note:: The script will prompt you to provide the ostree commit hash provided
+          above but we are first ensuring the Commit ID matches.
+
+The below example shows how to perform the Two Week Atomic Release. However, in
+this example we are showing that the Compose ID is mismatched. If they are not
+mismatched, you can simply carry on following the prompts.
 
 ::
 
@@ -59,7 +73,81 @@ The below example shows how to perform the Two Week Atomic Release.
 
     # Perform the two week release
     bodhi-backend01$ cd ~/releng/scripts
-    bodhi-backend01$ ./push-two-week-atomic.py -r 23 -k fedora-23
+
+    # Here we specify the signing key 'fedora-26' and are targeting the Fedora
+    # Release '26'
+    $  ./push-two-week-atomic.py -k fedora-26 -r 26
+    INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): pagure.io
+    INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): pagure.io
+    INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): pagure.io
+    INFO:push-two-week-atomic.py:Checking for masher lock files
+    INFO:push-two-week-atomic.py:Checking to make sure release is not currently blocked
+    INFO:push-two-week-atomic.py:Querying datagrepper for latest AutoCloud successful tests
+    INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): apps.fedoraproject.org
+    INFO:push-two-week-atomic.py:TESTED_AUTOCLOUD_INFO
+    {
+      "atomic_qcow2": {
+        "release": "26",
+        "image_url": "/pub/alt/atomic/stable/Fedora-Atomic-26-20171017.0/CloudImages/x86_64/images/Fedora-Atomic-26-20171017.0.x86_64.qcow2",
+        "name": "Fedora-Atomic-26-20171017.0.",
+        "compose_id": "Fedora-Atomic-26-20171017.0",
+        "image_name": "Fedora-Atomic-26-20171017.0.x86_64.qcow2"
+      },
+      "atomic_vagrant_libvirt": {
+        "release": "26",
+        "image_url": "/pub/alt/atomic/stable/Fedora-Atomic-26-20171017.0/CloudImages/x86_64/images/Fedora-Atomic-Vagrant-26-20171017.0.x86_64.vagrant-libvirt.box",
+        "name": "Fedora-Atomic-Vagrant-26-20171017.0.",
+        "compose_id": "Fedora-Atomic-26-20171017.0",
+        "image_name": "Fedora-Atomic-Vagrant-26-20171017.0.x86_64.vagrant-libvirt.box"
+      },
+      "atomic_raw": {
+        "release": "26",
+        "image_url": "/pub/alt/atomic/stable/Fedora-Atomic-26-20171017.0/CloudImages/x86_64/images/Fedora-Atomic-26-20171017.0.x86_64.raw.xz",
+        "name": "Fedora-Atomic-26-20171017.0.",
+        "compose_id": "Fedora-Atomic-26-20171017.0",
+        "image_name": "Fedora-Atomic-26-20171017.0.x86_64.raw.xz"
+      },
+      "atomic_vagrant_virtualbox": {
+        "release": "26",
+        "image_url": "/pub/alt/atomic/stable/Fedora-Atomic-26-20171017.0/CloudImages/x86_64/images/Fedora-Atomic-Vagrant-26-20171017.0.x86_64.vagrant-virtualbox.box",
+        "name": "Fedora-Atomic-Vagrant-26-20171017.0.",
+        "compose_id": "Fedora-Atomic-26-20171017.0",
+        "image_name": "Fedora-Atomic-Vagrant-26-20171017.0.x86_64.vagrant-virtualbox.box"
+      }
+    }
+    INFO:push-two-week-atomic.py:Query to datagrepper complete
+    INFO:push-two-week-atomic.py:Extracting compose_id from tested autocloud data
+    Releasing compose Fedora-Atomic-26-20171017.0
+    Tree commit:
+
+In this instance we can see that the line ``Release compose
+Fedora-Atomic-26-20171017.0`` is a day newer in date-stamp than the one provided
+in the example information above as it would come from the Atomic WG. Therefore
+a member of RelEng needs to clone the `mark-atomic-bad`_ git repository and add
+``Fedora-Atomic-26-20171017.0`` to the ``bad-composes.json`` file to effectively
+"lie" to the script.
+
+.. note:: This is a work-around that was supposed to be replaced by a fully
+          automated release workflow but the tests never became truly
+          authoritative so the temporary fix became standard practice. Once this
+          is no longer the case, this document should be updated to reflect the
+          new process.
+
+::
+
+    # We need to clone the repo
+    $ git clone ssh://git@pagure.io/mark-atomic-bad.git
+
+    # Edit the bad-composes.json file to contain Fedora-Atomic-26-20171017.0 in
+    # the json list called "bad-composes"
+    # NOTE THAT JSON SYNTAX DOES NOT ALLOW A TRAILING COMMA
+
+    # Now commit the change
+    $ git add bad-composes.json
+    $ git commit -m "mark Fedora-Atomic-26-20171017.0 to ensure Fedora-Atomic-26-20171016.0 is latest"
+    $ git push origin master
+
+Now re-run the ``push-two-week-atomic.py`` script as described above.
 
 Verification
 ============
@@ -89,9 +177,12 @@ into the `appropriate stable directories`_.
 .. _Datagrepper: https://apps.fedoraproject.org/datagrepper/
 .. _Fedora RelEng repo: https://pagure.io/releng
 .. _Fedora Cloud SIG: https://fedoraproject.org/wiki/Cloud_SIG
+.. _Fedora Atomic WG: https://pagure.io/atomic-wg
 .. _Fedora Change: https://fedoraproject.org/wiki/Changes/Two_Week_Atomic
 .. _Fedora Atomic Host: https://getfedora.org/en/cloud/download/atomic.html
 .. _appropriate stable directories:
         http://alt.fedoraproject.org/pub/alt/atomic/stable/
 .. _this datagrepper query:
     https://apps.fedoraproject.org/datagrepper/raw?category=releng&delta=127800
+.. _AutoCloud: https://apps.fedoraproject.org/autocloud/compose
+.. _mark-atomic-bad: https://pagure.io/mark-atomic-bad
