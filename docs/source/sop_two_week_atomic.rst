@@ -50,7 +50,8 @@ and the Compose ID. They should be similar to the following.
 
 As a side effect of the current state of testing, the release script used below
 will sometimes display in it's "latest Release Candidate" Compose ID as
-something newer than what is reported above by the `Fedora Atomic WG`_. Such as:
+something newer than what is reported above by the `Fedora Atomic WG`_ as is
+displayed in the example below.
 
 .. note:: The script will prompt you to provide the ostree commit hash provided
           above but we are first ensuring the Commit ID matches.
