@@ -134,6 +134,14 @@ a member of RelEng needs to clone the `mark-atomic-bad`_ git repository and add
           is no longer the case, this document should be updated to reflect the
           new process.
 
+.. note:: In the event the next Two-Week Release window comes around and the
+          image needing to be released is the one you had to mark in
+          ``bad-composes.json`` something has seriously gone wrong. This
+          situation realistically should never occur. However, if it did occur
+          and there's a valid reason for it and you **really** want to do that
+          then you can just remove that Compose ID from the
+          ``bad-composes.json`` file.
+
 ::
 
     # We need to clone the repo
