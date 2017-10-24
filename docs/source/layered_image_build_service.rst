@@ -130,7 +130,7 @@ The main aspects of the Layered Image Build System are:
 
 
 The build system is setup such that Fedora Layered Image maintainers will submit
-a build to Koji via the ``fedpkg container-build`` command a ``docker``
+a build to Koji via the ``fedpkg container-build`` command a ``containers``
 namespace within `DistGit`_. This will trigger the build to be scheduled in
 `OpenShift`_ via `osbs-client`_ tooling, this will create a custom
 `OpenShift Build`_ which will use the pre-made buildroot Docker image that we
