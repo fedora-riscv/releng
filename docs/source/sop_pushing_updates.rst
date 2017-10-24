@@ -49,6 +49,13 @@ Get a list of packages to push
     $ sudo -u apache bodhi-push --releases 'f26,f25,f24,epel-7,EL-6' --username <yourusername>
     <enter your password+2factorauth, then your fas password>
 
+Sometimes you see a warning "Warning: foobar-1.fcxx has unsigned builds and has been skipped"
+which means those updates are currently getting signed and it can verified by listing the
+tagged builds in fxx-signing-pending tag.
+
+::
+    $ koji list-tagged fxx-signing-pending
+
 You can say 'n' to the push at this point if you wish to sign packages (see
 below). Or you can keep this request open in a window while you sign the
 packages, then come back and say y.
