@@ -134,7 +134,7 @@ BitTorrent
 
 BitTorrent is currently served by http://torrent.fedoraproject.org. Images are
 added to the system via this `Standard Operating Procedure
-<https://infrastructure.fedoraproject.org/infra/docs/torrentrelease.rst>`_.
+<https://infrastructure.fedoraproject.org/infra/docs/docs/sysadmin-guide/sops/torrentrelease.rst>`_.
 
 Acknowledgements
 ================
