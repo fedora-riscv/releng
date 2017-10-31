@@ -56,6 +56,7 @@ Standard Operating Procedures
     sop_custom_spins
     sop_deprecate_ftbfs_packages
     sop_end_of_life
+    sop_eol_change
     sop_package_announce_update
     sop_mass_branching
     sop_bodhi_activation
