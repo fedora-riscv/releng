@@ -566,9 +566,7 @@ def generate_static_delta(release, old_commit, new_commit):
     :param old_commit - starting point for delta
     :param new_commit - ending point for delta
     """
-    # Run as apache user because the files we are editing/creating
-    # need to be owned by the apache user
-    diff_cmd = ["/usr/bin/sudo", "-u", "apache",
+    diff_cmd = ["/usr/bin/sudo",
                 "ostree", "static-delta", "generate", "--repo",
                 ATOMIC_HOST_DIR, "--if-not-exists", "--from", old_commit,
                 "--to", new_commit]
@@ -585,9 +583,7 @@ def update_ostree_summary_file(release):
 
     :param release - the Fedora release to target (25,26,etc)
     """
-    # Run as apache user because the files we are editing/creating
-    # need to be owned by the apache user
-    summary_cmd = ["/usr/bin/sudo", "-u", "apache",
+    summary_cmd = ["/usr/bin/sudo",
                    "ostree", "summary", "-u", "--repo",
                    ATOMIC_HOST_DIR]
     log.info("Updating Summary file")
@@ -601,7 +597,7 @@ def move_tree_commit(release, old_commit, new_commit):
                           new_commit=new_commit)
 
     log.info("Moving ref %s to commit %s" %(TARGET_REF, new_commit))
-    reset_cmd = ['/usr/bin/sudo', '-u', 'apache',
+    reset_cmd = ['/usr/bin/sudo',
                  'ostree', 'reset', TARGET_REF % release,
                  new_commit, '--repo', ATOMIC_HOST_DIR]
     if subprocess.call(reset_cmd):
