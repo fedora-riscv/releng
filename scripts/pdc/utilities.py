@@ -8,7 +8,11 @@ from fedscm_admin import STANDARD_BRANCH_SLAS
 
 
 def prompt(message, force):
-    return force or input(message + " [y/N]: ").lower() in ('y', 'yes')
+    try:
+        question = input  # python3
+    except NameError:
+        question = raw_input  # python2
+    return force or question(message + " [y/N]: ").lower() in ('y', 'yes')
 
 
 def die(message):
