@@ -49,7 +49,6 @@ ATOMIC_HOST_DIR = "/mnt/koji/compose/updates/atomic"
 PREVIOUS_MAJOR_RELEASE_FINAL_COMMIT = None
 TARGET_REF = "fedora/%s/x86_64/atomic-host"
 COMPOSE_BASEDIR = "/mnt/koji/compose/twoweek/"
-MASHER_LOCKFILE_GLOB = "/mnt/koji/mash/updates/MASHING*"
 
 # FIXME ???? Do we need a real STMP server here?
 ATOMIC_HOST_EMAIL_SMTP = "localhost"
@@ -627,13 +626,6 @@ if __name__ == '__main__':
         "--release",
         help="Fedora Release to target for release (Ex: 24, 25, rawhide)",
     )
-    parser.add_argument(
-        "-f",
-        "--force",
-        type=bool,
-        default=False,
-        help="Force the release even if masher lock files are found (check with RelEng first)",
-    )
     pargs = parser.parse_args()
 
     if not pargs.key:
@@ -642,20 +634,6 @@ if __name__ == '__main__':
     if not pargs.release:
         log.error("No release arg passed, see -h for help")
         sys.exit(1)
-
-    log.info("Checking for masher lock files")
-    if glob.glob(MASHER_LOCKFILE_GLOB) and not pargs.force:
-        errmsg = """
-        Masher file found, must --force to proceed.
-
-        MAKE SURE YOU KNOW WHAT YOU ARE DOING, WHEN IN DOUBT CHECK WITH
-        #fedora-releng on irc.freenode.net TO VERIFY WE ARE SAFE TO NOT
-        BREAK MASHER
-        """
-        log.error(errmsg)
-        sys.exit(5)
-
-
 
     log.info("Checking to make sure release is not currently blocked")
     if BLOCK_ATOMIC_HOST_RELEASE:
