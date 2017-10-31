@@ -1,15 +1,9 @@
 #!/usr/bin/python3
-""" create-branch.py - Add a new branch to PDC *by hand*.
+""" adjust-eol.py - Modify the EOL on an existing SL, on an existing branch.
 
-In general, you shouldn't use this script.  The "front door" for new branches
-is to have people use the fedrepo-req tool to request branches, and to have
-cvsadmin members use the fedrepo-req-admin tool to process them.  That tool
-creates branches in PDC and new repos in pagure.  This tool should be used as
-the backdoor option, in case releng needs to create a branch manually.
+Adjust EOLs with care.  Read the SOP first for policy.
 
 https://pdc.fedoraproject.org/rest_api/v1/component-branches/
-
-Note that branches must be associated with SLAs and EOLs.
 
 You can run this on pdc-backend01, the token is in /etc/pdc.d/
 You can also find the token in the private git repo.
