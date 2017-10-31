@@ -36,7 +36,7 @@ def resolve_modules(modules):
 
 @cache.cache_on_arguments()
 def _resolve_module(module):
-    pdc = pdc_client.PDCClient(server='fedora')
+    pdc = pdc_client.PDCClient(server='fedora', develop=True)
     return get_module(pdc, module)
 
 
