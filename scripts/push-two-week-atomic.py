@@ -45,7 +45,7 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(os.path.basename(sys.argv[0]))
 
 # Define "constants"
-ATOMIC_HOST_DIR = "/mnt/koji/mash/atomic/%s"
+ATOMIC_HOST_DIR = "/mnt/koji/compose/updates/atomic"
 PREVIOUS_MAJOR_RELEASE_FINAL_COMMIT = None
 TARGET_REF = "fedora/%s/x86_64/atomic-host"
 COMPOSE_BASEDIR = "/mnt/koji/compose/twoweek/"
@@ -571,7 +571,7 @@ def generate_static_delta(release, old_commit, new_commit):
     # need to be owned by the apache user
     diff_cmd = ["/usr/bin/sudo", "-u", "apache",
                 "ostree", "static-delta", "generate", "--repo",
-                ATOMIC_HOST_DIR % release, "--if-not-exists", "--from", old_commit,
+                ATOMIC_HOST_DIR, "--if-not-exists", "--from", old_commit,
                 "--to", new_commit]
     log.info("Creating Static Delta from %s to %s" % (old_commit, new_commit))
     if subprocess.call(diff_cmd):
@@ -590,7 +590,7 @@ def update_ostree_summary_file(release):
     # need to be owned by the apache user
     summary_cmd = ["/usr/bin/sudo", "-u", "apache",
                    "ostree", "summary", "-u", "--repo",
-                   ATOMIC_HOST_DIR % release]
+                   ATOMIC_HOST_DIR]
     log.info("Updating Summary file")
     if subprocess.call(summary_cmd):
         log.error("update_ostree_summary_file: update failed: %s", summary_cmd)
@@ -604,7 +604,7 @@ def move_tree_commit(release, old_commit, new_commit):
     log.info("Moving ref %s to commit %s" %(TARGET_REF, new_commit))
     reset_cmd = ['/usr/bin/sudo', '-u', 'apache',
                  'ostree', 'reset', TARGET_REF % release,
-                 new_commit, '--repo', ATOMIC_HOST_DIR % release]
+                 new_commit, '--repo', ATOMIC_HOST_DIR]
     if subprocess.call(reset_cmd):
         log.error("move_tree_commit: resetting ref to new commit failed: %s", reset_cmd)
         exit(3)
@@ -690,7 +690,7 @@ if __name__ == '__main__':
         tree_commit = raw_input('Tree commit: ').strip()
         try:
             print("Validating and finding version of {}".format(tree_commit))
-            tree_version = subprocess.check_output(['/usr/bin/ostree', '--repo=' + ATOMIC_HOST_DIR % pargs.release, 'show', '--print-metadata-key=version', tree_commit])
+            tree_version = subprocess.check_output(['/usr/bin/ostree', '--repo=' + ATOMIC_HOST_DIR, 'show', '--print-metadata-key=version', tree_commit])
         except subprocess.CalledProcessError as e:
             print('Error when validating commit: %s. Try again.' % tree_commit)
             tree_commit = None
@@ -700,7 +700,7 @@ if __name__ == '__main__':
         tree_version = tree_version.replace("'", "")
 
     rev_parse_cmd = ['/usr/bin/ostree', 'rev-parse', '--repo',
-                     ATOMIC_HOST_DIR % pargs.release, TARGET_REF % pargs.release]
+                     ATOMIC_HOST_DIR, TARGET_REF % pargs.release]
     previous_commit = subprocess.check_output(rev_parse_cmd).strip()
 
     # This could happen if there was a failure in this script sending the email
