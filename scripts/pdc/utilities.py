@@ -89,6 +89,8 @@ def patch_eol(pdc, package, eol, branch, type, force):
     # A base query
     query = dict(branch=branch, global_component=package, branch_type=type)
     slas = list(pdc.get_paged(endpoint, **query))
+    print("Found %i existing SLs in PDC." % len(slas))
+
     fmt = lambda s: "({type}){global_component}#{name} {sla}:{eol}".format(**s)
     modified = []
     for sla in slas:
