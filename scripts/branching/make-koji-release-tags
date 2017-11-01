@@ -19,11 +19,11 @@ $kojicli add-tag --parent f$RELEASE-updates f$RELEASE-updates-testing
 $kojicli add-tag --parent f$RELEASE-updates-testing f$RELEASE-updates-testing-pending
 $kojicli add-tag --parent f$RELEASE-updates f$RELEASE-updates-pending
 $kojicli add-tag --parent f$RELEASE-updates f$RELEASE-override
-$kojicli add-tag --parent f$RELEASE-override --arches="\""$primary_arches"\"" f$RELEASE-build
+$kojicli add-tag --parent f$RELEASE-override --arches="\"${primary_arches}\"" f$RELEASE-build
 $kojicli add-tag --parent f$RELEASE-updates-testing-pending f$RELEASE-signing-pending
 $kojicli add-tag --parent f$RELEASE-updates  f$RELEASE-pending
-$kojicli add-tag --parent f$RELEASE-build --arches="\""$primary_arches"\"" f$RELEASE-infra
-$kojicli add-tag --parent f$RELEASE-infra --arches="\""$primary_arches"\"" f$RELEASE-infra-stg
+$kojicli add-tag --parent f$RELEASE-build --arches="\"${primary_arches}\"" f$RELEASE-infra
+$kojicli add-tag --parent f$RELEASE-infra --arches="\"${primary_arches}\"" f$RELEASE-infra-stg
 $kojicli add-tag --parent f$RELEASE-infra-stg f$RELEASE-infra-candidate
 $kojicli add-tag --parent f$RELEASE f$RELEASE-modularity
 $kojicli add-tag --parent f$RELEASE f$RELEASE-openh264
