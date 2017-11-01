@@ -1,52 +1,52 @@
 #!/bin/bash
 
-RELEASE=$1
+release=$1
 
-OLDRELEASE=$(bc -l <<< "$RELEASE-1")
+old_release=$(bc -l <<< "${release}-1")
 
-primary_arches="armv7hl i686 x86_64 aarch64 ppc64 ppc64le s390x"
+PRIMARY_ARCHES="armv7hl i686 x86_64 aarch64 ppc64 ppc64le s390x"
 
-kojicli=koji
+KOJICLI=koji
 
-$kojicli clone-tag --all --latest-only f$OLDRELEASE f$RELEASE
-$kojicli edit-tag -x mock.package_manager=dnf f$RELEASE
-$kojicli add-tag f$RELEASE-container
-$kojicli add-tag --parent f$RELEASE-container --arches=x86_64 f$RELEASE-container-build
-$kojicli add-tag --parent f$RELEASE f$RELEASE-updates
-$kojicli add-tag --parent f$RELEASE f$RELEASE-compose
-$kojicli add-tag --parent f$RELEASE-updates f$RELEASE-updates-candidate
-$kojicli add-tag --parent f$RELEASE-updates f$RELEASE-updates-testing
-$kojicli add-tag --parent f$RELEASE-updates-testing f$RELEASE-updates-testing-pending
-$kojicli add-tag --parent f$RELEASE-updates f$RELEASE-updates-pending
-$kojicli add-tag --parent f$RELEASE-updates f$RELEASE-override
-$kojicli add-tag --parent f$RELEASE-override --arches="\"${primary_arches}\"" f$RELEASE-build
-$kojicli add-tag --parent f$RELEASE-updates-testing-pending f$RELEASE-signing-pending
-$kojicli add-tag --parent f$RELEASE-updates  f$RELEASE-pending
-$kojicli add-tag --parent f$RELEASE-build --arches="\"${primary_arches}\"" f$RELEASE-infra
-$kojicli add-tag --parent f$RELEASE-infra --arches="\"${primary_arches}\"" f$RELEASE-infra-stg
-$kojicli add-tag --parent f$RELEASE-infra-stg f$RELEASE-infra-candidate
-$kojicli add-tag --parent f$RELEASE f$RELEASE-modularity
-$kojicli add-tag --parent f$RELEASE f$RELEASE-openh264
-$kojicli add-tag --parent f$RELEASE f$RELEASE-atomic
-$kojicli edit-tag --perm=fedora-override f$RELEASE-override
-$kojicli edit-tag --perm=admin f$RELEASE-updates
-$kojicli edit-tag --perm=admin f$RELEASE-updates-testing
-$kojicli edit-tag --perm=admin f$RELEASE-updates-testing-pending
-$kojicli edit-tag --perm=admin f$RELEASE-updates-pending
-$kojicli edit-tag --perm=admin f$RELEASE-atomic
-$kojicli edit-tag --perm=autosign f$RELEASE-signing-pending
-$kojicli edit-tag --perm=infra f$RELEASE-infra
-$kojicli edit-tag --perm=autosign f$RELEASE-infra-stg
-$kojicli edit-tag --perm=infra f$RELEASE-infra-candidate
+"${KOJICLI}" clone-tag --all --latest-only "f${old_release}" "f${release}"
+"${KOJICLI}" edit-tag -x mock.package_manager=dnf "f${release}"
+"${KOJICLI}" add-tag "f${release}-container"
+"${KOJICLI}" add-tag --parent "f${release}-container" --arches=x86_64 "f${release}-container-build"
+"${KOJICLI}" add-tag --parent "f${release}" "f${release}-updates"
+"${KOJICLI}" add-tag --parent "f${release}" "f${release}-compose"
+"${KOJICLI}" add-tag --parent "f${release}-updates" "f${release}-updates-candidate"
+"${KOJICLI}" add-tag --parent "f${release}-updates" "f${release}-updates-testing"
+"${KOJICLI}" add-tag --parent "f${release}-updates"-testing "f${release}-updates-testing-pending"
+"${KOJICLI}" add-tag --parent "f${release}-updates" "f${release}-updates-pending"
+"${KOJICLI}" add-tag --parent "f${release}-updates" "f${release}-override"
+"${KOJICLI}" add-tag --parent "f${release}-override" --arches="\"${PRIMARY_ARCHES}\"" "f${release}-build"
+"${KOJICLI}" add-tag --parent "f${release}-updates-testing-pending" "f${release}-signing-pending"
+"${KOJICLI}" add-tag --parent "f${release}-updates"  "f${release}-pending"
+"${KOJICLI}" add-tag --parent "f${release}-build" --arches="\"${PRIMARY_ARCHES}\"" "f${release}-infra"
+"${KOJICLI}" add-tag --parent "f${release}-infra" --arches="\"${PRIMARY_ARCHES}\"" "f${release}-infra-stg"
+"${KOJICLI}" add-tag --parent "f${release}-infra-stg" "f${release}-infra-candidate"
+"${KOJICLI}" add-tag --parent "f${release}" "f${release}-modularity"
+"${KOJICLI}" add-tag --parent "f${release}" "f${release}-openh264"
+"${KOJICLI}" add-tag --parent "f${release}" "f${release}-atomic"
+"${KOJICLI}" edit-tag --perm=fedora-override "f${release}-override"
+"${KOJICLI}" edit-tag --perm=admin "f${release}-updates"
+"${KOJICLI}" edit-tag --perm=admin "f${release}-updates-testing"
+"${KOJICLI}" edit-tag --perm=admin "f${release}-updates-testing-pending"
+"${KOJICLI}" edit-tag --perm=admin "f${release}-updates-pending"
+"${KOJICLI}" edit-tag --perm=admin "f${release}-atomic"
+"${KOJICLI}" edit-tag --perm=autosign "f$release}-signing-pending"
+"${KOJICLI}" edit-tag --perm=infra "f${release}-infra"
+"${KOJICLI}" edit-tag --perm=autosign "f${release}-infra-stg"
+"${KOJICLI}" edit-tag --perm=infra "f${release}-infra-candidate"
 
-$kojicli tag-pkg f$RELEASE-build $($kojicli latest-build f$OLDRELEASE-build glibc64 glibc32 --quiet|sed -e "s| .*||g" )
+"${KOJICLI}" tag-pkg "f${release}-build" "$(${KOJICLI} latest-build "f${old_release}-build" glibc64 glibc32 --quiet|sed -e "s| .*||g" )"
 
-$kojicli add-target f$RELEASE f$RELEASE-build
-$kojicli add-target f$RELEASE-candidate f$RELEASE-build f$RELEASE
-$kojicli add-target f$RELEASE-infra f$RELEASE-infra f$RELEASE-infra-candidate
-$kojicli add-target f$RELEASE-container-candidate f$RELEASE-container-build f$RELEASE-container
-$kojicli edit-target rawhide --dest-tag=f$RELEASE --build-tag=f$RELEASE-build
-$kojicli edit-target rawhide-container-candidate --dest-tag=f$RELEASE-container --build-tag=f$RELEASE-container-build
+"${KOJICLI}" add-target "f${release}" "f${release}-build"
+"${KOJICLI}" add-target "f${release}-candidate" "f${release}-build" "f${release}"
+"${KOJICLI}" add-target "f${release}-infra" "f${release}-infra" "f${release}-infra-candidate"
+"${KOJICLI}" add-target "f${release}-container-candidate" "f${release}-container-build" "f${release}-container"
+"${KOJICLI}" edit-target rawhide --dest-tag="f${release}" --build-tag="f${release}-build"
+"${KOJICLI}" edit-target rawhide-container-candidate --dest-tag="f${release}-container" --build-tag="f${release}-container-build"
 
-$kojicli remove-tag-inheritance rawhide f$OLDRELEASE
-$kojicli add-tag-inheritance rawhide f$RELEASE
+"${KOJICLI}" remove-tag-inheritance rawhide "f${old_release}"
+"${KOJICLI}" add-tag-inheritance rawhide "f${release}"
