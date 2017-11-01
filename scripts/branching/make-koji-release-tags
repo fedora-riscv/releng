@@ -2,6 +2,20 @@
 
 release=$1
 
+case "${release}" in
+    ''|*[!0-9]*)
+        is_number="false"
+        ;;
+    *)
+        is_number="true"
+        ;;
+esac
+
+if [ "${is_number}" = "false" ]; then
+    echo "The release value may only be a number."
+    exit 1
+fi
+
 old_release=$(bc -l <<< "${release}-1")
 
 PRIMARY_ARCHES="armv7hl i686 x86_64 aarch64 ppc64 ppc64le s390x"
