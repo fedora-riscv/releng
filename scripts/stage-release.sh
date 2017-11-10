@@ -52,7 +52,7 @@ sudo -u ftpsync compose-partial-copy --arch=armhfp --arch=x86_64 --arch src \
      --link-dest=/pub/fedora/linux/development/$SHORTRELEASEVER/Everything/ --link-dest=$STAGEDIR/$STAGE/Everything/ --link-dest=$STAGEDIR/$STAGE/$dir/
 
 
-sudo -u ftpsync compose-partial-copy --arch=aarch64 --arch=i386 --arch=ppc64 --arch=ppc64le \
+sudo -u ftpsync compose-partial-copy --arch=aarch64 --arch=i386 --arch=ppc64 --arch=ppc64le --arch=s390x \
      $BASE/$SHORTRELEASEVER/$COMPOSEID/compose/$dir /$ALTARCHDESTDIR/$RELPREFIX$RELEASEVER/$dir/ \
      --variant Everything --variant Cloud --variant CloudImages --variant Docker --variant Labs --variant Server --variant Spins --variant Workstation --variant WorkstationOstree \
      --link-dest=/pub/fedora/linux/development/$SHORTRELEASEVER/Everything/ --link-dest=$STAGEDIR/$STAGE/Everything/ --link-dest=$STAGEDIR/$STAGE/$dir/
