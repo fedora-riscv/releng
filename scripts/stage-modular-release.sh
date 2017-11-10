@@ -33,7 +33,7 @@ done
 sudo -u ftpsync mkdir -p $DESTDIR/$RELPREFIX$RELEASEVER/
 sudo -u ftpsync chmod 700 $DESTDIR/$RELPREFIX$RELEASEVER
 
-sudo -u ftpsync compose-partial-copy --arch=armhfp --arch=x86_64 --arch src --arch=aarch64 --arch=i386 --arch=ppc64 --arch=ppc64le \
+sudo -u ftpsync compose-partial-copy --arch=armhfp --arch=x86_64 --arch src --arch=aarch64 --arch=i386 --arch=ppc64 --arch=ppc64le --arch=s390x \
      $BASE/$SHORTRELEASEVER/$COMPOSEID/compose/$dir/ $DESTDIR/$RELPREFIX$RELEASEVER/$dir/ \
      --variant Server
 
