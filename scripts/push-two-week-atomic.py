@@ -556,13 +556,12 @@ def prune_old_composes(prune_base_dir, prune_limit):
                     "prune_old_composes: command failed: {}".format(prune_cmd)
                 )
 
-def generate_static_delta(release, old_commit, new_commit):
+def generate_static_delta(old_commit, new_commit):
     """
     generate_static_delta
 
         Generate a static delta between two commits
 
-    :param release - the Fedora release to target (25,26,etc)
     :param old_commit - starting point for delta
     :param new_commit - ending point for delta
     """
@@ -575,13 +574,12 @@ def generate_static_delta(release, old_commit, new_commit):
         log.error("generate_static_delta: diff generation failed: %s", diff_cmd)
         exit(3)
 
-def update_ostree_summary_file(release):
+def update_ostree_summary_file():
     """
     update_ostree_summary_file
 
         Update the summary file for the ostree repo
 
-    :param release - the Fedora release to target (25,26,etc)
     """
     summary_cmd = ["/usr/bin/sudo",
                    "ostree", "summary", "-u", "--repo",
@@ -592,9 +590,7 @@ def update_ostree_summary_file(release):
         exit(3)
 
 def move_tree_commit(release, old_commit, new_commit):
-    generate_static_delta(release=release,
-                          old_commit=old_commit,
-                          new_commit=new_commit)
+    generate_static_delta(old_commit=old_commit, new_commit=new_commit)
 
     log.info("Moving ref %s to commit %s" %(TARGET_REF, new_commit))
     reset_cmd = ['/usr/bin/sudo',
@@ -604,7 +600,7 @@ def move_tree_commit(release, old_commit, new_commit):
         log.error("move_tree_commit: resetting ref to new commit failed: %s", reset_cmd)
         exit(3)
 
-    update_ostree_summary_file(release)
+    update_ostree_summary_file()
 
 
 
@@ -706,10 +702,9 @@ if __name__ == '__main__':
     # Also, if existing previous release commit is defined, then
     # generate a static delta from it
     if PREVIOUS_MAJOR_RELEASE_FINAL_COMMIT is not None:
-        generate_static_delta(release=pargs.release,
-                              old_commit=PREVIOUS_MAJOR_RELEASE_FINAL_COMMIT,
+        generate_static_delta(old_commit=PREVIOUS_MAJOR_RELEASE_FINAL_COMMIT,
                               new_commit=tree_commit)
-        update_ostree_summary_file(pargs.release)
+        update_ostree_summary_file()
 
     log.info("Staging release content in /pub/alt/atomic/stable/")
     stage_atomic_release(compose_id)
