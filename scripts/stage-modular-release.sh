@@ -41,6 +41,6 @@ sudo -u ftpsync scripts/build_composeinfo $DESTDIR/$RELPREFIX$RELEASEVER/
 sudo scripts/build_composeinfo $BASE/$SHORTRELEASEVER/$COMPOSEID/compose/
 
 
-sudo -u ftpsync chmod 750 $DESTDIR/$RELEASEVER/
+sudo -u ftpsync chmod 750 $DESTDIR/$RELPREFIX$RELEASEVER/
 
-sudo -u ftpsync du -hs $DESTDIR/$RELEASEVER/
+sudo -u ftpsync du -hs $DESTDIR/$RELPREFIX$RELEASEVER/
