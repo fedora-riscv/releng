@@ -595,21 +595,17 @@ if __name__ == '__main__':
     parser.add_argument(
         "-k",
         "--key",
+        required=True,
         help="signing key to use with sigul",
     )
     parser.add_argument(
         "-r",
         "--release",
+        required=True,
         help="Fedora Release to target for release (Ex: 24, 25, rawhide)",
     )
     pargs = parser.parse_args()
 
-    if not pargs.key:
-        log.error("No key passed, see -h for help")
-        sys.exit(1)
-    if not pargs.release:
-        log.error("No release arg passed, see -h for help")
-        sys.exit(1)
 
     log.info("Checking to make sure release is not currently blocked")
     if BLOCK_ATOMIC_HOST_RELEASE:
