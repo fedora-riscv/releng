@@ -574,21 +574,6 @@ def generate_static_delta(old_commit, new_commit):
         log.error("generate_static_delta: diff generation failed: %s", diff_cmd)
         exit(3)
 
-def update_ostree_summary_file():
-    """
-    update_ostree_summary_file
-
-        Update the summary file for the ostree repo
-
-    """
-    summary_cmd = ["/usr/bin/sudo",
-                   "ostree", "summary", "-u", "--repo",
-                   ATOMIC_HOST_DIR]
-    log.info("Updating Summary file")
-    if subprocess.call(summary_cmd):
-        log.error("update_ostree_summary_file: update failed: %s", summary_cmd)
-        exit(3)
-
 def move_tree_commit(release, old_commit, new_commit):
     generate_static_delta(old_commit=old_commit, new_commit=new_commit)
 
@@ -600,7 +585,6 @@ def move_tree_commit(release, old_commit, new_commit):
         log.error("move_tree_commit: resetting ref to new commit failed: %s", reset_cmd)
         exit(3)
 
-    update_ostree_summary_file()
 
 
 
@@ -704,7 +688,6 @@ if __name__ == '__main__':
     if PREVIOUS_MAJOR_RELEASE_FINAL_COMMIT is not None:
         generate_static_delta(old_commit=PREVIOUS_MAJOR_RELEASE_FINAL_COMMIT,
                               new_commit=tree_commit)
-        update_ostree_summary_file()
 
     log.info("Staging release content in /pub/alt/atomic/stable/")
     stage_atomic_release(compose_id)
