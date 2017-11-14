@@ -110,7 +110,9 @@ DATAGREPPER_URL = "https://apps.fedoraproject.org/datagrepper/raw"
 # delta = 2 weeks in seconds
 DATAGREPPER_DELTA = 1209600
 # category to filter on from datagrepper
+# url: https://apps.fedoraproject.org/datagrepper/raw?topic=org.fedoraproject.prod.autocloud.compose.complete
 DATAGREPPER_AUTOCLOUD_TOPIC = "org.fedoraproject.prod.autocloud.compose.complete"
+# url: https://apps.fedoraproject.org/datagrepper/raw?topic=org.fedoraproject.prod.pungi.compose.ostree
 DATAGREPPER_OSTREE_TOPIC = "org.fedoraproject.prod.pungi.compose.ostree"
 
 
@@ -801,6 +803,7 @@ if __name__ == '__main__':
 
     log.info("Releasing ostrees at version: %s", ostree_commit_version)
 
+    # url: https://apps.fedoraproject.org/datagrepper/raw?topic=org.fedoraproject.prod.releng.atomic.twoweek.begin
     log.info("Sending fedmsg releng.atomic.twoweek.begin")
     fedmsg_publish(
         topic="atomic.twoweek.begin",
@@ -840,6 +843,7 @@ if __name__ == '__main__':
     log.info("Staging release content in /pub/alt/atomic/stable/")
     stage_atomic_release(pargs.pungi_compose_id)
 
+    # url: https://apps.fedoraproject.org/datagrepper/raw?topic=org.fedoraproject.prod.releng.atomic.twoweek.complete
     log.info("Sending fedmsg releng.atomic.twoweek.complete")
     fedmsg_publish(
         topic="atomic.twoweek.complete",
