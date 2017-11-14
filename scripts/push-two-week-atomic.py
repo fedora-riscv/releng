@@ -105,7 +105,8 @@ DATAGREPPER_URL = "https://apps.fedoraproject.org/datagrepper/raw"
 # delta = 2 weeks in seconds
 DATAGREPPER_DELTA = 1209600
 # category to filter on from datagrepper
-DATAGREPPER_TOPIC = "org.fedoraproject.prod.autocloud.compose.complete"
+DATAGREPPER_AUTOCLOUD_TOPIC = "org.fedoraproject.prod.autocloud.compose.complete"
+DATAGREPPER_OSTREE_TOPIC = "org.fedoraproject.prod.pungi.compose.ostree"
 
 
 SIGUL_SIGNED_TXT_PATH = "/tmp/signed"
@@ -129,12 +130,60 @@ def construct_url(msg):
     image_url = os.path.join(ATOMIC_HOST_STABLE_BASEDIR, '/'.join(iul[4:]))
     return image_name, image_url
 
+def get_ostree_compose_info(
+        ostree_pungi_compose_id,
+        datagrepper_url=DATAGREPPER_URL,
+        delta=DATAGREPPER_DELTA,
+        topic=DATAGREPPER_OSTREE_TOPIC):
+    """
+    get_ostree_compose_info
+
+        Query datagrepper for fedmsg information from the compose.
+        We'll find the ostree commits from this compose.
+
+    return -> dict
+        Will return arch->commit dictionariy
+
+    """
+
+    # rows_per_page is maximum 100 from Fedora's datagrepper
+    request_params = {
+        "delta": delta,
+        "topic": 'org.fedoraproject.prod.pungi.compose.ostree',
+        "rows_per_page": 100,
+    }
+    r = requests.get(datagrepper_url, params=request_params)
+
+    # Start with page 1 response from datagrepper, grab the raw messages
+    # and then continue to populate the list with the rest of the pages of data
+    autocloud_data = r.json()[u'raw_messages']
+    for rpage in range(2, r.json()[u'pages']+1):
+        autocloud_data += requests.get(
+            datagrepper_url,
+            params=dict(page=rpage, **request_params)
+        ).json()[u'raw_messages']
+
+    ostree_composes = [
+        compose[u'msg'] for compose in autocloud_data
+        if ostree_pungi_compose_id in compose[u'msg'][u'compose_id']
+            and 'atomic-host' in compose[u'msg'][u'ref']
+    ]
+
+    ostree_compose_info = dict()
+    for ostree_compose in ostree_composes:
+        arch = ostree_compose[u'arch']
+        commit = ostree_compose[u'commitid']
+        ostree_compose_info[arch] = commit
+        log.info("Found %s, %s", arch, commit)
+
+    return ostree_compose_info
+
 def get_latest_successful_autocloud_test_info(
         release,
         pungi_compose_id,
         datagrepper_url=DATAGREPPER_URL,
         delta=DATAGREPPER_DELTA,
-        topic=DATAGREPPER_TOPIC):
+        topic=DATAGREPPER_AUTOCLOUD_TOPIC):
     """
     get_latest_successful_autocloud_test_info
 
@@ -667,6 +716,12 @@ if __name__ == '__main__':
    ## TODO: https://github.com/kushaldas/tunirtests/pull/59 will allow us to
    ## extract this from the autocloud test results.
    #print('Releasing compose %s' % compose_id)
+
+
+    # Get commit information from fedmsg for the specified ostree
+    # compose. This will give us back a dict of arch->commit.
+    ostree_compose_info = get_ostree_compose_info(pargs.ostree_pungi_compose_id)
+
     tree_commit = None
     tree_version = None
     while not tree_commit:
