@@ -50,7 +50,7 @@ ARCHES = ['x86_64', 'aarch64', 'ppc64le']
 PREVIOUS_MAJOR_RELEASE_FINAL_COMMITS = {
     'aarch64': None,
     'ppc64le': None,
-    'x86_64':  None,
+    'x86_64':  'c099633883cd8d06895e32a14c63f6672072430c151de882223e4abe20efa7ca',
 }
 TARGET_REF = "fedora/%s/%s/atomic-host" # example fedora/27/x86_64/atomic-host
 COMPOSE_BASEDIR = "/mnt/koji/compose/twoweek/"
