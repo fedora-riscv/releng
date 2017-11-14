@@ -813,18 +813,29 @@ if __name__ == '__main__':
         os.path.join(COMPOSE_BASEDIR, pargs.pungi_compose_id),
     )
 
-    # If we are already at the new commit then there is nothing to do
-    if previous_commit == tree_commit:
-        log.info("Tree commit is already at %s. Skipping move", tree_commit)
-    else:
-        log.info("Moving tree commit %s => %s (%s)", previous_commit, tree_commit, tree_version)
-        move_tree_commit(pargs.release, previous_commit, tree_commit)
-
-    # Also, if existing previous release commit is defined, then
-    # generate a static delta from it
-    if PREVIOUS_MAJOR_RELEASE_FINAL_COMMIT is not None:
-        generate_static_delta(old_commit=PREVIOUS_MAJOR_RELEASE_FINAL_COMMIT,
-                              new_commit=tree_commit)
+    # Perform the necessary ostree repo manipulations for the release
+    # for each arch:
+    #     - create static delta from previous release
+    #     - create static delta from previous major release
+    #     - update the ref in the repo to the new commit
+    for arch in ARCHES:
+        # Generate static delta from previous release
+        generate_static_delta(
+            old_commit=ostree_commit_data[arch]['previous_commit'],
+            new_commit=ostree_commit_data[arch]['commit']
+        )
+        # Generate static delta from previous major release (if defined)
+        old_commit = PREVIOUS_MAJOR_RELEASE_FINAL_COMMITS.get(arch, None)
+        if old_commit is not None:
+            generate_static_delta(
+                old_commit=old_commit,
+                new_commit=ostree_commit_data[arch]['commit'],
+            )
+        # Move the ref
+        update_ref(
+            ostree_commit_data[arch]['ref'],
+            ostree_commit_data[arch]['commit']
+        )
 
     log.info("Staging release content in /pub/alt/atomic/stable/")
     stage_atomic_release(pargs.pungi_compose_id)
