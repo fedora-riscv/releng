@@ -345,11 +345,10 @@ def compose_manually_marked_bad(compose_id, bad_composes=MARK_ATOMIC_HOST_BAD_CO
 
 def send_atomic_announce_email(
         email_filelist,
+        ostree_commit_data,
         mail_receivers=ATOMIC_HOST_EMAIL_RECIPIENTS,
         sender_email=ATOMIC_HOST_EMAIL_SENDER,
-        sender_smtp=ATOMIC_HOST_EMAIL_SMTP,
-        tree_commit=None,
-        tree_version=None):
+        sender_smtp=ATOMIC_HOST_EMAIL_SMTP):
     """
     send_atomic_announce_email
 
@@ -368,6 +367,13 @@ def send_atomic_announce_email(
             released_artifacts.append(
                 "https://alt.fedoraproject.org{}".format(e_file)
             )
+    released_artifacts.sort()
+    released_checksums.sort()
+
+    commits_string =""
+    for arch in ARCHES:
+        commit = ostree_commit_data[arch]['commit']
+        commits_string += "Commit(%s): %s\n" % (arch, commit)
 
     msg = MIMEMultipart()
     msg['To'] = "; ".join(mail_receivers)
@@ -376,10 +382,14 @@ def send_atomic_announce_email(
     msg.attach(
         MIMEText(
             """
-A new Fedora Atomic Host update is available via an OSTree commit:
+A new Fedora Atomic Host update is available via an OSTree update:
 
-Commit: {}
 Version: {}
+{}
+
+We are releasing images from multiple architectures but please note
+that x86_64 architecture is the only one that undergoes automated
+testing at this time.
 
 Existing systems can be upgraded in place via e.g. `atomic host upgrade` or
 `atomic host deploy`.
@@ -387,6 +397,9 @@ Existing systems can be upgraded in place via e.g. `atomic host upgrade` or
 Corresponding image media for new installations can be downloaded from:
 
     https://getfedora.org/en/atomic/download/
+
+Alternatively, image artifacts can be found at the following links:
+{}
 
 Respective signed CHECKSUM files can be found here:
 {}
@@ -406,9 +419,9 @@ Filename fetching URLs are available here:
     https://getfedora.org/atomic_vagrant_virtualbox_latest_filename
 
 For more information about the latest targets, please reference the Fedora
-Cloud Wiki space.
+Atomic Wiki space.
 
-    https://fedoraproject.org/wiki/Cloud#Quick_Links
+    https://fedoraproject.org/wiki/Atomic_WG#Fedora_Atomic_Image_Download_Links
 
 Do note that it can take some of the mirrors up to 12 hours to "check-in" at
 their own discretion.
@@ -416,8 +429,9 @@ their own discretion.
 Thank you,
 Fedora Release Engineering
             """.format(
-                tree_commit,
-                tree_version,
+                ostree_commit_data.items()[0][1]['version'],
+                commits_string,
+                '\n'.join(released_artifacts),
                 '\n'.join(released_checksums)
             )
         )
@@ -867,8 +881,7 @@ if __name__ == '__main__':
             for c_file in glob.glob(os.path.join(full_dir_path, "*CHECKSUM")):
                 email_filelist.append(c_file)
 
-    send_atomic_announce_email(set(email_filelist), tree_commit=tree_commit,
-                               tree_version=tree_version)
+    send_atomic_announce_email(set(email_filelist), ostree_commit_data)
 
     # FIXME - The logic in this functioni is broken, leave it disabled for now
     #log.info("Pruning old Atomic Host test composes")
