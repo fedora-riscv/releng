@@ -131,6 +131,7 @@ def construct_url(msg):
 
 def get_latest_successful_autocloud_test_info(
         release,
+        pungi_compose_id,
         datagrepper_url=DATAGREPPER_URL,
         delta=DATAGREPPER_DELTA,
         topic=DATAGREPPER_TOPIC):
@@ -165,31 +166,45 @@ def get_latest_successful_autocloud_test_info(
         ).json()[u'raw_messages']
 
 
+# XXX ignore this way of doing things for now (see below)
+##### List comprehension that will return a list of compose information from
+##### AutoCloud (the [u'msg'] payload of autocloud.compose.complete fedmsg)
+##### such that the following criteria are true:
+#####
+#####   - Is an Atomic Host compose (i.e. 'Atomic' is in the compose id)
+#####   - No compose artifacts failed the tests
+#####   - This is the current Fedora release we want
+#####
+#####   OR:
+#####       - This compose was manually marked good
+####candidate_composes = [
+####    compose[u'msg'] for compose in autocloud_data
+####        if u'Atomic' in compose[u'msg'][u'id']
+####            and compose[u'msg'][u'results'][u'failed'] == 0
+####            and compose[u'msg'][u'release'] == str(release)
+####            or compose[u'msg'][u'id'] in MARK_ATOMIC_HOST_GOOD_COMPOSES
+####]
+
+####filtered_composes = list(candidate_composes)
+####for compose in candidate_composes:
+####    if compose_manually_marked_bad(compose[u'id']):
+####        filtered_composes.remove(compose)
+
+##### sc = successful compose
+####sc = filtered_composes[0]
+
+    # XXX For now ignore the autocloud results and just use the
+    # requested pungi compose id.
+    #
     # List comprehension that will return a list of compose information from
     # AutoCloud (the [u'msg'] payload of autocloud.compose.complete fedmsg)
     # such that the following criteria are true:
-    #
-    #   - Is an Atomic Host compose (i.e. 'Atomic' is in the compose id)
-    #   - No compose artifacts failed the tests
-    #   - This is the current Fedora release we want
-    #
-    #   OR:
-    #       - This compose was manually marked good
     candidate_composes = [
         compose[u'msg'] for compose in autocloud_data
-            if u'Atomic' in compose[u'msg'][u'id']
-                and compose[u'msg'][u'results'][u'failed'] == 0
-                and compose[u'msg'][u'release'] == str(release)
-                or compose[u'msg'][u'id'] in MARK_ATOMIC_HOST_GOOD_COMPOSES
+            if pungi_compose_id in compose[u'msg'][u'id']
     ]
-
-    filtered_composes = list(candidate_composes)
-    for compose in candidate_composes:
-        if compose_manually_marked_bad(compose[u'id']):
-            filtered_composes.remove(compose)
-
     # sc = successful compose
-    sc = filtered_composes[0]
+    sc = candidate_composes[0]
 
     autocloud_info = {}
 
@@ -363,7 +378,7 @@ Fedora Release Engineering
         print("ERROR: Unable to send email:\n{}\n".format(e))
 
 def stage_atomic_release(
-        compose_id,
+        pungi_compose_id,
         compose_basedir=COMPOSE_BASEDIR,
         dest_base_dir=ATOMIC_HOST_STABLE_BASEDIR):
     """
@@ -374,8 +389,8 @@ def stage_atomic_release(
 
     """
 
-    source_loc = os.path.join(compose_basedir, compose_id, "compose")
-    dest_dir = os.path.join(dest_base_dir, compose_id)
+    source_loc = os.path.join(compose_basedir, pungi_compose_id, "compose")
+    dest_dir = os.path.join(dest_base_dir, pungi_compose_id)
 
     # FIXME - need sudo until pungi perms are fixed
     rsync_cmd = [
@@ -604,6 +619,12 @@ if __name__ == '__main__':
         required=True,
         help="Fedora Release to target for release (Ex: 24, 25, rawhide)",
     )
+    parser.add_argument(
+        "--pungi-compose-id",
+        dest='pungi_compose_id',
+        required=True,
+        help="The pungi compose that created the media (Ex: Fedora-27-20171110.n.1)."
+    )
     pargs = parser.parse_args()
 
 
@@ -615,10 +636,8 @@ if __name__ == '__main__':
     log.info("Querying datagrepper for latest AutoCloud successful tests")
     # Acquire the latest successful builds from datagrepper
     tested_autocloud_info = get_latest_successful_autocloud_test_info(
-        pargs.release
+        pargs.release, pargs.pungi_compose_id
     )
-
-    # FIXME - DEBUGGING
     log.info("{}\n{}".format("TESTED_AUTOCLOUD_INFO", json.dumps(tested_autocloud_info, indent=2)))
 
     log.info("Query to datagrepper complete")
@@ -628,12 +647,13 @@ if __name__ == '__main__':
         log.error("No successful builds found")
         sys.exit(2)
 
-    log.info("Extracting compose_id from tested autocloud data")
-    compose_id = tested_autocloud_info['atomic_qcow2']['compose_id']
-
-    # TODO: https://github.com/kushaldas/tunirtests/pull/59 will allow us to
-    # extract this from the autocloud test results.
-    print('Releasing compose %s' % compose_id)
+   ## XXX Not needed since we are specifying compose ID
+   #log.info("Extracting compose_id from tested autocloud data")
+   #compose_id = tested_autocloud_info['atomic_qcow2']['compose_id']
+   #
+   ## TODO: https://github.com/kushaldas/tunirtests/pull/59 will allow us to
+   ## extract this from the autocloud test results.
+   #print('Releasing compose %s' % compose_id)
     tree_commit = None
     tree_version = None
     while not tree_commit:
@@ -669,7 +689,7 @@ if __name__ == '__main__':
     log.info("Signing image metadata - compose")
     sign_checksum_files(
         pargs.key,
-        os.path.join(COMPOSE_BASEDIR, compose_id),
+        os.path.join(COMPOSE_BASEDIR, pargs.pungi_compose_id),
     )
 
     # If we are already at the new commit then there is nothing to do
@@ -686,7 +706,7 @@ if __name__ == '__main__':
                               new_commit=tree_commit)
 
     log.info("Staging release content in /pub/alt/atomic/stable/")
-    stage_atomic_release(compose_id)
+    stage_atomic_release(pargs.pungi_compose_id)
 
     log.info("Sending fedmsg releng.atomic.twoweek.complete")
     fedmsg_publish(
@@ -698,7 +718,8 @@ if __name__ == '__main__':
     # Find all the Atomic Host images and CHECKSUM files to include in the email
     email_filelist = []
     for full_dir_path, _, short_names in \
-            os.walk(os.path.join(ATOMIC_HOST_STABLE_BASEDIR, compose_id)):
+            os.walk(os.path.join(ATOMIC_HOST_STABLE_BASEDIR,
+                                 pargs.pungi_compose_id)):
         for sname in fnmatch.filter(short_names, '*Atomic*'):
             email_filelist.append(
                 os.path.join(
