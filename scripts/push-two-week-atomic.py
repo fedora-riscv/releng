@@ -46,8 +46,13 @@ log = logging.getLogger(os.path.basename(sys.argv[0]))
 
 # Define "constants"
 ATOMIC_HOST_DIR = "/mnt/koji/compose/updates/atomic"
-PREVIOUS_MAJOR_RELEASE_FINAL_COMMIT = None
-TARGET_REF = "fedora/%s/x86_64/atomic-host"
+ARCHES = ['x86_64', 'aarch64', 'ppc64le']
+PREVIOUS_MAJOR_RELEASE_FINAL_COMMITS = {
+    'aarch64': None,
+    'ppc64le': None,
+    'x86_64':  None,
+}
+TARGET_REF = "fedora/%s/%s/atomic-host" # example fedora/27/x86_64/atomic-host
 COMPOSE_BASEDIR = "/mnt/koji/compose/twoweek/"
 
 # FIXME ???? Do we need a real STMP server here?
