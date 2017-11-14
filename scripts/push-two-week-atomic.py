@@ -638,16 +638,30 @@ def generate_static_delta(old_commit, new_commit):
         log.error("generate_static_delta: diff generation failed: %s", diff_cmd)
         exit(3)
 
-def move_tree_commit(release, old_commit, new_commit):
-    generate_static_delta(old_commit=old_commit, new_commit=new_commit)
+def update_ref(ref, old_commit, new_commit):
+    """
+    update_ref
 
-    log.info("Moving ref %s to commit %s" %(TARGET_REF, new_commit))
-    reset_cmd = ['/usr/bin/sudo',
-                 'ostree', 'reset', TARGET_REF % release,
+        Update the given ref and set it to new_commit
+
+    :param old_commit - where the ref currently is
+    :param new_commit - where the ref should end up
+    """
+
+    if old_commit == new_commit:
+        log.info("ref %s is already at %s. Skipping update",
+                 ref, new_commit
+        )
+        return
+
+    log.info("Moving ref %s from %s => %s",
+              ref, old_commit, new_commit)
+
+    reset_cmd = ['/usr/bin/sudo', 'ostree', 'reset', ref,
                  new_commit, '--repo', ATOMIC_HOST_DIR]
     if subprocess.call(reset_cmd):
-        log.error("move_tree_commit: resetting ref to new commit failed: %s", reset_cmd)
-        exit(3)
+        log.error("update_ref: resetting ref to new commit failed: %s", reset_cmd)
+        sys.exit(3)
 
 
 
