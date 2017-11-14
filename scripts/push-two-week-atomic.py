@@ -12,6 +12,7 @@
 # Authors:
 #     Adam Miller <maxamillion@fedoraproject.org>
 #     Patrick Uiterwijk <puiterwijk@redhat.com>
+#     Dusty Mabe <dusty@dustymabe.com>
 #
 # Exit codes:
 #   0 - Success
