@@ -625,8 +625,21 @@ if __name__ == '__main__':
         required=True,
         help="The pungi compose that created the media (Ex: Fedora-27-20171110.n.1)."
     )
+    parser.add_argument(
+        "--ostree-pungi-compose-id",
+        dest='ostree_pungi_compose_id',
+        help="""
+           The pungi compose that created the ostree (Ex: Fedora-27-20171110.n.1).
+           This is optional and is only required if the pungi compose that ostree
+           commit is different than the ostree compose that created the media.
+        """
+    )
     pargs = parser.parse_args()
 
+    # This one is only specified if it differs from --pungi-compose-id
+    # If missing just assign it the value of pungi-compose-id.
+    if not pargs.ostree_pungi_compose_id:
+        pargs.ostree_pungi_compose_id = pargs.pungi_compose_id
 
     log.info("Checking to make sure release is not currently blocked")
     if BLOCK_ATOMIC_HOST_RELEASE:
