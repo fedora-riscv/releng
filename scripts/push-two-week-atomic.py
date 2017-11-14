@@ -859,6 +859,7 @@ if __name__ == '__main__':
     for arch in ARCHES:
         # Generate static delta from previous release
         generate_static_delta(
+            pargs.release,
             old_commit=ostree_commit_data[arch]['previous_commit'],
             new_commit=ostree_commit_data[arch]['commit']
         )
@@ -866,6 +867,7 @@ if __name__ == '__main__':
         old_commit = PREVIOUS_MAJOR_RELEASE_FINAL_COMMITS.get(arch, None)
         if old_commit is not None:
             generate_static_delta(
+                pargs.release,
                 old_commit=old_commit,
                 new_commit=ostree_commit_data[arch]['commit'],
             )
