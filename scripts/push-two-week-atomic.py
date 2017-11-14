@@ -736,36 +736,70 @@ if __name__ == '__main__':
    ## extract this from the autocloud test results.
    #print('Releasing compose %s' % compose_id)
 
+    # Initialize a empty dict that we will populate with information
+    # about each commit. We'll use this information to do the release.
+    # Example: => {
+    #   'x86_64' => {
+    #       'ref'    => 'fedora/27/x86_64/atomic-host',
+    #       'commit' => 'xxyyzz',
+    #       'version' => '27.1'
+    #       'previous_commit' => 'aabbccdd'
+    #   }
+    # }
+    ostree_commit_data = dict()
+    for arch in ARCHES:
+        ostree_commit_data[arch] = dict()
 
     # Get commit information from fedmsg for the specified ostree
     # compose. This will give us back a dict of arch->commit.
     ostree_compose_info = get_ostree_compose_info(pargs.ostree_pungi_compose_id)
 
-    tree_commit = None
-    tree_version = None
-    while not tree_commit:
-        tree_commit = raw_input('Tree commit: ').strip()
-        try:
-            print("Validating and finding version of {}".format(tree_commit))
-            tree_version = subprocess.check_output(['/usr/bin/ostree', '--repo=' + ATOMIC_HOST_DIR, 'show', '--print-metadata-key=version', tree_commit])
-        except subprocess.CalledProcessError as e:
-            print('Error when validating commit: %s. Try again.' % tree_commit)
-            tree_commit = None
-            continue
-        # It's in GVariant print format by default, we can make this less hacky when
-        # porting to use libostree.
-        tree_version = tree_version.replace("'", "")
+    # Verify there is a commit for each of the architectures.
+    for arch in ARCHES:
+        if arch not in ostree_compose_info.keys():
+            log.error("No compose commit info for %s in %s",
+                        arch, pargs.ostree_pungi_compose_id)
+            sys.exit(2)
 
-    rev_parse_cmd = ['/usr/bin/ostree', 'rev-parse', '--repo',
-                     ATOMIC_HOST_DIR, TARGET_REF % pargs.release]
-    previous_commit = subprocess.check_output(rev_parse_cmd).strip()
+    # populate the ostree_commit_data dict
+    for arch in ARCHES:
+        commit = ostree_compose_info[arch]
+        ref = TARGET_REF % (pargs.release, arch)
 
-    # This could happen if there was a failure in this script sending the email
-    # or anything after the commit has already been moved.
-    if previous_commit == tree_commit:
-        answer = raw_input('ref is already at that commit, are you sure?: (y/n)').strip()
-        if answer.lower() != 'y':
-            sys.exit(4)
+        # Verify the commit exists in the tree, and find the version
+        log.info("Verifying and finding version of %s", commit)
+        cmd = ['/usr/bin/ostree', '--repo=' + ATOMIC_HOST_DIR,
+               'show', '--print-metadata-key=version', commit]
+        version = subprocess.check_output(cmd).strip()
+        # output will be in GVariant print format by default -> s/'//
+        version = version.replace("'", "")
+
+        # Find the previous commit for this ref in the tree
+        cmd = ['/usr/bin/ostree', '--repo=' + ATOMIC_HOST_DIR,
+               'rev-parse', ref]
+        previous_commit = subprocess.check_output(cmd).strip()
+
+        # set info in ostree_commit_data dict
+        ostree_commit_data[arch]['ref'] = ref
+        ostree_commit_data[arch]['commit'] = commit
+        ostree_commit_data[arch]['version'] = version
+        ostree_commit_data[arch]['previous_commit'] = previous_commit
+
+    log.info("OSTREE COMMIT DATA INFORMATION")
+    log.info("%s", json.dumps(ostree_commit_data, indent=2))
+
+    # Verify all versions match
+    ostree_commit_version = ostree_commit_data.items()[0][1]['version']
+    for arch in ARCHES:
+        if ostree_commit_data[arch]['version'] != ostree_commit_version:
+            log.error("Found mismatched versions for commits")
+            log.error("Got %s for %s. Expected %s",
+                      ostree_commit_data[arch]['version'],
+                      ostree_commit_data[arch]['commit'],
+                      ostree_commit_version)
+            sys.exit(1)
+
+    log.info("Releasing ostrees at version: %s", ostree_commit_version)
 
     log.info("Sending fedmsg releng.atomic.twoweek.begin")
     fedmsg_publish(
