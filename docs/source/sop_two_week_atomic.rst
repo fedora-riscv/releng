@@ -10,7 +10,7 @@ Description
 
 Every two weeks there is a new release of the `Fedora Atomic Host`_ deliverable
 from Fedora. This item was originally lead by the `Fedora Cloud SIG`_ and
-proprosed as a `Fedora Change`_. The goal is to deliver Fedora Atomic Host at a
+proposed as a `Fedora Change`_. The goal is to deliver Fedora Atomic Host at a
 more rapid release cycle than that of the rest of Fedora, allowing for the
 Atomic Host to be iterated as a released artifact through out a stable Fedora
 Release life cycle.
@@ -28,7 +28,7 @@ that host is ``bodhi-backend01.phx2.fedoraproject.org``.
     The user that runs this must also have permissions in `sigul`_ to sign using
     the specified key.
 
-Running the script requires two arguements:
+Running the script requires two arguments:
 
 * The Fedora Release number that you are going to release, example: ``-r 26``
 * The Fedora key to sign the checksum metadata files with, example: ``-k
@@ -37,28 +37,26 @@ Running the script requires two arguements:
 At the time of this writing, the `AutoCloud`_ tests are no longer reliable and
 are effectively abandoned by those responsible. As such, on Atomic Host Two-Week
 Release Day a member of the `Fedora Atomic WG`_ (normally ``dustymabe``) will
-email RelEng with the release candidate that should be released.
+open a request to RelEng with the release candidate that should be released.
 
-The email should contain two key pieces of information, the ostree commit hash
-and the Compose ID. They should be similar to the following.
+The request should contain a few key pieces of information. The pungi compose
+id of the compose that created the media artifacts and optionally the pungi
+compose id of the compose that created the ostrees (only if the media
+and the ostree were created in different composes).
 
 ::
 
-    d518b37c348eb814093249f035ae852e7723840521b4bcb4a271a80b5988c44a
-    Fedora-Atomic-26-20171016.0
+    pungi-compose-id: Fedora-Atomic-27-20171110.1
+    ostree-pungi-compose-id: Fedora-27-20171110.n.1
+
+Or the request may just contain the full command to run
+
+::
+
+    push-two-week-atomic.py -k fedora-27 -r 27 --pungi-compose-id Fedora-Atomic-27-20171110.1 --ostree-pungi-compose-id Fedora-27-20171110.n.1
 
 
-As a side effect of the current state of testing, the release script used below
-will sometimes display in it's "latest Release Candidate" Compose ID as
-something newer than what is reported above by the `Fedora Atomic WG`_ as is
-displayed in the example below.
-
-.. note:: The script will prompt you to provide the ostree commit hash provided
-          above but we are first ensuring the Commit ID matches.
-
-The below example shows how to perform the Two Week Atomic Release. However, in
-this example we are showing that the Compose ID is mismatched. If they are not
-mismatched, you can simply carry on following the prompts.
+The below example shows how to perform the Two Week Atomic Release.
 
 ::
 
@@ -75,88 +73,80 @@ mismatched, you can simply carry on following the prompts.
     # Perform the two week release
     bodhi-backend01$ cd ~/releng/scripts
 
-    # Here we specify the signing key 'fedora-26' and are targeting the Fedora
-    # Release '26'
-    $  ./push-two-week-atomic.py -k fedora-26 -r 26
-    INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): pagure.io
-    INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): pagure.io
-    INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): pagure.io
-    INFO:push-two-week-atomic.py:Checking for masher lock files
-    INFO:push-two-week-atomic.py:Checking to make sure release is not currently blocked
-    INFO:push-two-week-atomic.py:Querying datagrepper for latest AutoCloud successful tests
-    INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): apps.fedoraproject.org
-    INFO:push-two-week-atomic.py:TESTED_AUTOCLOUD_INFO
-    {
-      "atomic_qcow2": {
-        "release": "26",
-        "image_url": "/pub/alt/atomic/stable/Fedora-Atomic-26-20171017.0/CloudImages/x86_64/images/Fedora-Atomic-26-20171017.0.x86_64.qcow2",
-        "name": "Fedora-Atomic-26-20171017.0.",
-        "compose_id": "Fedora-Atomic-26-20171017.0",
-        "image_name": "Fedora-Atomic-26-20171017.0.x86_64.qcow2"
-      },
-      "atomic_vagrant_libvirt": {
-        "release": "26",
-        "image_url": "/pub/alt/atomic/stable/Fedora-Atomic-26-20171017.0/CloudImages/x86_64/images/Fedora-Atomic-Vagrant-26-20171017.0.x86_64.vagrant-libvirt.box",
-        "name": "Fedora-Atomic-Vagrant-26-20171017.0.",
-        "compose_id": "Fedora-Atomic-26-20171017.0",
-        "image_name": "Fedora-Atomic-Vagrant-26-20171017.0.x86_64.vagrant-libvirt.box"
-      },
-      "atomic_raw": {
-        "release": "26",
-        "image_url": "/pub/alt/atomic/stable/Fedora-Atomic-26-20171017.0/CloudImages/x86_64/images/Fedora-Atomic-26-20171017.0.x86_64.raw.xz",
-        "name": "Fedora-Atomic-26-20171017.0.",
-        "compose_id": "Fedora-Atomic-26-20171017.0",
-        "image_name": "Fedora-Atomic-26-20171017.0.x86_64.raw.xz"
-      },
-      "atomic_vagrant_virtualbox": {
-        "release": "26",
-        "image_url": "/pub/alt/atomic/stable/Fedora-Atomic-26-20171017.0/CloudImages/x86_64/images/Fedora-Atomic-Vagrant-26-20171017.0.x86_64.vagrant-virtualbox.box",
-        "name": "Fedora-Atomic-Vagrant-26-20171017.0.",
-        "compose_id": "Fedora-Atomic-26-20171017.0",
-        "image_name": "Fedora-Atomic-Vagrant-26-20171017.0.x86_64.vagrant-virtualbox.box"
-      }
-    }
-    INFO:push-two-week-atomic.py:Query to datagrepper complete
-    INFO:push-two-week-atomic.py:Extracting compose_id from tested autocloud data
-    Releasing compose Fedora-Atomic-26-20171017.0
-    Tree commit:
+    # Here we specify the signing key 'fedora-27' and are targeting the Fedora
+    # Release '27' and specific pungi composes
+	bodhi-backend01$ python push-two-week-atomic.py -k fedora-27 -r 27 --pungi-compose-id Fedora-Atomic-27-20171110.1 --ostree-pungi-compose-id Fedora-27-20171110.n.1
+	INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): pagure.io
+	INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): pagure.io
+	INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): pagure.io
+	INFO:push-two-week-atomic.py:Checking to make sure release is not currently blocked
+	INFO:push-two-week-atomic.py:Querying datagrepper for latest AutoCloud successful tests
+	INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): apps.fedoraproject.org
+	INFO:push-two-week-atomic.py:TESTED_AUTOCLOUD_INFO
+	{
+	  "atomic_qcow2": {
+		"release": "27",
+		"image_url": "/pub/alt/atomic/stable/Fedora-Atomic-27-20171110.1/CloudImages/x86_64/images/Fedora-Atomic-27-20171110.1.x86_64.qcow2",
+		"name": "Fedora-Atomic-27-20171110.1.",
+		"compose_id": "Fedora-Atomic-27-20171110.1",
+		"image_name": "Fedora-Atomic-27-20171110.1.x86_64.qcow2"
+	  },
+	  "atomic_vagrant_libvirt": {
+		"release": "27",
+		"image_url": "/pub/alt/atomic/stable/Fedora-Atomic-27-20171110.1/CloudImages/x86_64/images/Fedora-Atomic-Vagrant-27-20171110.1.x86_64.vagrant-libvirt.box",
+		"name": "Fedora-Atomic-Vagrant-27-20171110.1.",
+		"compose_id": "Fedora-Atomic-27-20171110.1",
+		"image_name": "Fedora-Atomic-Vagrant-27-20171110.1.x86_64.vagrant-libvirt.box"
+	  },
+	  "atomic_raw": {
+		"release": "27",
+		"image_url": "/pub/alt/atomic/stable/Fedora-Atomic-27-20171110.1/CloudImages/x86_64/images/Fedora-Atomic-27-20171110.1.x86_64.raw.xz",
+		"name": "Fedora-Atomic-27-20171110.1.",
+		"compose_id": "Fedora-Atomic-27-20171110.1",
+		"image_name": "Fedora-Atomic-27-20171110.1.x86_64.raw.xz"
+	  },
+	  "atomic_vagrant_virtualbox": {
+		"release": "27",
+		"image_url": "/pub/alt/atomic/stable/Fedora-Atomic-27-20171110.1/CloudImages/x86_64/images/Fedora-Atomic-Vagrant-27-20171110.1.x86_64.vagrant-virtualbox.box",
+		"name": "Fedora-Atomic-Vagrant-27-20171110.1.",
+		"compose_id": "Fedora-Atomic-27-20171110.1",
+		"image_name": "Fedora-Atomic-Vagrant-27-20171110.1.x86_64.vagrant-virtualbox.box"
+	  }
+	}
+	INFO:push-two-week-atomic.py:Query to datagrepper complete
+	INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): apps.fedoraproject.org
+	INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): apps.fedoraproject.org
+	INFO:push-two-week-atomic.py:Found aarch64, da1bd08012699a0aacaa11481d3ed617477858aab0f2ea7300168ce106202255
+	INFO:push-two-week-atomic.py:Found ppc64le, 362888edfac04f8848072ae4fb8193b3da2f4fd226bef450326faff4be290abd
+	INFO:push-two-week-atomic.py:Found x86_64, d428d3ad8ecf44e53d138042bad56a10308883a0c5d64b9c51eff27fdc9da82c
+	INFO:push-two-week-atomic.py:Verifying and finding version of d428d3ad8ecf44e53d138042bad56a10308883a0c5d64b9c51eff27fdc9da82c
+	INFO:push-two-week-atomic.py:Verifying and finding version of da1bd08012699a0aacaa11481d3ed617477858aab0f2ea7300168ce106202255
+	INFO:push-two-week-atomic.py:Verifying and finding version of 362888edfac04f8848072ae4fb8193b3da2f4fd226bef450326faff4be290abd
+	INFO:push-two-week-atomic.py:OSTREE COMMIT DATA INFORMATION
+	INFO:push-two-week-atomic.py:{
+	  "aarch64": {
+		"commit": "da1bd08012699a0aacaa11481d3ed617477858aab0f2ea7300168ce106202255",
+		"version": "27.1",
+		"ref": "fedora/27/aarch64/atomic-host",
+		"previous_commit": "da1bd08012699a0aacaa11481d3ed617477858aab0f2ea7300168ce106202255"
+	  },
+	  "x86_64": {
+		"commit": "d428d3ad8ecf44e53d138042bad56a10308883a0c5d64b9c51eff27fdc9da82c",
+		"version": "27.1",
+		"ref": "fedora/27/x86_64/atomic-host",
+		"previous_commit": "d428d3ad8ecf44e53d138042bad56a10308883a0c5d64b9c51eff27fdc9da82c"
+	  },
+	  "ppc64le": {
+		"commit": "362888edfac04f8848072ae4fb8193b3da2f4fd226bef450326faff4be290abd",
+		"version": "27.1",
+		"ref": "fedora/27/ppc64le/atomic-host",
+		"previous_commit": "362888edfac04f8848072ae4fb8193b3da2f4fd226bef450326faff4be290abd"
+	  }
+	}
+	INFO:push-two-week-atomic.py:Releasing ostrees at version: 27.1
+	...
+	<snip>
 
-In this instance we can see that the line ``Release compose
-Fedora-Atomic-26-20171017.0`` is a day newer in date-stamp than the one provided
-in the example information above as it would come from the Atomic WG. Therefore
-a member of RelEng needs to clone the `mark-atomic-bad`_ git repository and add
-``Fedora-Atomic-26-20171017.0`` to the ``bad-composes.json`` file to effectively
-"lie" to the script.
-
-.. note:: This is a work-around that was supposed to be replaced by a fully
-          automated release workflow but the tests never became truly
-          authoritative so the temporary fix became standard practice. Once this
-          is no longer the case, this document should be updated to reflect the
-          new process.
-
-.. note:: In the event the next Two-Week Release window comes around and the
-          image needing to be released is the one you had to mark in
-          ``bad-composes.json`` something has seriously gone wrong. This
-          situation realistically should never occur. However, if it did occur
-          and there's a valid reason for it and you **really** want to do that
-          then you can just remove that Compose ID from the
-          ``bad-composes.json`` file.
-
-::
-
-    # We need to clone the repo
-    $ git clone ssh://git@pagure.io/mark-atomic-bad.git
-
-    # Edit the bad-composes.json file to contain Fedora-Atomic-26-20171017.0 in
-    # the json list called "bad-composes"
-    # NOTE THAT JSON SYNTAX DOES NOT ALLOW A TRAILING COMMA
-
-    # Now commit the change
-    $ git add bad-composes.json
-    $ git commit -m "mark Fedora-Atomic-26-20171017.0 to ensure Fedora-Atomic-26-20171016.0 is latest"
-    $ git push origin master
-
-Now re-run the ``push-two-week-atomic.py`` script as described above.
 
 Verification
 ============
