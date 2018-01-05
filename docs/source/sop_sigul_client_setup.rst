@@ -26,17 +26,15 @@ Prerequisites
 
         yum install sigul
 
-#. Ensure that your koji certificate and the Fedora CA certificates are
-   present on the system that you're running the sigul client from at the
-   following locations:
+#. Ensure that your koji certificate and the
+   `Fedora CA certificates <Fedora-Cert>`_ are present on the system you're
+   running the sigul client from at the following locations:
 
    * ``~/.fedora.cert``
    * ``~/.fedora-server-ca.cert``
    * ``~/.fedora-upload-ca.cert``
 
 #. Admin privileges on koji are required to write signatures.
-#. You may want to add ``export NSS_HASH_ALG_SUPPORT=+MD5`` to your
-   ``~/.bashrc.`` rather than to every command.
 
 Configuration
 =============
@@ -52,8 +50,9 @@ Configuration
    ``~/.sigul/client.conf`` to include the following lines: 
 
 ::
+
     [client]
-    bridge-hostname: sign-bridge1i
+    bridge-hostname: sign-bridge1
     server-hostname: sign-vault1
 
 
@@ -90,6 +89,7 @@ commands:
 ::
 
     $ certutil -d ~/.sigul -D -n sigul-client-cert
-    $ NSS_HASH_ALG_SUPPORT=+MD5 sigul_setup_client
+    $ sigul_setup_client
 
 .. _User-Mitr: https://fedoraproject.org/wiki/User:Mitr
+.. _Fedora-Cert: https://fedoraproject.org/wiki/Package_maintenance_guide#Installing_fedpkg_and_doing_initial_setup
