@@ -24,9 +24,7 @@ Set up a web page for maintainers & send notice about rebuild
 =============================================================
 
 Firstly, describe the mass rebuild for maintainers; why it's being done, and
-how they can opt out. See `the Fedora 12 example`_.
-
-Secondly, send an email to fedora-devel mailing list about your next action.
+how they can opt out in a wiki page. See `the Fedora 26 example`_.
 
 == Update releng scripts ==
 
@@ -65,12 +63,16 @@ The ``add-tag`` command is used for creating the rebuild holding tag.
 
 The options let you specify a parent for the holding tag.
 
-For example, if we wanted to create a rebuild holding tag for Fedora 12
+For example, if we wanted to create a rebuild holding tag for Fedora 26
 development we would issue:
 
 ::
 
-    koji add-tag --arches i686,x86_64 --parent dist-f12 dist-f12-rebuild
+    koji add-tag f26-rebuild --parent f26
+
+.. note::
+Please ask someone from infra to enable autosigning for newly created
+``f26-rebuild`` tag.
 
 Create the rebuild target
 =========================
@@ -88,14 +90,14 @@ The ``add-target`` command is used for creating the rebuild target.
 
 The arguments define the name of the target, the build-tag to use, and what
 tag to apply to builds as they complete.  To continue our example, the
-following command would add the target for the Fedora 12 mass rebuild:
+following command would add the target for the Fedora 26 mass rebuild:
 
 ::
 
-    koji add-target dist-f12-rebuild dist-f12-build
+    koji add-target f26-rebuild f26-build
 
-When the dist-tag is not specified, it is assumed that the dist-tag is the
-same as the name of the target, in this case ``dist-f12-rebuild``.
+When the dest-tag is not specified, it is assumed that the dest-tag is the
+same as the name of the target, in this case ``f26-rebuild``.
 
 Building the packages
 =====================
@@ -117,6 +119,9 @@ The requirements for the script are as follows:
 * Ran as a user with a valid ssh agent for git actions
 * Ran on a system with a reliable network connection
 
+.. note::
+In Fedora Infra, the user is ``mass-rebuild``
+
 The script has error checking at every step of the way and will gracefully
 recover and continue on with the next package.  It does the rebuilds in an
 alphanumerical order (provided by python sorted()) by source package name, and
@@ -133,17 +138,18 @@ resource usage is light, mostly network to do the git checkouts.
 Tips
 ----
 
-It is highly recommended to use ssh socket sharing to speed up the git
-actions. This also obviates the need for an active ssh agent as all git
-connections will re-use the open socket.  The Internet can tell you how to
-setup ssh socket sharing. Before starting the rebuild script, open an ssh
-connection to git.fedoraproject.org and prevent your shell from exiting due to
-idle timeout with ``export TMOUT=0`` .  Leave this connection open (like say in
-a screen session) for the entirety of the script run.
-
 The script logs everything to stderr and stdout, so it is generally a good idea
 to redirect and capture the output to a log file, with something like
-``2>&1 | tee massbuild.out`` .
+``2>&1 | tee massbuild.out``.
+
+Running mass-rebuild.py
+-----------------------
+
+* ssh into branched-composer.phx2.fedoraproject.org
+* Change to mass-rebuild user
+* Clone `releng repo`_
+* cd to releng/scripts/
+* ./mass-rebuild.py 2>&1 | tee massbuild.out
 
 Track the failures
 ------------------
@@ -209,6 +215,17 @@ you will need either an active ssh agent or an open shared socket.  The script
 is somewhat resource intensive as it processes a lot of XML from koji.
 Updating once an hour is reasonable.
 
+Running find-failures.py
+------------------------
+
+* ssh into compose-x86-01.phx2.fedoraproject.org
+* Clone `releng git repository`_
+* cd to releng/scripts/
+* while true; do ./need-rebuild.py > f26-need-rebuild.html && cp f26-need-rebuild.html /mnt/koji/mass-rebuild/f26-need-rebuild.html; sleep 600; done
+
+.. note::
+Make sure you run this in screen or tmux
+
 need-rebuild.py
 ---------------
 
@@ -222,6 +239,17 @@ This can be tricky if you are running it and uploading the output via ssh as
 you will need either an active ssh agent or an open shared socket.  The script
 is somewhat resource intensive as it processes a lot of XML from koji.
 Updating once an hour is reasonable.
+
+Running need-rebuild.py
+------------------------
+
+* ssh into compose-x86-01.phx2.fedoraproject.org
+* Clone `releng git repository`_
+* cd to releng/scripts/
+* while true; do ./find_failures.py > f26-failures.html && cp f26-failures.html /mnt/koji/mass-rebuild/f26-failures.html; sleep 600; done
+
+.. note::
+Run this in another screen or tmux session from find-failues.py
 
 Tag the builds
 ==============
@@ -239,6 +267,13 @@ koji to discover the builds and weed out builds that are not the latest.  The
 final tag action is very quick.  Output will go to stdout and should be saved
 for later review.
 
+Running mass-tag.py
+-------------------
+
+* Clone `releng git repository`_
+* cd to releng/scripts/
+* ./mass-tag.py --source f26-rebuild --target f26-pending
+
 Consider Before Running
 =======================
 
@@ -251,5 +286,14 @@ Consider Before Running
   create rebuild tag and target when they are. It will then take care of
   rebuilds of the arch specific packages in appropriate kojis.
 
-.. _the Fedora 12 example: http://fedoraproject.org/wiki/Fedora_12_Mass_Rebuild
+Email
+-----
+
+Once the mass rebuild is done, send an email to ``devel-announce@lists.fedoraproject.org``
+
+`Email Example`_
+
+
+.. _the Fedora 26 example: https://fedoraproject.org/wiki/Fedora_26_Mass_Rebuild
 .. _releng git repository: https://pagure.io/releng
+.. _Email Example: https://lists.fedoraproject.org/archives/list/devel@lists.fedoraproject.org/message/QAMEEWUG7ND5E7LQYXQSQLRUDQPSBINA/
