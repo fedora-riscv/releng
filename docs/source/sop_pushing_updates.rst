@@ -148,6 +148,12 @@ Say 'y' to push for the above command.
 
 Verification
 ============
+#. Monitor Bodhi's composes with ``bodhi-monitor-composes``
+
+   ::
+
+    $ sudo -u apache watch -d -n 60 bodhi-monitor-composes
+
 #. Monitor the systemd journal
 
    ::
@@ -196,12 +202,6 @@ time
 
 Bodhi will ask you which push(es) you want to resume.
 
-Consider testing if the mash lock file exists.
-May indicate a previous push has not completed, or somehow failed:
-
-::
-
-    $ ls /mnt/koji/mash/updates/MASHING-*
 
 Common issues / problems with pushes
 ====================================
