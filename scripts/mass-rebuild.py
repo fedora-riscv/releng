@@ -146,6 +146,17 @@ for pkg in pkgs:
     if runme(bumpspec, 'bumpspec', name, enviro):
         continue
 
+    # Set the git user.name and user.email
+    set_name = ['git', 'config', 'user.name', 'Fedora Release Engineering']
+    set_mail = ['git', 'config', 'user.email', 'releng@fedoraproject.org']
+    print('Setting git user.name and user.email')
+    if runme(set_name, 'set_name', name, enviro,
+                 cwd=os.path.join(workdir, name)):
+        continue
+    if runme(set_mail, 'set_mail', name, enviro,
+                 cwd=os.path.join(workdir, name)):
+        continue
+
     # git commit
     commit = ['fedpkg', 'commit', '-s', '-p', '-m', comment]
     print('Committing changes for %s' % name)
