@@ -64,6 +64,10 @@ def runmeoutput(cmd, action, pkg, env, cwd=workdir):
     return result
 
 
+# Environment for using releng credentials for pushing and building
+enviro['GIT_SSH'] = '/usr/local/bin/relengpush'
+koji_bin = '/usr/bin/compose-koji'
+
 # Create a koji session
 kojisession = koji.ClientSession('https://koji.fedoraproject.org/kojihub')
 
@@ -158,7 +162,7 @@ for pkg in pkgs:
         continue
 
     # build
-    build = ['fedpkg', 'build', '--nowait', '--background', '--target', target]
+    build = [koji_bin, 'build', '--nowait', '--background', target, url]
     print('Building %s' % name)
     runme(build, 'build', name, enviro, 
           cwd=os.path.join(workdir, name))
