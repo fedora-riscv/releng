@@ -379,7 +379,8 @@ def send_atomic_announce_email(
     msg = MIMEMultipart()
     msg['To'] = "; ".join(mail_receivers)
     msg['From'] = "noreply@fedoraproject.org"
-    msg['Subject'] = "Fedora Atomic Host Two Week Release Announcement"
+    msg['Subject'] = "Fedora Atomic Host Two Week Release Announcement: %s" % \
+                         ostree_commit_data.items()[0][1]['version']
     msg.attach(
         MIMEText(
             """
