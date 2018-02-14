@@ -393,8 +393,7 @@ We are releasing images from multiple architectures but please note
 that x86_64 architecture is the only one that undergoes automated
 testing at this time.
 
-Existing systems can be upgraded in place via e.g. `atomic host upgrade` or
-`atomic host deploy`.
+Existing systems can be upgraded in place via e.g. `atomic host upgrade`.
 
 Corresponding image media for new installations can be downloaded from:
 
