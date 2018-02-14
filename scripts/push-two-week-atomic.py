@@ -61,6 +61,7 @@ ATOMIC_HOST_EMAIL_SMTP = "localhost"
 ATOMIC_HOST_EMAIL_SENDER = "noreply@fedoraproject.org"
 
 ATOMIC_HOST_EMAIL_RECIPIENTS = [
+    "devel@lists.fedoraproject.org",
     "cloud@lists.fedoraproject.org",
     "rel-eng@lists.fedoraproject.org",
     "atomic-devel@projectatomic.io",
