@@ -61,6 +61,7 @@ ATOMIC_HOST_EMAIL_SMTP = "localhost"
 ATOMIC_HOST_EMAIL_SENDER = "noreply@fedoraproject.org"
 
 ATOMIC_HOST_EMAIL_RECIPIENTS = [
+    "devel@lists.fedoraproject.org",
     "cloud@lists.fedoraproject.org",
     "rel-eng@lists.fedoraproject.org",
     "atomic-devel@projectatomic.io",
@@ -378,7 +379,8 @@ def send_atomic_announce_email(
     msg = MIMEMultipart()
     msg['To'] = "; ".join(mail_receivers)
     msg['From'] = "noreply@fedoraproject.org"
-    msg['Subject'] = "Fedora Atomic Host Two Week Release Announcement"
+    msg['Subject'] = "Fedora Atomic Host Two Week Release Announcement: %s" % \
+                         ostree_commit_data.items()[0][1]['version']
     msg.attach(
         MIMEText(
             """
@@ -391,8 +393,7 @@ We are releasing images from multiple architectures but please note
 that x86_64 architecture is the only one that undergoes automated
 testing at this time.
 
-Existing systems can be upgraded in place via e.g. `atomic host upgrade` or
-`atomic host deploy`.
+Existing systems can be upgraded in place via e.g. `atomic host upgrade`.
 
 Corresponding image media for new installations can be downloaded from:
 
