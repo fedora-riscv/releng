@@ -13,7 +13,6 @@ import os
 import logging
 import subprocess
 import argparse
-import createrepo
 import sys
 import re
 
@@ -320,7 +319,7 @@ def main(opts):
     for repo in sourcerepo:
         print("updating repo metadata in %s" % repo)
         if not opts.only_show:
-            cmd = ['createrepo', '-d', '--update', '--unique-md-filenames', repo]
+            cmd = ['createrepo_c', '-d', '--update', '--unique-md-filenames', repo]
             print(cmd)
             try:
                 proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
