@@ -53,7 +53,8 @@ if __name__ == '__main__':
     active_components = set()
     for branch in pdc.get_paged(res=pdc['component-branches/'],
                                 name='master', active=True, page_size=100):
-        active_components.add(branch['global_component'])
+        active_components.add(
+            '%s/%s' % (branch['type'], branch['global_component']))
         package = branch['global_component']
         package_type = branch['type']
         critpath = branch['critical_path']
