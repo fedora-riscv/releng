@@ -42,6 +42,8 @@ KOJICLI=koji
 "${KOJICLI}" add-tag --parent "f${release}" "f${release}-modularity"
 "${KOJICLI}" add-tag --parent "f${release}" "f${release}-openh264"
 "${KOJICLI}" add-tag --parent "f${release}" "f${release}-atomic"
+"${KOJICLI}" add-tag --parent "f${release}" "f${release}-atomic-host-installer"
+"${KOJICLI}" add-tag "f${release}-atomic-host-overrides"
 "${KOJICLI}" edit-tag --perm=fedora-override "f${release}-override"
 "${KOJICLI}" edit-tag --perm=admin "f${release}-updates"
 "${KOJICLI}" edit-tag --perm=admin "f${release}-updates-testing"
@@ -52,6 +54,8 @@ KOJICLI=koji
 "${KOJICLI}" edit-tag --perm=infra "f${release}-infra"
 "${KOJICLI}" edit-tag --perm=autosign "f${release}-infra-stg"
 "${KOJICLI}" edit-tag --perm=infra "f${release}-infra-candidate"
+"${KOJICLI}" edit-tag --perm=atomic "f${release}-atomic-host-installer"
+"${KOJICLI}" edit-tag --perm=atomic "f${release}-atomic-host-overrides"
 
 "${KOJICLI}" tag-pkg "f${release}-build" "$(${KOJICLI} latest-build "f${old_release}-build" glibc64 glibc32 --quiet|sed -e "s| .*||g" )"
 
