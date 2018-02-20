@@ -50,7 +50,7 @@ KOJICLI=koji
 "${KOJICLI}" edit-tag --perm=admin "f${release}-updates-testing-pending"
 "${KOJICLI}" edit-tag --perm=admin "f${release}-updates-pending"
 "${KOJICLI}" edit-tag --perm=admin "f${release}-atomic"
-"${KOJICLI}" edit-tag --perm=autosign "f$release}-signing-pending"
+"${KOJICLI}" edit-tag --perm=autosign "f${release}-signing-pending"
 "${KOJICLI}" edit-tag --perm=infra "f${release}-infra"
 "${KOJICLI}" edit-tag --perm=autosign "f${release}-infra-stg"
 "${KOJICLI}" edit-tag --perm=infra "f${release}-infra-candidate"
@@ -63,7 +63,7 @@ KOJICLI=koji
 "${KOJICLI}" add-target "f${release}-candidate" "f${release}-build" "f${release}"
 "${KOJICLI}" add-target "f${release}-infra" "f${release}-infra" "f${release}-infra-candidate"
 "${KOJICLI}" add-target "f${release}-container-candidate" "f${release}-container-build" "f${release}-container"
-"${KOJICLI}" edit-target rawhide --dest-tag="f${release}" --build-tag="f${release}-build"
+"${KOJICLI}" edit-target rawhide --dest-tag="f${release}-pending" --build-tag="f${release}-build"
 "${KOJICLI}" edit-target rawhide-container-candidate --dest-tag="f${release}-container" --build-tag="f${release}-container-build"
 
 "${KOJICLI}" remove-tag-inheritance rawhide "f${old_release}"
