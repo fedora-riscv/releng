@@ -48,7 +48,7 @@ for x in range(12,27,1):
     updatepath[r] = 'updates/%s/$basearch/' % r
 
 # Branched Fedora goes here
-branched = '27'
+branched = '28'
 releasepath['branched'] = 'development/%s/Everything/$basearch/os' % branched
 updatepath['branched'] = ''
 
