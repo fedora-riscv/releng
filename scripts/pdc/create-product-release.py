@@ -31,3 +31,10 @@ if __name__ == '__main__':
         short=args.product.lower(),
         version=args.version,
     ))
+    pdc['releases']._(dict(
+        name=args.product,
+        short=args.product.lower(),
+        version=args.version,
+        release_type='ga',
+        product_version='%s-%s' % (args.product, args.version),
+    ))
