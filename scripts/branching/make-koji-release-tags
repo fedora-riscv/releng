@@ -59,6 +59,26 @@ KOJICLI=koji
 "${KOJICLI}" edit-tag --perm=atomic "f${release}-atomic-host-installer"
 "${KOJICLI}" edit-tag --perm=atomic "f${release}-atomic-host-overrides"
 
+# Set up a corresponding set of tags for modules.
+modular_release=${release}-modular
+old_modular_release=${old_release}-modular
+"${KOJICLI}" clone-tag --all --latest-only "f${old_modular_release}" "f${modular_release}"
+"${KOJICLI}" edit-tag -x mock.package_manager=dnf "f${modular_release}"
+"${KOJICLI}" add-tag --parent "f${modular_release}" "f${modular_release}-updates"
+"${KOJICLI}" add-tag --parent "f${modular_release}-updates" "f${modular_release}-updates-candidate"
+"${KOJICLI}" add-tag --parent "f${modular_release}-updates" "f${modular_release}-updates-testing"
+"${KOJICLI}" add-tag --parent "f${modular_release}-updates-testing" "f${modular_release}-updates-testing-pending"
+"${KOJICLI}" add-tag --parent "f${modular_release}-updates" "f${modular_release}-updates-pending"
+"${KOJICLI}" add-tag --parent "f${modular_release}-updates" "f${modular_release}-override"
+"${KOJICLI}" add-tag --parent "f${modular_release}-updates-testing-pending" "f${modular_release}-signing-pending"
+"${KOJICLI}" add-tag --parent "f${modular_release}-updates"  "f${modular_release}-pending"
+"${KOJICLI}" edit-tag --perm=fedora-override "f${modular_release}-override"
+"${KOJICLI}" edit-tag --perm=admin "f${modular_release}-updates"
+"${KOJICLI}" edit-tag --perm=admin "f${modular_release}-updates-testing"
+"${KOJICLI}" edit-tag --perm=admin "f${modular_release}-updates-testing-pending"
+"${KOJICLI}" edit-tag --perm=admin "f${modular_release}-updates-pending"
+"${KOJICLI}" edit-tag --perm=autosign "f${modular_release}-signing-pending"
+
 "${KOJICLI}" tag-pkg "f${release}-build" "$(${KOJICLI} latest-build "f${old_release}-build" glibc64 glibc32 --quiet|sed -e "s| .*||g" )"
 
 "${KOJICLI}" add-target "f${release}" "f${release}-build"
