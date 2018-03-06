@@ -27,7 +27,7 @@ workdir = os.path.expanduser('~/massbuild')
 enviro = os.environ
 target = 'f28-rebuild'
 
-pkg_skip_list = ['fedora-release', 'fedora-repos', 'generic-release', 'redhat-rpm-config', 'shim', 'shim-signed', 'kernel', 'linux-firmware', 'grub2', 'openh264']
+pkg_skip_list = ['fedora-release', 'fedora-repos', 'generic-release', 'redhat-rpm-config', 'shim', 'shim-signed', 'shim-unsigned-aarch64', 'shim-unsigned-x64', 'kernel', 'linux-firmware', 'grub2', 'openh264']
 
 # Define functions
 
