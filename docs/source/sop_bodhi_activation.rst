@@ -47,6 +47,20 @@ configure the new release's pre-beta policy
     f25.pre_beta.critpath.num_admin_approvals = 0
     f25.pre_beta.critpath.min_karma = 1
 
+Now edit the Greenwave policy to configure a policy for the new release by editing
+``roles/openshift-apps/greenwave/templates/configmap.yml`` in the Infrastructure Ansible repository.
+You can probably just search for ``fedora-24`` and add a ``fedora-25`` wherever it appears. Once
+those changes are committed and pushed, run the greenwave playbook
+
+::
+
+    $ rbac-playbook openshift-apps/greenwave.yml
+
+Greenwave runs in OpenShift (as implied by the playbook paths), and so the change will not be live
+right away when the playbook finishes. You can monitor
+https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/policies to wait for the new
+policy to appear (it should take a few minutes).
+
 Now the Koji tags should be edited so that Bodhi can push updates.
 
 ::
