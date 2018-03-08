@@ -47,6 +47,10 @@ configure the new release's pre-beta policy
     f25.pre_beta.critpath.num_admin_approvals = 0
     f25.pre_beta.critpath.min_karma = 1
 
+In the same file, look for the section about "Mirror settings" with the ``*_repomd`` settings, and
+make sure they are correct for the new release. You should also define a ``*_primary_arches``
+setting for the new release.
+
 Now edit the Greenwave policy to configure a policy for the new release by editing
 ``roles/openshift-apps/greenwave/templates/configmap.yml`` in the Infrastructure Ansible repository.
 You can probably just search for ``fedora-24`` and add a ``fedora-25`` wherever it appears. Once
