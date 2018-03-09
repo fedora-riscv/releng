@@ -53,6 +53,8 @@ Team Composition
 * `Adam Miller (maxamillion) <https://fedoraproject.org/wiki/User:maxamillion>`_
 * `Patrick Uiterwijk (puiterwijk) <https://fedoraproject.org/wiki/User:puiterwijk>`_
 * `Ralph Bean (threebean) <https://fedoraproject.org/wiki/User:ralph>`_
+* `Mohan Boddu (mboddu) <https://fedoraproject.org/wiki/User:mohanboddu>`_
+* Kellin (Kellin)
 
 Release Team members are approved by FESCo.  However, FESCo has
 delegated this power to the Release Team itself.  If you want to join
