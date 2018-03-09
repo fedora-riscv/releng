@@ -32,7 +32,9 @@ targets = ['f27-gcc-abi-rebuild','f26-gcc-abi-rebuild'] #Set master/rawhide rebu
 branches = ['master', 'f26'] #Set master(rawhide) branch first item in the list
 enviro['CVS_RSH'] = 'ssh' # use ssh for cvs
 
-pkg_skip_list = ['fedora-release', 'fedora-repos', 'generic-release', 'redhat-rpm-config', 'shim', 'shim-signed', 'kernel', 'grub2', 'gcc', 'glibc']
+pkg_skip_list = ['fedora-release', 'fedora-repos', 'fedora-modular-release', 'fedora-modular-repos', 'generic-release',
+        'redhat-rpm-config', 'shim', 'shim-signed', 'shim-unsigned-aarch64', 'shim-unsigned-x64', 'kernel',
+        'linux-firmware', 'grub2', 'openh264', 'glibc32']
 
 # Define functions
 
