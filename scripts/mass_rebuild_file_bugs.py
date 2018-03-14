@@ -77,7 +77,9 @@ def report_failure(product, component, version, summary, comment, logs):
                 attid = bzclient.attachfile(
                     bug.id, fp, name, content_type='text/plain')
             except Fault, ex:
-                print(ex)
+                continue
+                #Temporary comment as we dont have all the logs
+                #print(ex)
             finally:
                 fp.close()
     except Fault, ex:
@@ -124,7 +126,7 @@ if __name__ == '__main__':
         global product, version
         task_id = build['task_id']
         component = build['package_name']
-        summary = "%s: FTBFS in %s" % (component, 'rawhide')
+        summary = "%s: FTBFS in %s" % (component, 'F28')
         work_url = 'https://kojipkgs.fedoraproject.org/work'
 
         child_id = get_task_failed(kojisession, task_id)
@@ -140,11 +142,11 @@ if __name__ == '__main__':
             state_log = log_url + "state.log"
             logs = [build_log, root_log, state_log]
 
-        comment = """Your package %s failed to build from source in current rawhide.
+        comment = """Your package %s failed to build from source in current F28.
 
 https://koji.fedoraproject.org/koji/taskinfo?taskID=%s
 
-For details on mass rebuild see https://fedoraproject.org/wiki/Fedora_26_Mass_Rebuild
+For details on mass rebuild see https://fedoraproject.org/wiki/Fedora_28_Mass_Rebuild
 """ % (component, task_id)
 
         if component not in filed_bugs_components:
