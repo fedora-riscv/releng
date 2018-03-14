@@ -21,15 +21,15 @@ from find_failures import get_failed_builds
 
 # Set some variables
 # Some of these could arguably be passed in as args.
-buildtag = 'f26-rebuild' # tag to check
-desttag = 'f26' # Tag where fixed builds go
-epoch = '2017-02-05 09:04:08.000000' # rebuild anything not built after this date
+buildtag = 'f28-rebuild' # tag to check
+desttag = 'f28' # Tag where fixed builds go
+epoch = '2018-02-06 01:20:06.000000' # rebuild anything not built after this date
 failures = {} # dict of owners to lists of packages that failed.
 failed = [] # raw list of failed packages
 
 product = "Fedora" # for BZ product field
-version = "rawhide" # for BZ version field
-tracking_bug = 1423041 # Tracking bug for mass build failures
+version = "28" # for BZ version field
+tracking_bug = 1555378 # Tracking bug for mass build failures
 
 
 def report_failure(product, component, version, summary, comment, logs):
