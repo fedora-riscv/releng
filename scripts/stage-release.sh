@@ -43,7 +43,7 @@ sudo -u ftpsync chmod 700 $ALTARCHDESTDIR/$RELPREFIX$RELEASEVER
 
 sudo -u ftpsync compose-partial-copy --arch=armhfp --arch=x86_64 --arch src \
      $BASE/$SHORTRELEASEVER/$COMPOSEID/compose/$dir/ $DESTDIR/$RELPREFIX$RELEASEVER/$dir/ \
-     --variant Everything --variant Cloud --variant Container --variant Server --variant Spins --variant Workstation --variant WorkstationOstree \
+     --variant Everything --variant AtomicHost --variant AtomicWorkstation --variant Cloud --variant Container --variant Server --variant Spins --variant Workstation \
      --link-dest=/pub/fedora/linux/development/$SHORTRELEASEVER/Everything/ --link-dest=$STAGEDIR/$STAGE/Everything/ --link-dest=$STAGEDIR/$STAGE/$dir/
 
 sudo -u ftpsync compose-partial-copy --arch=armhfp --arch=x86_64 --arch src \
@@ -54,7 +54,7 @@ sudo -u ftpsync compose-partial-copy --arch=armhfp --arch=x86_64 --arch src \
 
 sudo -u ftpsync compose-partial-copy --arch=aarch64 --arch=i386 --arch=ppc64 --arch=ppc64le --arch=s390x \
      $BASE/$SHORTRELEASEVER/$COMPOSEID/compose/$dir /$ALTARCHDESTDIR/$RELPREFIX$RELEASEVER/$dir/ \
-     --variant Everything --variant Cloud --variant Container --variant Labs --variant Server --variant Spins --variant Workstation --variant WorkstationOstree \
+     --variant Everything --variant AtomicHost --variant Cloud --variant Container --variant Labs --variant Server --variant Spins --variant Workstation \
      --link-dest=/pub/fedora/linux/development/$SHORTRELEASEVER/Everything/ --link-dest=$STAGEDIR/$STAGE/Everything/ --link-dest=$STAGEDIR/$STAGE/$dir/
 
 sudo -u ftpsync scripts/build_composeinfo $DESTDIR/$RELPREFIX$RELEASEVER/
