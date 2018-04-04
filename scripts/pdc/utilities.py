@@ -8,7 +8,7 @@ from fedrepo_req import STANDARD_BRANCH_SLAS
 
 
 def prompt(message, force):
-    return force or raw_input(message + " [y/N]: ").lower() in ('y', 'yes')
+    return force or input(message + " [y/N]: ").lower() in ('y', 'yes')
 
 
 def die(message):
