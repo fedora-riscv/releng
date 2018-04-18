@@ -66,4 +66,4 @@ last_builds = kojisession.multiCall()
 last_builds_map = zip(unbuilt, last_builds)
 ftbfs = [p for p, b in last_builds_map if b != [[[], []]]]
 
-print(" ".join(ftbfs))
+print("\n".join(ftbfs))
