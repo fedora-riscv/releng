@@ -13,7 +13,7 @@ import argparse
 import operator
 import koji
 
-branched_tag = 'f23'
+branched_tag = 'f29'
 
 # Dates retrieved from mass-rebuild.py for the respective mass rebuild
 f18_rebuild_start = '2012-07-17 14:18:03.000000'
@@ -22,8 +22,10 @@ f20_rebuild_start = '2013-07-25 00:00:00.000000'
 f21_rebuild_start = '2014-06-06 00:00:00.000000'
 # no F22 rebuild
 f23_rebuild_start = '2015-06-16 00:00:00.000000'
+f27_rebuild_start = '2017-07-31 11:20:00.000000'
+f28_rebuild_start = '2018-02-06 01:20:06.000000'
 
-epoch = f21_rebuild_start
+epoch = f27_rebuild_start
 
 kojihub = 'https://koji.fedoraproject.org/kojihub'
 kojisession = koji.ClientSession(kojihub)
