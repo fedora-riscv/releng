@@ -43,7 +43,7 @@ current_stable="27"
 current_rawhide="29"
 # Sanity checking
 # FIXME - Have to update this regex every time we drop a new Fedora Release
-if ! [[ "${1}" =~ [24|25|26|27|28] ]];
+if ! [[ "${1}" =~ [24|25|26|27|28|29] ]];
 then
     printf "ERROR: FEDORA_RELEASE missing or invalid\n"
     f_help
@@ -65,7 +65,12 @@ if [[ -z "$stage" ]]; then
     #
     #   Need fXX-updates-canddiate to get actual latest nightly
     #
-    build_name=$(koji -q latest-build --type=image f${1}-updates-candidate Fedora-Docker-Base | awk '{print $1}')
+    if [[ "${1}" > 27 ]];
+    then
+        build_name=$(koji -q latest-build --type=image f${1}-updates-candidate Fedora-Container-Base | awk '{print $1}')
+    else
+        build_name=$(koji -q latest-build --type=image f${1}-updates-candidate Fedora-Docker-Base | awk '{print $1}')
+    fi
     minimal_build_name=$(koji -q latest-build --type=image f${1}-updates-candidate Fedora-Container-Minimal-Base | awk '{print $1}')
     if [[ -n ${build_name} ]]; then
         # Download the image
