@@ -54,6 +54,7 @@ def generateDnfBaseObject(distdir, treename, arch):
     dbo.conf.debuglevel = 2
     dbo.conf.logdir = tempfile.mkdtemp(suffix="dnflog", prefix="spamomatic")
     dbo.conf.best = True
+    dbo.conf.ignorearch = True
     dbo.conf.reposdir = "/dev/null"
     dbo.conf.keepcache = False
     dbo.conf.metadata_expire = 0
