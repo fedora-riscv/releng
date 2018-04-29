@@ -235,6 +235,8 @@ def doit(args):
         else:
             carch = arch
 
+        dbo.conf.arch = carch
+
         baddeps = get_unresolved_deps(dbo, carch)
         pkgs = baddeps.keys()
         tmplist = [(x.name, x) for x in pkgs]
