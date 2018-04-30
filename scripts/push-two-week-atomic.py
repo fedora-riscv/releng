@@ -871,7 +871,7 @@ if __name__ == '__main__':
     #     - update the ref in the repo to the new commit
     for arch in ARCHES:
         # Generate static delta from previous release (if not 1st release)
-        if not first_release:
+        if not pargs.first_release:
             generate_static_delta(
                 old_commit=ostree_commit_data[arch]['previous_commit'],
                 new_commit=ostree_commit_data[arch]['commit']
@@ -920,7 +920,7 @@ if __name__ == '__main__':
                 email_filelist.append(c_file)
 
     # On the first release send only to "FIRST_RELEASE" list
-    if first_release:
+    if pargs.first_release:
         mail_receivers = ATOMIC_HOST_FIRST_RELEASE_MAIL_RECIPIENTS
     else: 
         mail_receivers = ATOMIC_HOST_EMAIL_RECIPIENTS
