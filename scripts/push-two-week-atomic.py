@@ -49,9 +49,9 @@ log = logging.getLogger(os.path.basename(sys.argv[0]))
 ATOMIC_REPO = "/mnt/koji/atomic/repo/"
 ARCHES = ['x86_64', 'aarch64', 'ppc64le']
 PREVIOUS_MAJOR_RELEASE_FINAL_COMMITS = {
-    'aarch64': None,
-    'ppc64le': None,
-    'x86_64':  None,
+    'aarch64': '837cd0c5e3a5656316ebf6142315ac107c8592d5c8d64a02e8a62919eee9f46f',
+    'ppc64le': 'a1f565d73f1f1b6f6d7ef992251f21a704c4a8de40c41fc62be69c5ec2a65329',
+    'x86_64':  '931ebb3941fc49af706ac5a90ad3b5a493be4ae35e85721dabbfd966b1ecbf99',
 }
 TARGET_REF = "fedora/%s/%s/atomic-host" # example fedora/27/x86_64/atomic-host
 COMPOSE_BASEDIR = "/mnt/koji/compose/twoweek/"
@@ -61,11 +61,7 @@ ATOMIC_HOST_EMAIL_SMTP = "localhost"
 ATOMIC_HOST_EMAIL_SENDER = "noreply@fedoraproject.org"
 
 ATOMIC_HOST_EMAIL_RECIPIENTS = [
-    "devel@lists.fedoraproject.org",
-    "cloud@lists.fedoraproject.org",
     "rel-eng@lists.fedoraproject.org",
-    "atomic-devel@projectatomic.io",
-    "atomic-announce@projectatomic.io",
 ]
 
 # Full path will be:
@@ -855,11 +851,11 @@ if __name__ == '__main__':
     #     - create static delta from previous major release
     #     - update the ref in the repo to the new commit
     for arch in ARCHES:
-        # Generate static delta from previous release
-        generate_static_delta(
-            old_commit=ostree_commit_data[arch]['previous_commit'],
-            new_commit=ostree_commit_data[arch]['commit']
-        )
+#       # Generate static delta from previous release
+#       generate_static_delta(
+#           old_commit=ostree_commit_data[arch]['previous_commit'],
+#           new_commit=ostree_commit_data[arch]['commit']
+#       )
         # Generate static delta from previous major release (if defined)
         old_commit = PREVIOUS_MAJOR_RELEASE_FINAL_COMMITS.get(arch, None)
         if old_commit is not None:
