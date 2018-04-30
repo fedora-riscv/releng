@@ -60,8 +60,16 @@ COMPOSE_BASEDIR = "/mnt/koji/compose/twoweek/"
 ATOMIC_HOST_EMAIL_SMTP = "localhost"
 ATOMIC_HOST_EMAIL_SENDER = "noreply@fedoraproject.org"
 
-ATOMIC_HOST_EMAIL_RECIPIENTS = [
+ATOMIC_HOST_FIRST_RELEASE_MAIL_RECIPIENTS = [
     "rel-eng@lists.fedoraproject.org",
+]
+
+ATOMIC_HOST_EMAIL_RECIPIENTS = [
+    "devel@lists.fedoraproject.org",
+    "cloud@lists.fedoraproject.org",
+    "rel-eng@lists.fedoraproject.org",
+    "atomic-devel@projectatomic.io",
+    "atomic-announce@projectatomic.io",
 ]
 
 # Full path will be:
@@ -733,6 +741,17 @@ if __name__ == '__main__':
            commit is different than the ostree compose that created the media.
         """
     )
+    parser.add_argument(
+        "--first-release",
+        dest='first_release',
+        action='store_true',
+        default=False,
+        help="""
+           Indicates that this is the first release for this stream and email
+           audience should be limited and we don't need to worry about creating
+           an incremental static delta.
+        """
+    )
     pargs = parser.parse_args()
 
     # This one is only specified if it differs from --pungi-compose-id
@@ -851,11 +870,13 @@ if __name__ == '__main__':
     #     - create static delta from previous major release
     #     - update the ref in the repo to the new commit
     for arch in ARCHES:
-#       # Generate static delta from previous release
-#       generate_static_delta(
-#           old_commit=ostree_commit_data[arch]['previous_commit'],
-#           new_commit=ostree_commit_data[arch]['commit']
-#       )
+        # Generate static delta from previous release (if not 1st release)
+        if not first_release:
+            generate_static_delta(
+                old_commit=ostree_commit_data[arch]['previous_commit'],
+                new_commit=ostree_commit_data[arch]['commit']
+            )
+
         # Generate static delta from previous major release (if defined)
         old_commit = PREVIOUS_MAJOR_RELEASE_FINAL_COMMITS.get(arch, None)
         if old_commit is not None:
@@ -898,7 +919,14 @@ if __name__ == '__main__':
             for c_file in glob.glob(os.path.join(full_dir_path, "*CHECKSUM")):
                 email_filelist.append(c_file)
 
-    send_atomic_announce_email(set(email_filelist), ostree_commit_data)
+    # On the first release send only to "FIRST_RELEASE" list
+    if first_release:
+        mail_receivers = ATOMIC_HOST_FIRST_RELEASE_MAIL_RECIPIENTS
+    else: 
+        mail_receivers = ATOMIC_HOST_EMAIL_RECIPIENTS
+    send_atomic_announce_email(set(email_filelist),
+                               ostree_commit_data,
+                               mail_receivers=mail_receivers)
 
     # FIXME - The logic in this functioni is broken, leave it disabled for now
     #log.info("Pruning old Atomic Host test composes")
