@@ -46,7 +46,7 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(os.path.basename(sys.argv[0]))
 
 # Define "constants"
-ATOMIC_HOST_DIR = "/mnt/koji/atomic/%s"
+ATOMIC_REPO = "/mnt/koji/atomic/repo/"
 ARCHES = ['x86_64', 'aarch64', 'ppc64le']
 PREVIOUS_MAJOR_RELEASE_FINAL_COMMITS = {
     'aarch64': None,
@@ -643,50 +643,47 @@ def prune_old_composes(prune_base_dir, prune_limit):
                     "prune_old_composes: command failed: {}".format(prune_cmd)
                 )
 
-def generate_static_delta(release, old_commit, new_commit):
+def generate_static_delta(old_commit, new_commit):
     """
     generate_static_delta
 
         Generate a static delta between two commits
 
-    :param release - the Fedora release to target (25,26,etc)
     :param old_commit - starting point for delta
     :param new_commit - ending point for delta
     """
     diff_cmd = ["/usr/bin/sudo",
                 "ostree", "static-delta", "generate", "--repo",
-                ATOMIC_HOST_DIR % release, "--if-not-exists",
+                ATOMIC_REPO, "--if-not-exists",
                 "--from", old_commit, "--to", new_commit]
     log.info("Creating Static Delta from %s to %s" % (old_commit, new_commit))
     if subprocess.call(diff_cmd):
         log.error("generate_static_delta: diff generation failed: %s", diff_cmd)
         exit(3)
 
-def update_ostree_summary_file(release):
+def update_ostree_summary_file():
     """
     update_ostree_summary_file
 
         Update the summary file for the ostree repo
 
-    :param release - the Fedora release to target (25,26,etc)
     """
     # Run as apache user because the files we are editing/creating
     # need to be owned by the apache user
     summary_cmd = ["/usr/bin/sudo", "ostree", "summary", "-u",
-                   "--repo", ATOMIC_HOST_DIR % release]
+                   "--repo", ATOMIC_REPO]
     log.info("Updating Summary file")
     if subprocess.call(summary_cmd):
         log.error("update_ostree_summary_file: update failed: %s", summary_cmd)
         exit(3)
 
-def update_ref(ref, release, old_commit, new_commit):
+def update_ref(ref, old_commit, new_commit):
     """
     update_ref
 
         Update the given ref and set it to new_commit
 
     :param ref - the ref to update
-    :param release - the Fedora release to target (25,26,etc)
     :param old_commit - where the ref currently is
     :param new_commit - where the ref should end up
     """
@@ -701,7 +698,7 @@ def update_ref(ref, release, old_commit, new_commit):
               ref, old_commit, new_commit)
 
     reset_cmd = ['/usr/bin/sudo', 'ostree', 'reset', ref,
-                 new_commit, '--repo', ATOMIC_HOST_DIR % release]
+                 new_commit, '--repo', ATOMIC_REPO]
     if subprocess.call(reset_cmd):
         log.error("update_ref: resetting ref to new commit failed: %s", reset_cmd)
         sys.exit(3)
@@ -806,14 +803,14 @@ if __name__ == '__main__':
 
         # Verify the commit exists in the tree, and find the version
         log.info("Verifying and finding version of %s", commit)
-        cmd = ['/usr/bin/ostree', '--repo=' + ATOMIC_HOST_DIR % pargs.release,
+        cmd = ['/usr/bin/ostree', '--repo=' + ATOMIC_REPO,
                'show', '--print-metadata-key=version', commit]
         version = subprocess.check_output(cmd).strip()
         # output will be in GVariant print format by default -> s/'//
         version = version.replace("'", "")
 
         # Find the previous commit for this ref in the tree
-        cmd = ['/usr/bin/ostree', '--repo=' + ATOMIC_HOST_DIR % pargs.release,
+        cmd = ['/usr/bin/ostree', '--repo=' + ATOMIC_REPO,
                'rev-parse', ref]
         previous_commit = subprocess.check_output(cmd).strip()
 
@@ -860,7 +857,6 @@ if __name__ == '__main__':
     for arch in ARCHES:
         # Generate static delta from previous release
         generate_static_delta(
-            pargs.release,
             old_commit=ostree_commit_data[arch]['previous_commit'],
             new_commit=ostree_commit_data[arch]['commit']
         )
@@ -868,19 +864,17 @@ if __name__ == '__main__':
         old_commit = PREVIOUS_MAJOR_RELEASE_FINAL_COMMITS.get(arch, None)
         if old_commit is not None:
             generate_static_delta(
-                pargs.release,
                 old_commit=old_commit,
                 new_commit=ostree_commit_data[arch]['commit'],
             )
         # Move the ref
         update_ref(
             ostree_commit_data[arch]['ref'],
-            pargs.release,
             ostree_commit_data[arch]['previous_commit'],
             ostree_commit_data[arch]['commit']
         )
         # Update summary file
-        update_ostree_summary_file(pargs.release)
+        update_ostree_summary_file()
 
     log.info("Staging release content in /pub/alt/atomic/stable/")
     stage_atomic_release(pargs.pungi_compose_id)
