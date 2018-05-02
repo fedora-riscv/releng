@@ -38,7 +38,7 @@ f_clean_docker_images ()
 }
 # This is the release of Fedora that is currently stable, it will define if we
 # need to move the fedora:latest tag
-current_stable="27"
+current_stable="28"
 # Define what is rawhide so we know to push that tag
 current_rawhide="29"
 # Sanity checking
