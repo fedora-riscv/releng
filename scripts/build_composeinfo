@@ -35,7 +35,10 @@ def filelists(d, fname=None):
     
     for file in os.listdir(d):
         fulldir = os.path.join(d, file)
-        if os.path.isdir(fulldir):
+        #"and 'Modular' not in fulldir" is for fixing https://pagure.io/releng/issue/7488
+        #Once the tools that use .composeinfo gets updated to support repos with no images
+        #we can remove the conditional.
+        if os.path.isdir(fulldir) and 'Modular' not in fulldir:
             flist = [os.path.join(fulldir, x) for x in os.listdir(fulldir) \
                      if os.path.isfile(os.path.join(fulldir, x)) and x == fname]
             files.extend(flist)
