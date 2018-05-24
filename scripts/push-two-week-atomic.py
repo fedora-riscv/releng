@@ -49,9 +49,9 @@ log = logging.getLogger(os.path.basename(sys.argv[0]))
 ATOMIC_REPO = "/mnt/koji/atomic/repo/"
 ARCHES = ['x86_64', 'aarch64', 'ppc64le']
 PREVIOUS_MAJOR_RELEASE_FINAL_COMMITS = {
-    'aarch64': '837cd0c5e3a5656316ebf6142315ac107c8592d5c8d64a02e8a62919eee9f46f',
-    'ppc64le': 'a1f565d73f1f1b6f6d7ef992251f21a704c4a8de40c41fc62be69c5ec2a65329',
-    'x86_64':  '931ebb3941fc49af706ac5a90ad3b5a493be4ae35e85721dabbfd966b1ecbf99',
+    'aarch64': None,
+    'ppc64le': None,
+    'x86_64':  None,
 }
 TARGET_REF = "fedora/%s/%s/atomic-host" # example fedora/27/x86_64/atomic-host
 COMPOSE_BASEDIR = "/mnt/koji/compose/twoweek/"
