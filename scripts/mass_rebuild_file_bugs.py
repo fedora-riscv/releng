@@ -19,24 +19,20 @@ from bugzilla.rhbugzilla import RHBugzilla
 from xmlrpclib import Fault
 from find_failures import get_failed_builds
 
-# Set some variables
-# Some of these could arguably be passed in as args.
-buildtag = 'f28-rebuild' # tag to check
-desttag = 'f28' # Tag where fixed builds go
-epoch = '2018-02-06 01:20:06.000000' # rebuild anything not built after this date
+# contains info about all rebuilds, add new rebuilds there and update rebuildid
+# here
+from massrebuildsinfo import MASSREBUILDS
+
+rebuildid = 'f28'
 failures = {} # dict of owners to lists of packages that failed.
 failed = [] # raw list of failed packages
 
-product = "Fedora" # for BZ product field
-version = "28" # for BZ version field
-tracking_bug = 1555378 # Tracking bug for mass build failures
-
-
-def report_failure(product, component, version, summary, comment, logs):
+def report_failure(tracking_bug, product, component, version, summary, comment, logs):
     """This function files a new bugzilla bug for component with given
     arguments
 
     Keyword arguments:
+    tracking_bug -- bug used to track failures
     product -- bugzilla product (usually Fedora)
     component -- component (package) to file bug against
     version -- component version to file bug for (usually rawhide for Fedora)
@@ -87,17 +83,14 @@ def report_failure(product, component, version, summary, comment, logs):
         username = raw_input('Bugzilla username: ')
         bzclient.login(user=username,
                        password=getpass.getpass())
-        report_failure(product, component, version, summary, comment, logs)
+        report_failure(tracking_bug, product, component, version, summary, comment, logs)
 
 
 def get_filed_bugs(tracking_bug):
     """Query bugzilla if given bug has already been filed
 
-    Keyword arguments:
-    product -- bugzilla product (usually Fedora)
-    component -- component (package) to file bug against
-    version -- component version to file bug for (usually rawhide for Fedora)
-    summary -- short bug summary
+    arguments:
+    tracking_bug -- bug used to track failures
     """
     query_data = {'blocks': tracking_bug}
     bzurl = 'https://bugzilla.redhat.com'
@@ -111,22 +104,26 @@ def get_task_failed(kojisession, task_id):
     task_id of the first children that failed to build.
     '''
     for child in kojisession.getTaskChildren(task_id):
-        if child['state'] == 5:  # 5 == Failed
+        if child['state'] == koji.TASK_STATES["FAILED"]:  # 5 == Failed
             return child['id']
 
 
 if __name__ == '__main__':
+    massrebuild = MASSREBUILDS[rebuildid]
+
     kojisession = koji.ClientSession('https://koji.fedoraproject.org/kojihub')
     print('Getting the list of failed builds...')
-    failbuilds = get_failed_builds(kojisession, epoch, buildtag, desttag)
+    failbuilds = get_failed_builds(kojisession, massrebuild['epoch'],
+                                   massrebuild['buildtag'],
+                                   massrebuild['desttag'])
     print('Getting the list of filed bugs...')
-    filed_bugs = get_filed_bugs(tracking_bug)
+    filed_bugs = get_filed_bugs(massrebuild['tracking_bug'])
     filed_bugs_components = [bug.component for bug in filed_bugs]
+    product_version = "{product} {version}".format(**massrebuild)
     for build in failbuilds:
-        global product, version
         task_id = build['task_id']
         component = build['package_name']
-        summary = "%s: FTBFS in %s" % (component, 'F28')
+        summary = "%s: FTBFS in %s" % (component, product_version)
         work_url = 'https://kojipkgs.fedoraproject.org/work'
 
         child_id = get_task_failed(kojisession, task_id)
@@ -142,17 +139,19 @@ if __name__ == '__main__':
             state_log = log_url + "state.log"
             logs = [build_log, root_log, state_log]
 
-        comment = """Your package %s failed to build from source in current F28.
+        comment = """Your package {component} failed to build from source in current {product_version}
 
-https://koji.fedoraproject.org/koji/taskinfo?taskID=%s
+https://koji.fedoraproject.org/koji/taskinfo?taskID={task_id}
 
-For details on mass rebuild see https://fedoraproject.org/wiki/Fedora_28_Mass_Rebuild
-""" % (component, task_id)
+For details on mass rebuild see {wikipage}
+""".format(component=component, task_id=task_id,
+           wikipage=massrebuild["wikipage"] product_version=product_version)
 
         if component not in filed_bugs_components:
             print("Filing bug for %s" % component)
-            report_failure(
-                product, component, version, summary, comment, logs=logs)
+            report_failure(massrebuild['tracking_bug'], massrebuild['product'],
+                           component, massrebuild['version'],
+                           summary, comment, logs=logs)
             filed_bugs_components.append(component)
         else:
             print("Skipping %s, bug already filed" % component)
