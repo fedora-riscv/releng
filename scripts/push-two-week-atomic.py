@@ -17,7 +17,7 @@
 # Exit codes:
 #   0 - Success
 #   1 - required arg missing
-#   2 - no successful AutoCloud builds found
+#   2 - no/partial information for given compose ID found
 #   3 - subcommand failed, error message will be logged.
 #   4 - execution canceled by user
 #   5 - masher lock file found
@@ -40,6 +40,7 @@ import subprocess
 import requests
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import fedfind.release
 
 # Set log level to logging.INFO
 logging.basicConfig(level=logging.INFO)
@@ -48,6 +49,20 @@ log = logging.getLogger(os.path.basename(sys.argv[0]))
 # Define "constants"
 ATOMIC_REPO = "/mnt/koji/atomic/repo/"
 ARCHES = ['x86_64', 'aarch64', 'ppc64le']
+
+# Possible image types available for Atomic Host
+IMAGE_TYPES = ['qcow2', 'raw-xz', 'vagrant-libvirt',
+                 'vagrant-virtualbox', 'dvd-ostree']
+
+# Mapping for image types to keep it consistent with twoweek fedmsg sent in past
+IMAGE_TYPES_MAPPING = {
+    'qcow2': 'atomic_qcow2',
+    'raw-xz': 'atomic_raw',
+    'vagrant-libvirt': 'atomic_vagrant_libvirt',
+    'vagrant-virtualbox': 'atomic_vagrant_virtualbox',
+    'dvd-ostree': 'atomic_dvd_ostree'
+}
+
 PREVIOUS_MAJOR_RELEASE_FINAL_COMMITS = {
     'aarch64': None,
     'ppc64le': None,
@@ -116,8 +131,7 @@ DATAGREPPER_URL = "https://apps.fedoraproject.org/datagrepper/raw"
 # delta = 2 weeks in seconds
 DATAGREPPER_DELTA = 1209600
 # category to filter on from datagrepper
-# url: https://apps.fedoraproject.org/datagrepper/raw?topic=org.fedoraproject.prod.autocloud.compose.complete
-DATAGREPPER_AUTOCLOUD_TOPIC = "org.fedoraproject.prod.autocloud.compose.complete"
+
 # url: https://apps.fedoraproject.org/datagrepper/raw?topic=org.fedoraproject.prod.pungi.compose.ostree
 DATAGREPPER_OSTREE_TOPIC = "org.fedoraproject.prod.pungi.compose.ostree"
 
@@ -127,21 +141,6 @@ SIGUL_SIGNED_TXT_PATH = "/tmp/signed"
 # Number of atomic testing composes to keep around
 ATOMIC_HOST_COMPOSE_PERSIST_LIMIT = 20
 
-
-def construct_url(msg):
-    """ Construct the final URL from koji URL.
-
-    Takes an autocloud fedmsg message and returns the image name and final url.
-    """
-    iul = msg[u'image_url'].split('/')
-
-    # This isn't used in the path for the destination dir, it's in there twice
-    iul.remove('compose')
-    iul.remove('compose')
-
-    image_name = iul[-1]
-    image_url = os.path.join(ATOMIC_HOST_STABLE_BASEDIR, '/'.join(iul[4:]))
-    return image_name, image_url
 
 def get_ostree_compose_info(
         ostree_pungi_compose_id,
@@ -169,15 +168,15 @@ def get_ostree_compose_info(
 
     # Start with page 1 response from datagrepper, grab the raw messages
     # and then continue to populate the list with the rest of the pages of data
-    autocloud_data = r.json()[u'raw_messages']
+    ostree_data = r.json()[u'raw_messages']
     for rpage in range(2, r.json()[u'pages']+1):
-        autocloud_data += requests.get(
+        ostree_data += requests.get(
             datagrepper_url,
             params=dict(page=rpage, **request_params)
         ).json()[u'raw_messages']
 
     ostree_composes = [
-        compose[u'msg'] for compose in autocloud_data
+        compose[u'msg'] for compose in ostree_data
         if ostree_pungi_compose_id in compose[u'msg'][u'compose_id']
             and 'atomic-host' in compose[u'msg'][u'ref']
     ]
@@ -191,145 +190,99 @@ def get_ostree_compose_info(
 
     return ostree_compose_info
 
-def get_latest_successful_autocloud_test_info(
-        release,
-        pungi_compose_id,
-        datagrepper_url=DATAGREPPER_URL,
-        delta=DATAGREPPER_DELTA,
-        topic=DATAGREPPER_AUTOCLOUD_TOPIC):
+def get_release_artifacts_info_from_compose(pungi_compose_id):
+
     """
-    get_latest_successful_autocloud_test_info
+    :param pungi_compose_id: Pungi Compose ID considered for twoweek release
+    :return: dict - Returns images detail for all supported arches for given
+    compose ID.
 
-        Query datagrepper[0] to find the latest successful Atomic Host images via
-        the autocloud[1] tests.
+    Image detail includes information like image url, image name,
+    image size, Fedora release version and pungi compose ID in which image was
+    built. Image can be of type qcow2, raw, iso and virtual box
+    for which Fedora Atomic Host gets built against architectures. Currently we
+    build for aarch64, ppc64le and x86_64 architectures.
 
-    return -> dict
-        Will return the build information of the latest successful build
+    Example: dict structure is something like:
+    {
+        "aarch64": {
+            "atomic_dvd_ostree": {
+              "name": "Fedora-AtomicHost-ostree-aarch64-28-20180515.1.iso",
+              "image_name": "Fedora-AtomicHost-ostree-aarch64-28-20180515.1.iso",
+              "image_url": "/pub/alt/atomic/stable/Fedora-Atomic-28-20180515.1/AtomicHost/aarch64/iso/Fedora-AtomicHost-ostree-aarch64-28-20180515.1.iso",
+              "release": "28",
+              "compose_id": "Fedora-Atomic-28-20180515.1",
+              "size": 988649472
+            },
+            "atomic_qcow2": {
+              "name": "Fedora-AtomicHost-28-20180515.1",
+              "image_name": "Fedora-AtomicHost-28-20180515.1.aarch64.qcow2",
+              "image_url": "/pub/alt/atomic/stable/Fedora-Atomic-28-20180515.1/AtomicHost/aarch64/images/Fedora-AtomicHost-28-20180515.1.aarch64.qcow2",
+              "release": "28",
+              "compose_id": "Fedora-Atomic-28-20180515.1",
+              "size": 621911040
+            },
+            "atomic_raw": {
+              "name": "Fedora-AtomicHost-28-20180515.1",
+              "image_name": "Fedora-AtomicHost-28-20180515.1.aarch64.raw.xz",
+              "image_url": "/pub/alt/atomic/stable/Fedora-Atomic-28-20180515.1/AtomicHost/aarch64/images/Fedora-AtomicHost-28-20180515.1.aarch64.raw.xz",
+              "release": "28",
+              "compose_id": "Fedora-Atomic-28-20180515.1",
+              "size": 396619232
+            }
+        },
+        "x86_64": {
+            ...
+        },
+        "ppc64le": {
+            ...
+        }
+    }
 
-    [0] - https://apps.fedoraproject.org/datagrepper/
-    [1] - https://github.com/kushaldas/autocloud/
     """
 
-    # rows_per_page is maximum 100 from Fedora's datagrepper
-    request_params = {
-        "delta": delta,
-        "topic": topic,
-        "rows_per_page": 100,
-    }
-    r = requests.get(datagrepper_url, params=request_params)
+    # Use fedind to get image metadata information for given Pungi Compose ID
+    # https://pagure.io/fedora-qa/fedfind
+    log.info("Begin fetching image metadata information using fedfind for Compose ID %s", pungi_compose_id)
+    compose_metadata = fedfind.release.get_release(cid=pungi_compose_id).metadata
+    log.info("Finished fetching image metadata information using fedfind for Compose ID %s", pungi_compose_id)
 
-    # Start with page 1 response from datagrepper, grab the raw messages
-    # and then continue to populate the list with the rest of the pages of data
-    autocloud_data = r.json()[u'raw_messages']
-    for rpage in range(2, r.json()[u'pages']+1):
-        autocloud_data += requests.get(
-            datagrepper_url,
-            params=dict(page=rpage, **request_params)
-        ).json()[u'raw_messages']
+    if not compose_metadata and not compose_metadata[u'composeinfo'] and not compose_metadata[u'images']:
+        log.error("Image details not found for Compose ID : %s", pungi_compose_id)
+        sys.exit(2)
 
+    compose_id = compose_metadata[u'images'][u'payload'][u'compose'][u'id']
+    release = compose_metadata[u'composeinfo'][u'payload'][u'release'][u'version']
+    # Get Atomic Host related messages
+    atomic_host_msg = compose_metadata[u'images'][u'payload'][u'images'][u'AtomicHost']
+    release_artifacts_info = dict()
 
-# XXX ignore this way of doing things for now (see below)
-##### List comprehension that will return a list of compose information from
-##### AutoCloud (the [u'msg'] payload of autocloud.compose.complete fedmsg)
-##### such that the following criteria are true:
-#####
-#####   - Is an Atomic Host compose (i.e. 'Atomic' is in the compose id)
-#####   - No compose artifacts failed the tests
-#####   - This is the current Fedora release we want
-#####
-#####   OR:
-#####       - This compose was manually marked good
-####candidate_composes = [
-####    compose[u'msg'] for compose in autocloud_data
-####        if u'Atomic' in compose[u'msg'][u'id']
-####            and compose[u'msg'][u'results'][u'failed'] == 0
-####            and compose[u'msg'][u'release'] == str(release)
-####            or compose[u'msg'][u'id'] in MARK_ATOMIC_HOST_GOOD_COMPOSES
-####]
+    for arch in ARCHES:
+        if arch in atomic_host_msg:
+            release_artifact_info = dict()
+            images_detail = atomic_host_msg[arch]
+            for image_detail in images_detail:
+                if image_detail['type'] in IMAGE_TYPES:
+                    image_url = os.path.join(ATOMIC_HOST_STABLE_BASEDIR,
+                                             compose_id,
+                                             image_detail[u'path'] )
+                    image_name = image_detail[u'path'].split('/')[-1]
+                    name = image_name.split('.' + arch)[0]
+                    release_artifact_info[IMAGE_TYPES_MAPPING[image_detail[u'type']]] = {
+                        "compose_id": compose_id,
+                        "name": name,
+                        "release": release,
+                        "image_name": image_name,
+                        "image_url": image_url,
+                        "size": image_detail[u'size']
+                    }
+            if release_artifact_info:
+                release_artifacts_info[arch] = release_artifact_info
+        else:
+            log.error("Image details not available for arch : %s", arch)
+            sys.exit(2)
 
-####filtered_composes = list(candidate_composes)
-####for compose in candidate_composes:
-####    if compose_manually_marked_bad(compose[u'id']):
-####        filtered_composes.remove(compose)
-
-##### sc = successful compose
-####sc = filtered_composes[0]
-
-    # XXX For now ignore the autocloud results and just use the
-    # requested pungi compose id.
-    #
-    # List comprehension that will return a list of compose information from
-    # AutoCloud (the [u'msg'] payload of autocloud.compose.complete fedmsg)
-    # such that the following criteria are true:
-    candidate_composes = [
-        compose[u'msg'] for compose in autocloud_data
-            if pungi_compose_id in compose[u'msg'][u'id']
-    ]
-    # sc = successful compose
-    sc = candidate_composes[0]
-
-    autocloud_info = {}
-
-    # qcow2 image
-    qcow_msg = [
-        sc[u'results'][u'artifacts'][img] for img in sc[u'results'][u'artifacts']
-            if sc[u'results'][u'artifacts'][img][u'family'] == u'Atomic'
-            and sc[u'results'][u'artifacts'][img][u'type'] == u'qcow2'
-    ][0]
-    image_name, image_url = construct_url(qcow_msg)
-    autocloud_info["atomic_qcow2"] = {
-        "compose_id": sc[u'id'],
-        "name": qcow_msg[u'name'],
-        "release": sc[u'release'],
-        "image_name": image_name,
-        "image_url": image_url,
-    }
-
-    # raw image
-    #
-    # FIXME - This is a bit of a hack right now, but the raw image is what
-    #         the qcow2 is made of so only qcow2 is tested and infers the
-    #         success of both qcow2 and raw.xz
-    autocloud_info["atomic_raw"] = {
-        "compose_id": sc[u'id'],
-        "name": qcow_msg[u'name'],
-        "release": sc[u'release'],
-        "image_name": image_name.replace('qcow2', 'raw.xz'),    # HACK
-        "image_url": image_url.replace('qcow2', 'raw.xz'),      # HACK
-    }
-
-    # vagrant libvirt image
-    vlibvirt_msg = [
-        sc[u'results'][u'artifacts'][img] for img in sc[u'results'][u'artifacts']
-            if sc[u'results'][u'artifacts'][img][u'family'] == u'Atomic'
-            and sc[u'results'][u'artifacts'][img][u'type'] == u'vagrant-libvirt'
-    ][0]
-    image_name, image_url = construct_url(vlibvirt_msg)
-    autocloud_info["atomic_vagrant_libvirt"] = {
-        "compose_id": sc[u'id'],
-        "name": vlibvirt_msg[u'name'],
-        "release": sc[u'release'],
-        "image_name": image_name,
-        "image_url": image_url,
-    }
-
-    # vagrant vbox image
-    vvbox_msg = [
-        sc[u'results'][u'artifacts'][img] for img in sc[u'results'][u'artifacts']
-            if sc[u'results'][u'artifacts'][img][u'family'] == u'Atomic'
-            and sc[u'results'][u'artifacts'][img][u'type'] == u'vagrant-virtualbox'
-    ][0]
-    image_name, image_url = construct_url(vvbox_msg)
-    autocloud_info["atomic_vagrant_virtualbox"] = {
-        "compose_id": sc[u'id'],
-        "name": vvbox_msg[u'name'],
-        "release": sc[u'release'],
-        "image_name": image_name,
-        "image_url": image_url,
-    }
-
-    return autocloud_info
-
+    return release_artifacts_info
 
 def compose_manually_marked_bad(compose_id, bad_composes=MARK_ATOMIC_HOST_BAD_COMPOSES):
     """
@@ -764,27 +717,17 @@ if __name__ == '__main__':
         log.info("Release Blocked: Exiting.")
         sys.exit(0)
 
-    log.info("Querying datagrepper for latest AutoCloud successful tests")
-    # Acquire the latest successful builds from datagrepper
-    tested_autocloud_info = get_latest_successful_autocloud_test_info(
-        pargs.release, pargs.pungi_compose_id
-    )
-    log.info("{}\n{}".format("TESTED_AUTOCLOUD_INFO", json.dumps(tested_autocloud_info, indent=2)))
+    log.info("Fetching images information for Compose ID %s", pargs.pungi_compose_id )
+    # Get image artifacts information for given Pungi Compose ID
+    release_artifacts_info = get_release_artifacts_info_from_compose(
+                                pargs.pungi_compose_id)
+    log.info("{}\n{}".format("RELEASE_ARTIFACTS_INFO", json.dumps(release_artifacts_info, indent=2)))
 
-    log.info("Query to datagrepper complete")
-    # If the dict is empty, there were no successful builds in the last two
-    # weeks, error accordingly
-    if not tested_autocloud_info:
-        log.error("No successful builds found")
+    log.info("Fetching images information from compose ID %s complete", pargs.pungi_compose_id)
+    # If the dict is empty, artifacts information not found for given compose ID
+    if not release_artifacts_info:
+        log.error("Images information not found for Compose ID %s", pargs.pungi_compose_id)
         sys.exit(2)
-
-   ## XXX Not needed since we are specifying compose ID
-   #log.info("Extracting compose_id from tested autocloud data")
-   #compose_id = tested_autocloud_info['atomic_qcow2']['compose_id']
-   #
-   ## TODO: https://github.com/kushaldas/tunirtests/pull/59 will allow us to
-   ## extract this from the autocloud test results.
-   #print('Releasing compose %s' % compose_id)
 
     # Initialize a empty dict that we will populate with information
     # about each commit. We'll use this information to do the release.
@@ -855,7 +798,7 @@ if __name__ == '__main__':
     log.info("Sending fedmsg releng.atomic.twoweek.begin")
     fedmsg_publish(
         topic="atomic.twoweek.begin",
-        msg=dict(**tested_autocloud_info)
+        msg=dict(**release_artifacts_info)
     )
 
     log.info("Signing image metadata - compose")
@@ -900,7 +843,7 @@ if __name__ == '__main__':
     log.info("Sending fedmsg releng.atomic.twoweek.complete")
     fedmsg_publish(
         topic="atomic.twoweek.complete",
-        msg=dict(**tested_autocloud_info)
+        msg=dict(**release_artifacts_info)
     )
 
     log.info("Sending Two Week Atomic Host announcement email")
