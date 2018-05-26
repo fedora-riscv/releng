@@ -27,77 +27,101 @@ rebuildid = 'f28'
 failures = {} # dict of owners to lists of packages that failed.
 failed = [] # raw list of failed packages
 
-def report_failure(tracking_bug, product, component, version, summary, comment, logs):
+bzurl = 'https://bugzilla.redhat.com'
+BZCLIENT = RHBugzilla(url="%s/xmlrpc.cgi" % bzurl,
+                      user="releng@fedoraproject.org")
+
+DEFAULT_COMMENT = \
+"""{component} failed to build from source in {product} {version}
+
+https://koji.fedoraproject.org/koji/taskinfo?taskID={task_id}
+
+For details on the mass rebuild see:
+{wikipage}
+
+Please fix {component} at your earliest convenience and set the bug's status to
+ASSIGNED when you start fixing it. If the bug remains in NEW state for 8 weeks,
+{component} will be orphaned. Before branching of {product} {nextversion},
+{component} will be retired, if it still fails to build.
+
+For more details on the FTBFS policy, please visit:
+https://fedoraproject.org/wiki/Fails_to_build_from_source
+"""
+
+def report_failure(massrebuild, component, task_id, logs,
+                   summary="{component}: FTBFS in {product} {version}",
+                   comment=DEFAULT_COMMENT):
     """This function files a new bugzilla bug for component with given
     arguments
 
     Keyword arguments:
-    tracking_bug -- bug used to track failures
-    product -- bugzilla product (usually Fedora)
+    massrebuild -- generic info about mass rebuild such as tracking_bug,
+    Bugzilla product, version, wikipage
     component -- component (package) to file bug against
-    version -- component version to file bug for (usually rawhide for Fedora)
-    summary -- short bug summary
-    comment -- first comment describing the bug in more detail
-    logs -- list of the log file to attach to the bug report
-
+    task_id -- task_id of failed build
+    logs -- list of URLs to the log file to attach to the bug report
+    summary -- short bug summary (if not default)
+    comment -- first comment describing the bug in more detail (if not default)
     """
-    data = {
-        'product': product,
-        'component': component,
-        'version': version,
-        'short_desc': summary,
-        'comment': comment,
-        'blocks': tracking_bug,
-        'rep_platform': 'Unspecified',
-        'bug_severity': 'unspecified',
-        'op_sys': 'Unspecified',
-        'bug_file_loc': '',
-        'priority': 'unspecified',
-        }
-    bzurl = 'https://bugzilla.redhat.com'
-    bzclient = RHBugzilla(url="%s/xmlrpc.cgi" % bzurl)
+
+    format_values = dict(**massrebuild)
+    format_values["task_id"] = task_id
+    format_values["component"] = component
+    format_values["nextversion"] = str(int(massrebuild["version"]) + 1)
+
+    summary = summary.format(**format_values)
+    comment = comment.format(**format_values)
+
+    data = {'product': massrebuild["product"],
+            'component': component,
+            'version': massrebuild["version"],
+            'short_desc': summary,
+            'comment': comment,
+            'blocks': massrebuild["tracking_bug"],
+            'rep_platform': 'Unspecified',
+            'bug_severity': 'unspecified',
+            'op_sys': 'Unspecified',
+            'bug_file_loc': '',
+            'priority': 'unspecified',
+           }
+
 
     try:
         print('Creating the bug report')
-        bug = bzclient.createbug(**data)
+        bug = BZCLIENT.createbug(**data)
         bug.refresh()
         print(bug)
-        for log in logs:
-            name = log.rsplit('/', 1)[-1]
-            response = urllib2.urlopen(log)
-            fp = tempfile.TemporaryFile()
-            fp.write(response.read())
-            fp.seek(0)
-            try:
-                print('Attaching file %s to the ticket' % name)
-                attid = bzclient.attachfile(
-                    bug.id, fp, name, content_type='text/plain')
-            except Fault, ex:
-                continue
-                #Temporary comment as we dont have all the logs
-                #print(ex)
-            finally:
-                fp.close()
-    except Fault, ex:
+        attach_logs(bug, logs)
+    except Fault as ex:
         print(ex)
         username = raw_input('Bugzilla username: ')
-        bzclient.login(user=username,
+        BZCLIENT.login(user=username,
                        password=getpass.getpass())
-        report_failure(tracking_bug, product, component, version, summary, comment, logs)
+        return report_failure(massrebuild, component, task_id, logs, summary,
+                              comment)
+    return bug
 
+def attach_logs(bug, logs):
 
-def get_filed_bugs(tracking_bug):
-    """Query bugzilla if given bug has already been filed
+    if isinstance(bug, int):
+        bug = BZCLIENT.getbug(bug)
 
-    arguments:
-    tracking_bug -- bug used to track failures
-    """
-    query_data = {'blocks': tracking_bug}
-    bzurl = 'https://bugzilla.redhat.com'
-    bzclient = RHBugzilla(url="%s/xmlrpc.cgi" % bzurl)
+    for log in logs:
+        name = log.rsplit('/', 1)[-1]
+        response = urllib2.urlopen(log)
+        fp = tempfile.TemporaryFile()
+        fp.write(response.read())
+        fp.seek(0)
+        try:
+            print('Attaching file %s to the ticket' % name)
+            attid = BZCLIENT.attachfile(
+                bug.id, fp, name, content_type='text/plain')
+        except Fault as  ex:
+            print(ex)
+            raise
 
-    return bzclient.query(query_data)
-
+        finally:
+            fp.close()
 
 def get_task_failed(kojisession, task_id):
     ''' For a given task_id, use the provided kojisession to return the
@@ -119,11 +143,9 @@ if __name__ == '__main__':
     print('Getting the list of filed bugs...')
     filed_bugs = get_filed_bugs(massrebuild['tracking_bug'])
     filed_bugs_components = [bug.component for bug in filed_bugs]
-    product_version = "{product} {version}".format(**massrebuild)
     for build in failbuilds:
         task_id = build['task_id']
         component = build['package_name']
-        summary = "%s: FTBFS in %s" % (component, product_version)
         work_url = 'https://kojipkgs.fedoraproject.org/work'
 
         child_id = get_task_failed(kojisession, task_id)
@@ -139,19 +161,10 @@ if __name__ == '__main__':
             state_log = log_url + "state.log"
             logs = [build_log, root_log, state_log]
 
-        comment = """Your package {component} failed to build from source in current {product_version}
-
-https://koji.fedoraproject.org/koji/taskinfo?taskID={task_id}
-
-For details on mass rebuild see {wikipage}
-""".format(component=component, task_id=task_id,
-           wikipage=massrebuild["wikipage"] product_version=product_version)
 
         if component not in filed_bugs_components:
             print("Filing bug for %s" % component)
-            report_failure(massrebuild['tracking_bug'], massrebuild['product'],
-                           component, massrebuild['version'],
-                           summary, comment, logs=logs)
+            report_failure(massrebuild, component, task_id, logs)
             filed_bugs_components.append(component)
         else:
             print("Skipping %s, bug already filed" % component)
