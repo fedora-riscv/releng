@@ -114,8 +114,9 @@ def attach_logs(bug, logs):
         fp.seek(0)
         try:
             print('Attaching file %s to the ticket' % name)
+            # arguments are: idlist, attachfile, description, ...
             attid = BZCLIENT.attachfile(
-                bug.id, fp, name, content_type='text/plain')
+                bug.id, fp, name, content_type='text/plain', file_name=name)
         except Fault as  ex:
             print(ex)
             raise
