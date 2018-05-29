@@ -112,13 +112,33 @@ def attach_logs(bug, logs):
         name = log.rsplit('/', 1)[-1]
         response = urllib2.urlopen(log)
         fp = tempfile.TemporaryFile()
-        fp.write(response.read())
-        fp.seek(0)
+
+        CHUNK = 2 ** 20
+        while True:
+            chunk = response.read(CHUNK)
+            if not chunk:
+                break
+            fp.write(chunk)
+
+        filesize = fp.tell()
+        # Bugzilla file limit, still possibly too much
+        # FILELIMIT = 20000 * 1024
+        # Just use 1 MiB:
+        FILELIMIT = 2 ** 10
+        if filesize > FILELIMIT:
+            fp.seek(filesize - FILELIMIT)
+            comment = "file {} too big, will only attach last {} bytes".format(
+                name, FILELIMIT)
+        else:
+            comment = ""
+            fp.seek(0)
         try:
             print('Attaching file %s to the ticket' % name)
             # arguments are: idlist, attachfile, description, ...
             attid = BZCLIENT.attachfile(
-                bug.id, fp, name, content_type='text/plain', file_name=name)
+                bug.id, fp, name, content_type='text/plain', file_name=name,
+                comment=comment
+            )
         except Fault as  ex:
             print(ex)
             raise
