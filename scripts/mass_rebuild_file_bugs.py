@@ -35,10 +35,11 @@ DEFAULT_COMMENT = \
 """{component} failed to build from source in {product} {version}
 
 https://koji.fedoraproject.org/koji/taskinfo?taskID={task_id}
+{extrainfo}
 
 For details on the mass rebuild see:
-{wikipage}
 
+{wikipage}
 Please fix {component} at your earliest convenience and set the bug's status to
 ASSIGNED when you start fixing it. If the bug remains in NEW state for 8 weeks,
 {component} will be orphaned. Before branching of {product} {nextversion},
@@ -50,7 +51,7 @@ https://fedoraproject.org/wiki/Fails_to_build_from_source
 
 def report_failure(massrebuild, component, task_id, logs,
                    summary="{component}: FTBFS in {product} {version}",
-                   comment=DEFAULT_COMMENT):
+                   comment=DEFAULT_COMMENT, extrainfo=""):
     """This function files a new bugzilla bug for component with given
     arguments
 
@@ -68,6 +69,7 @@ def report_failure(massrebuild, component, task_id, logs,
     format_values["task_id"] = task_id
     format_values["component"] = component
     format_values["nextversion"] = str(int(massrebuild["version"]) + 1)
+    format_values["extrainfo"] = extrainfo
 
     summary = summary.format(**format_values)
     comment = comment.format(**format_values)
