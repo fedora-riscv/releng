@@ -97,36 +97,6 @@ ATOMIC_HOST_STABLE_BASEDIR = "/pub/alt/atomic/stable/"
 ATOMIC_HOST_FEDMSG_MODNAME = "releng"
 ATOMIC_HOST_FEDMSG_CERT_PREFIX = "releng"
 
-MARK_ATOMIC_HOST_BAD_COMPOSES = None
-MARK_ATOMIC_HOST_GOOD_COMPOSES = None
-BLOCK_ATOMIC_HOST_RELEASE = None
-
-try:
-    MARK_ATOMIC_HOST_BAD_JSON_URL = \
-        'https://pagure.io/mark-atomic-bad/raw/master/f/bad-composes.json'
-    MARK_ATOMIC_HOST_BAD_JSON = requests.get(MARK_ATOMIC_HOST_BAD_JSON_URL).text
-    MARK_ATOMIC_HOST_BAD_COMPOSES = json.loads(MARK_ATOMIC_HOST_BAD_JSON)[u'bad-composes']
-
-    BLOCK_ATOMIC_HOST_RELEASE_JSON_URL = \
-        'https://pagure.io/mark-atomic-bad/raw/master/f/block-release.json'
-    BLOCK_ATOMIC_HOST_RELEASE_JSON = \
-        requests.get(BLOCK_ATOMIC_HOST_RELEASE_JSON_URL).text
-    BLOCK_ATOMIC_HOST_RELEASE = \
-        json.loads(BLOCK_ATOMIC_HOST_RELEASE_JSON)[u'block-release']
-
-    MARK_ATOMIC_HOST_GOOD_URL = \
-        'https://pagure.io/mark-atomic-bad/raw/master/f/good-composes.json'
-    MARK_ATOMIC_HOST_GOOD_JSON = \
-        requests.get(MARK_ATOMIC_HOST_GOOD_URL).text
-    MARK_ATOMIC_HOST_GOOD_COMPOSES = \
-        json.loads(MARK_ATOMIC_HOST_GOOD_JSON)[u'good-composes']
-except Exception as e:
-    log.exception(
-        "!!!!{0}!!!!\n{1}".format("Failed to fetch or parse json", e)
-    )
-    sys.exit(1)
-
-
 DATAGREPPER_URL = "https://apps.fedoraproject.org/datagrepper/raw"
 # delta = 2 weeks in seconds
 DATAGREPPER_DELTA = 1209600
@@ -283,23 +253,6 @@ def get_release_artifacts_info_from_compose(pungi_compose_id):
             sys.exit(2)
 
     return release_artifacts_info
-
-def compose_manually_marked_bad(compose_id, bad_composes=MARK_ATOMIC_HOST_BAD_COMPOSES):
-    """
-    compose_manually_marked_bad
-
-        Check for a compose that has been marked bad manually
-
-        compose_id
-            Compose id of most recently found auto-tested good compose build
-
-    return -> bool
-        True if the build was marked bad, else False
-    """
-
-    bad = [c for c in bad_composes if c == compose_id]
-
-    return len(bad) > 0
 
 def send_atomic_announce_email(
         email_filelist,
@@ -712,11 +665,6 @@ if __name__ == '__main__':
     if not pargs.ostree_pungi_compose_id:
         pargs.ostree_pungi_compose_id = pargs.pungi_compose_id
 
-    log.info("Checking to make sure release is not currently blocked")
-    if BLOCK_ATOMIC_HOST_RELEASE:
-        log.info("Release Blocked: Exiting.")
-        sys.exit(0)
-
     log.info("Fetching images information for Compose ID %s", pargs.pungi_compose_id )
     # Get image artifacts information for given Pungi Compose ID
     release_artifacts_info = get_release_artifacts_info_from_compose(
@@ -871,7 +819,7 @@ if __name__ == '__main__':
                                ostree_commit_data,
                                mail_receivers=mail_receivers)
 
-    # FIXME - The logic in this functioni is broken, leave it disabled for now
+    # FIXME - The logic in this function is broken, leave it disabled for now
     #log.info("Pruning old Atomic Host test composes")
     #prune_old_composes(ATOMIC_HOST_STABLE_BASEDIR, 2)
 
