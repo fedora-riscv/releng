@@ -30,12 +30,15 @@ that host is ``bodhi-backend01.phx2.fedoraproject.org``.
 
 Running the script requires two arguments:
 
-* The Fedora Release number that you are going to release, example: ``-r 26``
+* The Fedora Release number that you are going to release, example: ``-r 28``
 * The Fedora key to sign the checksum metadata files with, example: ``-k
-  fedora-26``
+  fedora-28``
 
 At the time of this writing, the `AutoCloud`_ tests are no longer reliable and
-are effectively abandoned by those responsible. As such, on Atomic Host Two-Week
+are effectively abandoned by those responsible. We have also stopped relying on
+autocloud fedmsg for getting image details. Instead, we are using `fedfind`_
+which gives us image details for all supported architectures.
+As such, on Atomic Host Two-Week
 Release Day a member of the `Fedora Atomic WG`_ (normally ``dustymabe``) will
 open a request to RelEng with the release candidate that should be released.
 
@@ -46,14 +49,14 @@ and the ostree were created in different composes).
 
 ::
 
-    pungi-compose-id: Fedora-Atomic-27-20171110.1
-    ostree-pungi-compose-id: Fedora-27-20171110.n.1
+    pungi-compose-id: Fedora-Atomic-28-20180515.1
+    ostree-pungi-compose-id: Fedora-28-updates-20180515.1
 
 Or the request may just contain the full command to run
 
 ::
 
-    push-two-week-atomic.py -k fedora-27 -r 27 --pungi-compose-id Fedora-Atomic-27-20171110.1 --ostree-pungi-compose-id Fedora-27-20171110.n.1
+    push-two-week-atomic.py -k fedora-28 -r 28 --pungi-compose-id Fedora-Atomic-28-20180515.1 --ostree-pungi-compose-id Fedora-28-updates-20180515.1
 
 
 The below example shows how to perform the Two Week Atomic Release.
@@ -73,77 +76,144 @@ The below example shows how to perform the Two Week Atomic Release.
     # Perform the two week release
     bodhi-backend01$ cd ~/releng/scripts
 
-    # Here we specify the signing key 'fedora-27' and are targeting the Fedora
-    # Release '27' and specific pungi composes
-	bodhi-backend01$ python push-two-week-atomic.py -k fedora-27 -r 27 --pungi-compose-id Fedora-Atomic-27-20171110.1 --ostree-pungi-compose-id Fedora-27-20171110.n.1
-	INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): pagure.io
-	INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): pagure.io
-	INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): pagure.io
-	INFO:push-two-week-atomic.py:Checking to make sure release is not currently blocked
-	INFO:push-two-week-atomic.py:Querying datagrepper for latest AutoCloud successful tests
-	INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): apps.fedoraproject.org
-	INFO:push-two-week-atomic.py:TESTED_AUTOCLOUD_INFO
-	{
-	  "atomic_qcow2": {
-		"release": "27",
-		"image_url": "/pub/alt/atomic/stable/Fedora-Atomic-27-20171110.1/CloudImages/x86_64/images/Fedora-Atomic-27-20171110.1.x86_64.qcow2",
-		"name": "Fedora-Atomic-27-20171110.1.",
-		"compose_id": "Fedora-Atomic-27-20171110.1",
-		"image_name": "Fedora-Atomic-27-20171110.1.x86_64.qcow2"
-	  },
-	  "atomic_vagrant_libvirt": {
-		"release": "27",
-		"image_url": "/pub/alt/atomic/stable/Fedora-Atomic-27-20171110.1/CloudImages/x86_64/images/Fedora-Atomic-Vagrant-27-20171110.1.x86_64.vagrant-libvirt.box",
-		"name": "Fedora-Atomic-Vagrant-27-20171110.1.",
-		"compose_id": "Fedora-Atomic-27-20171110.1",
-		"image_name": "Fedora-Atomic-Vagrant-27-20171110.1.x86_64.vagrant-libvirt.box"
-	  },
-	  "atomic_raw": {
-		"release": "27",
-		"image_url": "/pub/alt/atomic/stable/Fedora-Atomic-27-20171110.1/CloudImages/x86_64/images/Fedora-Atomic-27-20171110.1.x86_64.raw.xz",
-		"name": "Fedora-Atomic-27-20171110.1.",
-		"compose_id": "Fedora-Atomic-27-20171110.1",
-		"image_name": "Fedora-Atomic-27-20171110.1.x86_64.raw.xz"
-	  },
-	  "atomic_vagrant_virtualbox": {
-		"release": "27",
-		"image_url": "/pub/alt/atomic/stable/Fedora-Atomic-27-20171110.1/CloudImages/x86_64/images/Fedora-Atomic-Vagrant-27-20171110.1.x86_64.vagrant-virtualbox.box",
-		"name": "Fedora-Atomic-Vagrant-27-20171110.1.",
-		"compose_id": "Fedora-Atomic-27-20171110.1",
-		"image_name": "Fedora-Atomic-Vagrant-27-20171110.1.x86_64.vagrant-virtualbox.box"
-	  }
-	}
-	INFO:push-two-week-atomic.py:Query to datagrepper complete
-	INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): apps.fedoraproject.org
-	INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): apps.fedoraproject.org
-	INFO:push-two-week-atomic.py:Found aarch64, da1bd08012699a0aacaa11481d3ed617477858aab0f2ea7300168ce106202255
-	INFO:push-two-week-atomic.py:Found ppc64le, 362888edfac04f8848072ae4fb8193b3da2f4fd226bef450326faff4be290abd
-	INFO:push-two-week-atomic.py:Found x86_64, d428d3ad8ecf44e53d138042bad56a10308883a0c5d64b9c51eff27fdc9da82c
-	INFO:push-two-week-atomic.py:Verifying and finding version of d428d3ad8ecf44e53d138042bad56a10308883a0c5d64b9c51eff27fdc9da82c
-	INFO:push-two-week-atomic.py:Verifying and finding version of da1bd08012699a0aacaa11481d3ed617477858aab0f2ea7300168ce106202255
-	INFO:push-two-week-atomic.py:Verifying and finding version of 362888edfac04f8848072ae4fb8193b3da2f4fd226bef450326faff4be290abd
-	INFO:push-two-week-atomic.py:OSTREE COMMIT DATA INFORMATION
-	INFO:push-two-week-atomic.py:{
-	  "aarch64": {
-		"commit": "da1bd08012699a0aacaa11481d3ed617477858aab0f2ea7300168ce106202255",
-		"version": "27.1",
-		"ref": "fedora/27/aarch64/atomic-host",
-		"previous_commit": "da1bd08012699a0aacaa11481d3ed617477858aab0f2ea7300168ce106202255"
-	  },
-	  "x86_64": {
-		"commit": "d428d3ad8ecf44e53d138042bad56a10308883a0c5d64b9c51eff27fdc9da82c",
-		"version": "27.1",
-		"ref": "fedora/27/x86_64/atomic-host",
-		"previous_commit": "d428d3ad8ecf44e53d138042bad56a10308883a0c5d64b9c51eff27fdc9da82c"
-	  },
-	  "ppc64le": {
-		"commit": "362888edfac04f8848072ae4fb8193b3da2f4fd226bef450326faff4be290abd",
-		"version": "27.1",
-		"ref": "fedora/27/ppc64le/atomic-host",
-		"previous_commit": "362888edfac04f8848072ae4fb8193b3da2f4fd226bef450326faff4be290abd"
-	  }
-	}
-	INFO:push-two-week-atomic.py:Releasing ostrees at version: 27.1
+    # Here we specify the signing key 'fedora-28' and are targeting the Fedora
+    # Release '28' and specific pungi composes
+        bodhi-backend01$ python push-two-week-atomic.py -k fedora-28 -r 28 --pungi-compose-id Fedora-Atomic-28-20180515.1 --ostree-pungi-compose-id Fedora-28-updates-20180515.1
+        INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): pagure.io
+        INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): pagure.io
+        INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): pagure.io
+        INFO:push-two-week-atomic.py:Fetching images information for Compose ID Fedora-Atomic-28-20180515.1
+        INFO:push-two-week-atomic.py:Begin fetching image metadata information using fedfind for Compose ID Fedora-Atomic-28-20180515.1
+        INFO:push-two-week-atomic.py:Finished fetching image metadata information using fedfind for Compose ID Fedora-Atomic-28-20180515.1
+        INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): apps.fedoraproject.org
+        INFO:push-two-week-atomic.py:RELEASE_ARTIFACTS_INFO
+        {
+          "aarch64": {
+            "atomic_dvd_ostree": {
+              "name": "Fedora-AtomicHost-ostree-aarch64-28-20180515.1.iso",
+              "image_name": "Fedora-AtomicHost-ostree-aarch64-28-20180515.1.iso",
+              "image_url": "/pub/alt/atomic/stable/Fedora-Atomic-28-20180515.1/AtomicHost/aarch64/iso/Fedora-AtomicHost-ostree-aarch64-28-20180515.1.iso",
+              "release": "28",
+              "compose_id": "Fedora-Atomic-28-20180515.1",
+              "size": 988649472
+            },
+            "atomic_qcow2": {
+              "name": "Fedora-AtomicHost-28-20180515.1",
+              "image_name": "Fedora-AtomicHost-28-20180515.1.aarch64.qcow2",
+              "image_url": "/pub/alt/atomic/stable/Fedora-Atomic-28-20180515.1/AtomicHost/aarch64/images/Fedora-AtomicHost-28-20180515.1.aarch64.qcow2",
+              "release": "28",
+              "compose_id": "Fedora-Atomic-28-20180515.1",
+              "size": 621911040
+            },
+            "atomic_raw": {
+              "name": "Fedora-AtomicHost-28-20180515.1",
+              "image_name": "Fedora-AtomicHost-28-20180515.1.aarch64.raw.xz",
+              "image_url": "/pub/alt/atomic/stable/Fedora-Atomic-28-20180515.1/AtomicHost/aarch64/images/Fedora-AtomicHost-28-20180515.1.aarch64.raw.xz",
+              "release": "28",
+              "compose_id": "Fedora-Atomic-28-20180515.1",
+              "size": 396619232
+            }
+          },
+          "x86_64": {
+            "atomic_dvd_ostree": {
+              "name": "Fedora-AtomicHost-ostree-x86_64-28-20180515.1.iso",
+              "image_name": "Fedora-AtomicHost-ostree-x86_64-28-20180515.1.iso",
+              "image_url": "/pub/alt/atomic/stable/Fedora-Atomic-28-20180515.1/AtomicHost/x86_64/iso/Fedora-AtomicHost-ostree-x86_64-28-20180515.1.iso",
+              "release": "28",
+              "compose_id": "Fedora-Atomic-28-20180515.1",
+              "size": 1034944512
+            },
+            "atomic_qcow2": {
+              "name": "Fedora-AtomicHost-28-20180515.1",
+              "image_name": "Fedora-AtomicHost-28-20180515.1.x86_64.qcow2",
+              "image_url": "/pub/alt/atomic/stable/Fedora-Atomic-28-20180515.1/AtomicHost/x86_64/images/Fedora-AtomicHost-28-20180515.1.x86_64.qcow2",
+              "release": "28",
+              "compose_id": "Fedora-Atomic-28-20180515.1",
+              "size": 635537920
+            },
+            "atomic_vagrant_libvirt": {
+              "name": "Fedora-AtomicHost-Vagrant-28-20180515.1",
+              "image_name": "Fedora-AtomicHost-Vagrant-28-20180515.1.x86_64.vagrant-libvirt.box",
+              "image_url": "/pub/alt/atomic/stable/Fedora-Atomic-28-20180515.1/AtomicHost/x86_64/images/Fedora-AtomicHost-Vagrant-28-20180515.1.x86_64.vagrant-libvirt.box",
+              "release": "28",
+              "compose_id": "Fedora-Atomic-28-20180515.1",
+              "size": 603786982
+            },
+            "atomic_raw": {
+              "name": "Fedora-AtomicHost-28-20180515.1",
+              "image_name": "Fedora-AtomicHost-28-20180515.1.x86_64.raw.xz",
+              "image_url": "/pub/alt/atomic/stable/Fedora-Atomic-28-20180515.1/AtomicHost/x86_64/images/Fedora-AtomicHost-28-20180515.1.x86_64.raw.xz",
+              "release": "28",
+              "compose_id": "Fedora-Atomic-28-20180515.1",
+              "size": 457994952
+            },
+            "atomic_vagrant_virtualbox": {
+              "name": "Fedora-AtomicHost-Vagrant-28-20180515.1",
+              "image_name": "Fedora-AtomicHost-Vagrant-28-20180515.1.x86_64.vagrant-virtualbox.box",
+              "image_url": "/pub/alt/atomic/stable/Fedora-Atomic-28-20180515.1/AtomicHost/x86_64/images/Fedora-AtomicHost-Vagrant-28-20180515.1.x86_64.vagrant-virtualbox.box",
+              "release": "28",
+              "compose_id": "Fedora-Atomic-28-20180515.1",
+              "size": 617984000
+            }
+          },
+          "ppc64le": {
+            "atomic_dvd_ostree": {
+              "name": "Fedora-AtomicHost-ostree-ppc64le-28-20180515.1.iso",
+              "image_name": "Fedora-AtomicHost-ostree-ppc64le-28-20180515.1.iso",
+              "image_url": "/pub/alt/atomic/stable/Fedora-Atomic-28-20180515.1/AtomicHost/ppc64le/iso/Fedora-AtomicHost-ostree-ppc64le-28-20180515.1.iso",
+              "release": "28",
+              "compose_id": "Fedora-Atomic-28-20180515.1",
+              "size": 1036103680
+            },
+            "atomic_qcow2": {
+              "name": "Fedora-AtomicHost-28-20180515.1",
+              "image_name": "Fedora-AtomicHost-28-20180515.1.ppc64le.qcow2",
+              "image_url": "/pub/alt/atomic/stable/Fedora-Atomic-28-20180515.1/AtomicHost/ppc64le/images/Fedora-AtomicHost-28-20180515.1.ppc64le.qcow2",
+              "release": "28",
+              "compose_id": "Fedora-Atomic-28-20180515.1",
+              "size": 636539904
+            },
+            "atomic_raw": {
+              "name": "Fedora-AtomicHost-28-20180515.1",
+              "image_name": "Fedora-AtomicHost-28-20180515.1.ppc64le.raw.xz",
+              "image_url": "/pub/alt/atomic/stable/Fedora-Atomic-28-20180515.1/AtomicHost/ppc64le/images/Fedora-AtomicHost-28-20180515.1.ppc64le.raw.xz",
+              "release": "28",
+              "compose_id": "Fedora-Atomic-28-20180515.1",
+              "size": 411513572
+            }
+          }
+        }
+        INFO:push-two-week-atomic.py:Fetching images information from compose ID Fedora-Atomic-28-20180515.1 complete
+        INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): apps.fedoraproject.org
+        INFO:requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): apps.fedoraproject.org
+        INFO:push-two-week-atomic.py:Found aarch64, ec501e5a6833e6117632c3a7fc90ef17530399b6411ad9ba2c5c85f22cabe8dd
+        INFO:push-two-week-atomic.py:Found ppc64le, dfe24e5d495ec16fbe2d61e6b494def2b119301f6565b8b6ecd542d79b02df89
+        INFO:push-two-week-atomic.py:Found x86_64, a29367c58417c28e2bd8306c1f438b934df79eba13706e078fe8564d9e0eb32b
+        INFO:push-two-week-atomic.py:Verifying and finding version of a29367c58417c28e2bd8306c1f438b934df79eba13706e078fe8564d9e0eb32b
+        INFO:push-two-week-atomic.py:Verifying and finding version of ec501e5a6833e6117632c3a7fc90ef17530399b6411ad9ba2c5c85f22cabe8dd
+        INFO:push-two-week-atomic.py:Verifying and finding version of dfe24e5d495ec16fbe2d61e6b494def2b119301f6565b8b6ecd542d79b02df89
+        INFO:push-two-week-atomic.py:OSTREE COMMIT DATA INFORMATION
+        INFO:push-two-week-atomic.py:{
+          "aarch64": {
+            "commit": "ec501e5a6833e6117632c3a7fc90ef17530399b6411ad9ba2c5c85f22cabe8dd",
+            "version": "28.20180515.1",
+            "ref": "fedora/28/aarch64/atomic-host",
+            "previous_commit": "12a95314084eaa2242bdfe24197774aac163433d2405bc2813b4d89180434630"
+          },
+          "x86_64": {
+            "commit": "a29367c58417c28e2bd8306c1f438b934df79eba13706e078fe8564d9e0eb32b",
+            "version": "28.20180515.1",
+            "ref": "fedora/28/x86_64/atomic-host",
+            "previous_commit": "94a9d06eef34aa6774c056356d3d2e024e57a0013b6f8048dbae392a84a137ca"
+          },
+          "ppc64le": {
+            "commit": "dfe24e5d495ec16fbe2d61e6b494def2b119301f6565b8b6ecd542d79b02df89",
+            "version": "28.20180515.1",
+            "ref": "fedora/28/ppc64le/atomic-host",
+            "previous_commit": "d29c4549226ca8a50846360cf2f7149fbe15b4ab9d1c91d0d2aff1858b3ab1f3"
+          }
+        }
+	INFO:push-two-week-atomic.py:Releasing ostrees at version: 28.20180515.1
 	...
 	<snip>
 
@@ -159,6 +229,7 @@ are:
 ::
 
     ATOMIC_EMAIL_RECIPIENTS = [
+        "devel@lists.fedoraproject.org"
         "cloud@lists.fedoraproject.org",
         "rel-eng@lists.fedoraproject.org",
         "atomic-devel@projectatomic.io",
@@ -185,3 +256,4 @@ into the `appropriate stable directories`_.
     https://apps.fedoraproject.org/datagrepper/raw?category=releng&delta=127800
 .. _AutoCloud: https://apps.fedoraproject.org/autocloud/compose
 .. _mark-atomic-bad: https://pagure.io/mark-atomic-bad
+.. _fedfind: https://pagure.io/fedora-qa/fedfind
