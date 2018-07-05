@@ -316,18 +316,40 @@ Respective signed CHECKSUM files can be found here:
 {}
 
 For direct download, the "latest" targets are always available here:
-    https://getfedora.org/atomic_iso_latest
-    https://getfedora.org/atomic_qcow2_latest
-    https://getfedora.org/atomic_raw_latest
-    https://getfedora.org/atomic_vagrant_libvirt_latest
-    https://getfedora.org/atomic_vagrant_virtualbox_latest
+    x86_64:
+    https://getfedora.org/atomic_qcow2_x86_64_latest
+    https://getfedora.org/atomic_raw_x86_64_latest
+    https://getfedora.org/atomic_vagrant_libvirt_x86_64_latest
+    https://getfedora.org/atomic_vagrant_virtualbox_x86_64_latest
+    https://getfedora.org/atomic_dvd_ostree_x86_64_latest
+
+    aarch64:
+    https://getfedora.org/atomic_qcow2_aarch64_latest
+    https://getfedora.org/atomic_raw_aarch64_latest
+    https://getfedora.org/atomic_dvd_ostree_aarch64_latest
+
+    ppc64le:
+    https://getfedora.org/atomic_qcow2_ppc64le_latest
+    https://getfedora.org/atomic_raw_ppc64le_latest
+    https://getfedora.org/atomic_dvd_ostree_ppc64le_latest
 
 Filename fetching URLs are available here:
-    https://getfedora.org/atomic_iso_latest_filename
-    https://getfedora.org/atomic_qcow2_latest_filename
-    https://getfedora.org/atomic_raw_latest_filename
-    https://getfedora.org/atomic_vagrant_libvirt_latest_filename
-    https://getfedora.org/atomic_vagrant_virtualbox_latest_filename
+    x86_64:
+    https://getfedora.org/atomic_qcow2_x86_64_latest_filename
+    https://getfedora.org/atomic_raw_x86_64_latest_filename
+    https://getfedora.org/atomic_vagrant_libvirt_x86_64_latest_filename
+    https://getfedora.org/atomic_vagrant_virtualbox_x86_64_latest_filename
+    https://getfedora.org/atomic_dvd_ostree_x86_64_latest_filename
+
+    aarch64:
+    https://getfedora.org/atomic_qcow2_aarch64_latest_filename
+    https://getfedora.org/atomic_raw_aarch64_latest_filename
+    https://getfedora.org/atomic_dvd_ostree_aarch64_latest_filename
+
+    ppc64le:
+    https://getfedora.org/atomic_qcow2_ppc64le_latest_filename
+    https://getfedora.org/atomic_raw_ppc64le_latest_filename
+    https://getfedora.org/atomic_dvd_ostree_ppc64le_latest_filename
 
 For more information about the latest targets, please reference the Fedora
 Atomic Wiki space.
