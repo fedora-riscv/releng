@@ -21,6 +21,19 @@ PKG_SKIP_LIST = [
 ]
 
 MASSREBUILDS = {
+    "f29":
+    {
+        "buildtag": 'f29-rebuild',  # tag to build from
+        "epoch": '2018-07-12 17:00:00.000000',  # rebuild anything not built after this date
+        "targets": ['f29-candidate', 'rawhide', 'f29'],  # build targets to check for existing builds to skip rebuild
+        "target": 'f29-rebuild',  # target to build into
+        "desttag": 'f29',  # Tag where fixed builds go
+        "product": "Fedora",  # for BZ product field
+        "version": "29",  # for BZ version field
+        "tracking_bug": None,  # Tracking bug for mass build failures
+        "wikipage": "https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild",
+        "pkg_skip_list": PKG_SKIP_LIST,  # packages to skip in rebuild
+    },
     "f28":
     {
         "buildtag": 'f28-rebuild',  # tag to build from
