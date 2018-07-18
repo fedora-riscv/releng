@@ -29,8 +29,8 @@ MASSREBUILDS = {
         "target": 'f29-rebuild',  # target to build into
         "desttag": 'f29',  # Tag where fixed builds go
         "product": "Fedora",  # for BZ product field
-        "version": "29",  # for BZ version field
-        "tracking_bug": None,  # Tracking bug for mass build failures
+        "version": "rawhide",  # for BZ version field
+        "tracking_bug": 1602938,  # Tracking bug for mass build failures
         "wikipage": "https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild",
         "pkg_skip_list": PKG_SKIP_LIST,  # packages to skip in rebuild
     },
