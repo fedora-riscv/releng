@@ -109,6 +109,18 @@ def report_failure(massrebuild, component, task_id, logs,
                                   comment)
     return bug
 
+def get_filed_bugs(tracking_bug):
+    """Query bugzilla if given bug has already been filed
+
+    arguments:
+    tracking_bug -- bug used to track failures
+    """
+    query_data = {'blocks': tracking_bug}
+    bzurl = 'https://bugzilla.redhat.com'
+    bzclient = RHBugzilla(url="%s/xmlrpc.cgi" % bzurl)
+
+    return bzclient.query(query_data)
+
 def attach_logs(bug, logs):
 
     if isinstance(bug, int):
