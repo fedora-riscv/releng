@@ -53,6 +53,7 @@ MASSREBUILDS = {
         "tracking_bug": 1602938,  # Tracking bug for mass build failures
         "wikipage": "https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild",
         "pkg_skip_list": PKG_SKIP_LIST,  # packages to skip in rebuild
+        "current_rawhide": "29",
     },
     "f28":
     {
