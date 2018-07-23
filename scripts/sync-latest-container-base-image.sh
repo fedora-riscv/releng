@@ -29,13 +29,6 @@ EXAMPLE
     ${0} 26
 EOF
 }
-f_clean_docker_images ()
-{
-    for i in $(sudo docker images -f 'dangling=true' -q);
-    do
-        sudo docker rmi $i;
-    done
-}
 # This is the release of Fedora that is currently stable, it will define if we
 # need to move the fedora:latest tag
 current_stable="28"
@@ -60,7 +53,6 @@ if [[ "${2}" == "-s" ]]; then
 fi
 # If ${stage} is a non-zero length string, then perform staging
 if [[ -z "$stage" ]]; then
-    # FIXME - switch to skopeo ASAP
     # Obtain the latest build
     #
     #   Need fXX-updates-canddiate to get actual latest nightly
@@ -76,71 +68,45 @@ if [[ -z "$stage" ]]; then
         # Download the image
         work_dir=$(mktemp -d)
         pushd ${work_dir} &> /dev/null
-            koji download-build --type=image --arch=x86_64 ${build_name}
+            koji download-build --type=image  ${build_name}
             # Import the image
-            if sudo docker load -i ${build_name}.x86_64.tar.xz; then
-                image_name=$(printf "${build_name}" | awk '{print tolower($0) ".x86_64" }')
-            fi
-        popd &> /dev/null
-        # If something went wrong, the value of ${image_name} would be an empty string,
-        # so make sure it isn't
-        if [[ -n "${image_name}" ]]; then
-            sudo docker tag ${image_name} registry.fedoraproject.org/fedora:${1}
-            sudo docker push registry.fedoraproject.org/fedora:${1}
-            sudo docker tag ${image_name} candidate-registry.fedoraproject.org/fedora:${1}
-            sudo docker push candidate-registry.fedoraproject.org/fedora:${1}
+            xz -d ${build_name}.x86_64.tar.xz
+            skopeo copy docker-archive:${build_name}.x86_64.tar docker://registry.fedoraproject.org/fedora:${1}
+            skopeo copy docker-archive:${build_name}.x86_64.tar docker://candidate-registry.fedoraproject.org/fedora:${1}
             if [[ ${1} -eq "$current_stable" ]]; then
-                sudo docker tag ${image_name} registry.fedoraproject.org/fedora:latest
-                sudo docker push registry.fedoraproject.org/fedora:latest
-                sudo docker tag ${image_name} candidate-registry.fedoraproject.org/fedora:latest
-                sudo docker push candidate-registry.fedoraproject.org/fedora:latest
+                skopeo copy docker://registry.fedoraproject.org/fedora:${1} docker://registry.fedoraproject.org/fedora:latest
+                skopeo copy docker://candidate-registry.fedoraproject.org/fedora:${1} docker://candidate-registry.fedoraproject.org/fedora:latest
             fi
             if [[ ${1} -eq "$current_rawhide" ]]; then
-                sudo docker tag ${image_name} registry.fedoraproject.org/fedora:rawhide
-                sudo docker push registry.fedoraproject.org/fedora:rawhide
-                sudo docker tag ${image_name} candidate-registry.fedoraproject.org/fedora:rawhide
-                sudo docker push candidate-registry.fedoraproject.org/fedora:rawhide
+                skopeo copy docker://registry.fedoraproject.org/fedora:${1} docker://registry.fedoraproject.org/fedora:rawhide
+                skopeo copy docker://candidate-registry.fedoraproject.org/fedora:${1} docker://candidate-registry.fedoraproject.org/fedora:rawhide
+
             fi
-            f_clean_docker_images
-        else
-            printf "ERROR: Unable to import image\n"
-            exit 2
-        fi
+        popd &> /dev/null
+        printf "Removing temporary directory\n"
+        rm -rf $work_dir
     fi
     if [[ -n ${minimal_build_name} ]]; then
         # Download the image
         work_dir=$(mktemp -d)
         pushd ${work_dir} &> /dev/null
-            koji download-build --type=image --arch=x86_64 ${minimal_build_name}
+            koji download-build --type=image ${minimal_build_name}
             # Import the image
-            if sudo docker load -i ${minimal_build_name}.x86_64.tar.xz; then
-                min_image_name=$(printf "${minimal_build_name}" | awk '{print tolower($0) ".x86_64" }')
-            fi
-        popd &> /dev/null
-        # If something went wrong, the value of ${image_name} would be an empty string,
-        # so make sure it isn't
-        if [[ -n "${min_image_name}" ]]; then
-            sudo docker tag ${min_image_name} registry.fedoraproject.org/fedora-minimal:${1}
-            sudo docker push registry.fedoraproject.org/fedora-minimal:${1}
-            sudo docker tag ${min_image_name} candidate-registry.fedoraproject.org/fedora-minimal:${1}
-            sudo docker push candidate-registry.fedoraproject.org/fedora-minimal:${1}
+            xz -d ${minimal_build_name}.x86_64.tar.xz
+            skopeo copy docker-archive:${minimal_build_name}.x86_64.tar docker://registry.fedoraproject.org/fedora-minimal:${1}
+            skopeo copy docker-archive:${minimal_build_name}.x86_64.tar docker://candidate-registry.fedoraproject.org/fedora-minimal:${1}
             if [[ ${1} -eq "$current_stable" ]]; then
-                sudo docker tag ${min_image_name} registry.fedoraproject.org/fedora-minimal:latest
-                sudo docker push registry.fedoraproject.org/fedora-minimal:latest
-                sudo docker tag ${min_image_name} candidate-registry.fedoraproject.org/fedora-minimal:latest
-                sudo docker push candidate-registry.fedoraproject.org/fedora-minimal:latest
+                skopeo copy docker://registry.fedoraproject.org/fedora-minimal:${1} docker://registry.fedoraproject.org/fedora-minimal:latest
+                skopeo copy docker://registry.fedoraproject.org/fedora-minimal:${1} docker://candidate-registry.fedoraproject.org/fedora-minimal:latest
             fi
             if [[ ${1} -eq "$current_rawhide" ]]; then
-                sudo docker tag ${min_image_name} registry.fedoraproject.org/fedora-minimal:rawhide
-                sudo docker push registry.fedoraproject.org/fedora-minimal:rawhide
-                sudo docker tag ${min_image_name} candidate-registry.fedoraproject.org/fedora-minimal:rawhide
-                sudo docker push candidate-registry.fedoraproject.org/fedora-minimal:rawhide
+                skopeo copy docker://registry.fedoraproject.org/fedora-minimal:${1} docker://registry.fedoraproject.org/fedora-minimal:rawhide
+                skopeo copy docker://registry.fedoraproject.org/fedora-minimal:${1} docker://candidate-registry.fedoraproject.org/fedora-minimal:rawhide
             fi
-            f_clean_docker_images
-        else
-            printf "ERROR: Unable to import image\n"
-            exit 2
-        fi
+
+        popd &> /dev/null
+        printf "Removing temporary directory\n"
+        rm -rf $work_dir
     fi
 else
     # For stage, we only mirror what's in production.
