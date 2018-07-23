@@ -96,9 +96,11 @@ def report_failure(massrebuild, component, task_id, logs,
         attach_logs(bug, logs)
     except Fault as ex:
         print(ex)
-        #sometimes there wont be BZ component, for ex: Fedora-KDE-Live
-        #skip those packages/components
+        #Because of having image build requirement of having the image name in koji
+        #as a package name, they are missing in the components of koji and we need
+        #to skip them.
         if ex.faultCode == 51:
+        #if "There is no component" in ex.faultString:
             print(ex.faultString)
             return None
         else:
@@ -108,18 +110,6 @@ def report_failure(massrebuild, component, task_id, logs,
             return report_failure(massrebuild, component, task_id, logs, summary,
                                   comment)
     return bug
-
-def get_filed_bugs(tracking_bug):
-    """Query bugzilla if given bug has already been filed
-
-    arguments:
-    tracking_bug -- bug used to track failures
-    """
-    query_data = {'blocks': tracking_bug}
-    bzurl = 'https://bugzilla.redhat.com'
-    bzclient = RHBugzilla(url="%s/xmlrpc.cgi" % bzurl)
-
-    return bzclient.query(query_data)
 
 def attach_logs(bug, logs):
 
@@ -149,9 +139,9 @@ def attach_logs(bug, logs):
 
         filesize = fp.tell()
         # Bugzilla file limit, still possibly too much
-        # FILELIMIT = 20000 * 1024
-        # Just use 1 MiB:
-        FILELIMIT = 2 ** 10
+        # FILELIMIT = 32 * 1024
+        # Just use 32 KiB:
+        FILELIMIT = 2 ** 15
         if filesize > FILELIMIT:
             fp.seek(filesize - FILELIMIT)
             comment = "file {} too big, will only attach last {} bytes".format(
@@ -176,6 +166,8 @@ def attach_logs(bug, logs):
 def get_filed_bugs(tracking_bug):
     """Query bugzilla if given bug has already been filed
 
+    arguments:
+    tracking_bug -- bug used to track failures
     Keyword arguments:
     product -- bugzilla product (usually Fedora)
     component -- component (package) to file bug against
