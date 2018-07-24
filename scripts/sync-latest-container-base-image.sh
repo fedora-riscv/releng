@@ -29,6 +29,8 @@ EXAMPLE
     ${0} 26
 EOF
 }
+
+ARCHES=("aarch64" "armhfp" "ppc64le" "s390x" "x86_64")
 # This is the release of Fedora that is currently stable, it will define if we
 # need to move the fedora:latest tag
 current_stable="28"
@@ -63,6 +65,14 @@ if [[ -z "$stage" ]]; then
     else
         build_name=$(koji -q latest-build --type=image f${1}-updates-candidate Fedora-Docker-Base | awk '{print $1}')
     fi
+
+    if [[ ${1} -eq "$current_stable" ]]; then
+        tagname="latest"
+    fi
+    if [[ ${1} -eq "$current_rawhide" ]]; then
+        tagname="rawhide"
+    fi
+
     minimal_build_name=$(koji -q latest-build --type=image f${1}-updates-candidate Fedora-Container-Minimal-Base | awk '{print $1}')
     if [[ -n ${build_name} ]]; then
         # Download the image
@@ -70,43 +80,63 @@ if [[ -z "$stage" ]]; then
         pushd ${work_dir} &> /dev/null
             koji download-build --type=image  ${build_name}
             # Import the image
-            xz -d ${build_name}.x86_64.tar.xz
-            skopeo copy docker-archive:${build_name}.x86_64.tar docker://registry.fedoraproject.org/fedora:${1}
-            skopeo copy docker-archive:${build_name}.x86_64.tar docker://candidate-registry.fedoraproject.org/fedora:${1}
-            if [[ ${1} -eq "$current_stable" ]]; then
-                skopeo copy docker://registry.fedoraproject.org/fedora:${1} docker://registry.fedoraproject.org/fedora:latest
-                skopeo copy docker://candidate-registry.fedoraproject.org/fedora:${1} docker://candidate-registry.fedoraproject.org/fedora:latest
-            fi
-            if [[ ${1} -eq "$current_rawhide" ]]; then
-                skopeo copy docker://registry.fedoraproject.org/fedora:${1} docker://registry.fedoraproject.org/fedora:rawhide
-                skopeo copy docker://candidate-registry.fedoraproject.org/fedora:${1} docker://candidate-registry.fedoraproject.org/fedora:rawhide
+            for arch in "${ARCHES[@]}"
+            do
+                xz -d ${build_name}.${arch}.tar.xz
+                skopeo copy docker-archive:${build_name}.${arch}.tar docker://registry.fedoraproject.org/fedora:${1}-${arch}
+                skopeo copy docker-archive:${build_name}.${arch}.tar docker://candidate-registry.fedoraproject.org/fedora:${1}-${arch}
+            done
 
-            fi
         popd &> /dev/null
+
+        printf "Create manifest.yaml for fedora\n"
+        for registry in "registry" "candidate-registry"
+        do
+            cp container-manifest/manifest.yaml container-manifest/manifest-${1}.yaml
+            sed -i "s|{image}|fedora|g" container-manifest/manifest-${1}.yaml
+            sed -i "s|{registry}|${registry}|g" container-manifest/manifest-${1}.yaml
+            sed -i "s|{tag}|${1}|g" container-manifest/manifest-${1}.yaml
+            sed -i "s|{tag-name}|${tagname}|g" container-manifest/manifest-${1}.yaml
+
+            printf "Push manifest to ${registry}\n"
+            manifest-tool push from-spec container-manifest/manifest-${1}.yaml
+        done
         printf "Removing temporary directory\n"
+        rm -f container-manifest/manifest-${1}.yaml
         rm -rf $work_dir
     fi
     if [[ -n ${minimal_build_name} ]]; then
         # Download the image
         work_dir=$(mktemp -d)
         pushd ${work_dir} &> /dev/null
-            koji download-build --type=image ${minimal_build_name}
+            koji download-build --type=image  ${minimal_build_name}
             # Import the image
-            xz -d ${minimal_build_name}.x86_64.tar.xz
-            skopeo copy docker-archive:${minimal_build_name}.x86_64.tar docker://registry.fedoraproject.org/fedora-minimal:${1}
-            skopeo copy docker-archive:${minimal_build_name}.x86_64.tar docker://candidate-registry.fedoraproject.org/fedora-minimal:${1}
-            if [[ ${1} -eq "$current_stable" ]]; then
-                skopeo copy docker://registry.fedoraproject.org/fedora-minimal:${1} docker://registry.fedoraproject.org/fedora-minimal:latest
-                skopeo copy docker://registry.fedoraproject.org/fedora-minimal:${1} docker://candidate-registry.fedoraproject.org/fedora-minimal:latest
-            fi
-            if [[ ${1} -eq "$current_rawhide" ]]; then
-                skopeo copy docker://registry.fedoraproject.org/fedora-minimal:${1} docker://registry.fedoraproject.org/fedora-minimal:rawhide
-                skopeo copy docker://registry.fedoraproject.org/fedora-minimal:${1} docker://candidate-registry.fedoraproject.org/fedora-minimal:rawhide
-            fi
+            for arch in "${ARCHES[@]}"
+            do
+                xz -d ${minimal_build_name}.${arch}.tar.xz
+                skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://registry.fedoraproject.org/fedora-minimal:${1}-${arch}
+                skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://candidate-registry.fedoraproject.org/fedora-minimal:${1}-${arch}
 
+            done
         popd &> /dev/null
+
+        printf "Create manifest.yaml for fedora-minimal\n"
+        for registry in "registry" "candidate-registry"
+        do
+            cp container-manifest/manifest.yaml container-manifest/manifest-${1}.yaml
+            sed -i "s|{image}|fedora-minimal|g" container-manifest/manifest-${1}.yaml
+            sed -i "s|{registry}|${registry}|g" container-manifest/manifest-${1}.yaml
+            sed -i "s|{tag}|${1}|g" container-manifest/manifest-${1}.yaml
+            sed -i "s|{tag-name}|${tagname}|g" container-manifest/manifest-${1}.yaml
+
+            printf "Push manifest to ${registry}\n"
+            manifest-tool push from-spec container-manifest/manifest-${1}.yaml
+        done
+
         printf "Removing temporary directory\n"
+        rm -f container-manifest/manifest-${1}.yaml
         rm -rf $work_dir
+
     fi
 else
     # For stage, we only mirror what's in production.
