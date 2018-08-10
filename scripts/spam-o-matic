@@ -220,6 +220,9 @@ def get_unresolved_deps(dbo, arch):
 
 def doit(args):
     for arch in os.listdir(args.distdir):
+        if args.only_arches and (arch not in args.only_arches):
+            print("Skipping {} because we don't want to check it...".format(arch))
+            continue
         dbo = generateDnfBaseObject(os.path.abspath(args.distdir), args.treename, arch)
 
         if not dbo:
@@ -295,6 +298,8 @@ if __name__ == '__main__':
                         help="Address to send mail from")
     parser.add_argument("--owneraddr", default=owner_template,
                         help="Template for package owner addresses to send mail to")
+    parser.add_argument("--only-arches", nargs="+", default=None,
+                        help="Use only these architectures")
     parser.add_argument("distdir", help="Target distribution directory to work from")
     args = parser.parse_args()
     doit(args)
