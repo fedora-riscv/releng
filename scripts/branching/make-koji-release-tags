@@ -18,7 +18,7 @@ fi
 
 old_release=$(bc -l <<< "${release}-1")
 
-PRIMARY_ARCHES="armv7hl i686 x86_64 aarch64 ppc64 ppc64le s390x"
+PRIMARY_ARCHES="armv7hl i686 x86_64 aarch64 ppc64le s390x"
 
 KOJICLI=koji
 
