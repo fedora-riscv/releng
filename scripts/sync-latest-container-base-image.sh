@@ -89,20 +89,12 @@ if [[ -z "$stage" ]]; then
 
         popd &> /dev/null
 
-        printf "Create manifest.yaml for fedora\n"
-        for registry in "registry" "candidate-registry"
+        for registry in "registry.fedoraproject.org" "candidate-registry.fedoraproject.org"
         do
-            cp container-manifest/manifest.yaml container-manifest/manifest-${1}.yaml
-            sed -i "s|{image}|fedora|g" container-manifest/manifest-${1}.yaml
-            sed -i "s|{registry}|${registry}|g" container-manifest/manifest-${1}.yaml
-            sed -i "s|{tag}|${1}|g" container-manifest/manifest-${1}.yaml
-            sed -i "s|{tag-name}|${tagname}|g" container-manifest/manifest-${1}.yaml
-
             printf "Push manifest to ${registry}\n"
-            manifest-tool push from-spec container-manifest/manifest-${1}.yaml
+            python3 generate-manifest-list.py -r ${1} --registry ${registry} --tag ${tagname} --image fedora
         done
         printf "Removing temporary directory\n"
-        rm -f container-manifest/manifest-${1}.yaml
         rm -rf $work_dir
     fi
     if [[ -n ${minimal_build_name} ]]; then
@@ -120,21 +112,13 @@ if [[ -z "$stage" ]]; then
             done
         popd &> /dev/null
 
-        printf "Create manifest.yaml for fedora-minimal\n"
-        for registry in "registry" "candidate-registry"
+        for registry in "registry.fedoraproject.org" "candidate-registry.fedoraproject.org"
         do
-            cp container-manifest/manifest.yaml container-manifest/manifest-${1}.yaml
-            sed -i "s|{image}|fedora-minimal|g" container-manifest/manifest-${1}.yaml
-            sed -i "s|{registry}|${registry}|g" container-manifest/manifest-${1}.yaml
-            sed -i "s|{tag}|${1}|g" container-manifest/manifest-${1}.yaml
-            sed -i "s|{tag-name}|${tagname}|g" container-manifest/manifest-${1}.yaml
-
             printf "Push manifest to ${registry}\n"
-            manifest-tool push from-spec container-manifest/manifest-${1}.yaml
+            python3 generate-manifest-list.py -r ${1} --registry ${registry} --tag ${tagname} --image fedora-minimal
         done
 
         printf "Removing temporary directory\n"
-        rm -f container-manifest/manifest-${1}.yaml
         rm -rf $work_dir
 
     fi
