@@ -80,6 +80,9 @@ old_modular_release=${old_release}-modular
 "${KOJICLI}" edit-tag --perm=admin "f${modular_release}-updates-pending"
 "${KOJICLI}" edit-tag --perm=autosign "f${modular_release}-signing-pending"
 
+"${KOJICLI}" add-tag --parent module-package-list "module-f${release}-build"
+"${KOJICLI}" add-external-repo -t "module-f${release}-build" "f${release}-build" "https://kojipkgs.fedoraproject.org/repos/f${release}-build/latest/\$arch/"
+
 "${KOJICLI}" tag-pkg "f${release}-build" "$(${KOJICLI} latest-build "f${old_release}-build" glibc64 glibc32 --quiet|sed -e "s| .*||g" )"
 
 "${KOJICLI}" add-target "f${release}" "f${release}-build" "f${release}-pending"
