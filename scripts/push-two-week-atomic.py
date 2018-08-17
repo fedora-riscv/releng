@@ -69,7 +69,7 @@ PREVIOUS_MAJOR_RELEASE_FINAL_COMMITS = {
     'x86_64':  None,
 }
 TARGET_REF = "fedora/%s/%s/atomic-host" # example fedora/27/x86_64/atomic-host
-COMPOSE_BASEDIR = "/mnt/koji/compose/twoweek/"
+COMPOSE_BASEDIR = "/mnt/koji/compose/updates/"
 
 # FIXME ???? Do we need a real STMP server here?
 ATOMIC_HOST_EMAIL_SMTP = "localhost"
@@ -400,7 +400,7 @@ def stage_atomic_release(
     rsync_cmd = [
         'sudo',
         'rsync -avhHP --delete-after',
-        '--exclude Cloud/',
+        '--exclude Everything/',
         "{}/".format(source_loc),
         dest_dir
     ]
