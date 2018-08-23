@@ -89,7 +89,7 @@ if __name__ == "__main__":
         default="registry.fedoraproject.org",
     )
     parser.add_argument(
-        "--tag", help="tag to apply to the container image", default="latest"
+        "--tag", help="tag to apply to the container image"
     )
     parser.add_argument("--image", help="name of the container image", default="fedora")
     args = parser.parse_args()
@@ -108,9 +108,14 @@ if __name__ == "__main__":
         else:
             print(f"ERROR : Could not find the image manifest for fedora:{tag}")
 
+    if args.tag:
+        tags = [args.release, args.tag]
+    else:
+        tags = [args.release]
+
     push_manifest_list(
         manifest_list=MANIFEST_LIST,
-        tags=[args.release, args.tag],
+        tags=tags,
         name=args.image,
         registry=args.registry,
     )
