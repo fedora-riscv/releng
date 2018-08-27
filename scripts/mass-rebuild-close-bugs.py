@@ -65,6 +65,11 @@ def main():
                         help='Only close bugs where the build tag matches the release '
                              '(ignore builds for different releases)',
                         nargs='?', const=True, metavar='BOOL')
+    parser.add_argument("--strict-title", type=parse_bool,
+                        help='Only close bugs where the title matches the expected pattern '
+                             '(<component>: FTBFS in ...)',
+                        nargs='?', const=True, metavar='BOOL',
+                        default=True)
     parser.add_argument("release", choices=rebuilds_info.keys())
     args = parser.parse_args()
 
@@ -109,7 +114,8 @@ def main():
             LOGGER.debug(f"{bug2str(bug)}\n"
                           "  → Skipping closed bug")
             continue
-        if not bug.summary.startswith(f"{bug.component}: FTBFS in F"):
+        if (args.strict_title and
+            not bug.summary.startswith(f"{bug.component}: FTBFS in F")):
             # They might need special care
             LOGGER.debug(f"{bug2str(bug)}\n"
                           "  → Skipping bug with non-standard name")
