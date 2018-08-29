@@ -48,6 +48,11 @@ Bodhi tasks
     bodhi-manage-releases edit --name F21 --state archived
 
 
+.. warning:: Due to a `bug <https://github.com/fedora-infra/bodhi/issues/2177>`_ in Bodhi, it is
+   critical that Bodhi processes be restarted any time ``bodhi releases create`` or
+   ``bodhi releases edit`` are used.
+
+
 PackageDB
 ---------
 
