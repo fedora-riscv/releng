@@ -102,6 +102,8 @@ if __name__ == "__main__":
             manifest = image.copy()
             if "x86_64" in tag:
                 manifest["platform"]["architecture"] = "amd64"
+            elif "aarch64" in tag:
+                manifest["platform"]["architecture"] = "arm64v8"
             else:
                 manifest["platform"]["architecture"] = tag[3:]
             MANIFEST_LIST["manifests"].append(manifest)
