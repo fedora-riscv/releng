@@ -92,12 +92,12 @@ if [[ -z "$stage" ]]; then
         for registry in "registry.fedoraproject.org" "candidate-registry.fedoraproject.org"
         do
             printf "Push manifest to ${registry}\n"
-            if [ -z "$tag" ]
+            if [ -z "$tagname" ]
             then
-                printf "tag is not set: ${tag}\n"
+                printf "tag is not set: ${tagname}\n"
                 python3 generate-manifest-list.py -r ${1} --registry ${registry} --image fedora
             else
-                printf "tag is set: ${tag}\n"
+                printf "tag is set: ${tagname}\n"
                 python3 generate-manifest-list.py -r ${1} --registry ${registry} --tag ${tagname} --image fedora
             fi
         done
@@ -122,12 +122,12 @@ if [[ -z "$stage" ]]; then
         for registry in "registry.fedoraproject.org" "candidate-registry.fedoraproject.org"
         do
             printf "Push manifest to ${registry}\n"
-            if [ -z "$tag" ]
+            if [ -z "$tagname" ]
             then
-                printf "tag is not set: ${tag}\n"
+                printf "tag is not set: ${tagname}\n"
                 python3 generate-manifest-list.py -r ${1} --registry ${registry} --image fedora-minimal
             else
-                printf "tag is set: ${tag}\n"
+                printf "tag is set: ${tagname}\n"
                 python3 generate-manifest-list.py -r ${1} --registry ${registry} --tag ${tagname} --image fedora-minimal
             fi
         done
