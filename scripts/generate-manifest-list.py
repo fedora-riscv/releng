@@ -106,7 +106,7 @@ if __name__ == "__main__":
         image = create_image_manifest(tag=tag, name=args.image, registry=args.registry)
         if image is not None:
             manifest = image.copy()
-            manifest["platform"]["architecture"] = ARCHES[tags[3:]]
+            manifest["platform"]["architecture"] = ARCHES[tag[4:]]
             MANIFEST_LIST["manifests"].append(manifest)
         else:
             print(f"ERROR : Could not find the image manifest for fedora:{tag}")
