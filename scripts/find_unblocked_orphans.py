@@ -40,7 +40,8 @@ except ImportError:
 cache = dogpile.cache.make_region().configure(
     'dogpile.cache.dbm',
     expiration_time=187000,
-    arguments=dict(filename='/var/tmp/orphans-cache.dbm'),
+    arguments=dict(
+        filename=os.path.expanduser('~/.cache/dist-git-orphans-cache.dbm')),
 )
 PAGURE_URL = 'https://src.fedoraproject.org'
 
