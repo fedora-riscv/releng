@@ -19,7 +19,13 @@ MEDIA_TYPE_LIST_V2 = "application/vnd.docker.distribution.manifest.list.v2+json"
 
 MANIFEST_LIST = {"schemaVersion": 2, "mediaType": MEDIA_TYPE_LIST_V2, "manifests": []}
 
-ARCHES = ["x86_64", "aarch64", "armhfp", "ppc64le", "s390x"]
+ARCHES = {
+    "x86_64": "amd64",
+    "aarch64": "arm64",
+    "armhfp": "arm",
+    "ppc64le": "ppc64le",
+    "s390x": "s390x",
+}
 
 
 def certs(function):
@@ -100,12 +106,7 @@ if __name__ == "__main__":
         image = create_image_manifest(tag=tag, name=args.image, registry=args.registry)
         if image is not None:
             manifest = image.copy()
-            if "x86_64" in tag:
-                manifest["platform"]["architecture"] = "amd64"
-            elif "aarch64" in tag:
-                manifest["platform"]["architecture"] = "arm64v8"
-            else:
-                manifest["platform"]["architecture"] = tag[3:]
+            manifest["platform"]["architecture"] = ARCHES[tags[3:]]
             MANIFEST_LIST["manifests"].append(manifest)
         else:
             print(f"ERROR : Could not find the image manifest for fedora:{tag}")
