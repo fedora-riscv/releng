@@ -4,7 +4,7 @@ from __future__ import print_function
 import copy
 import sys
 
-from fedrepo_req import STANDARD_BRANCH_SLAS
+from fedscm_admin import STANDARD_BRANCH_SLAS
 
 
 def prompt(message, force):

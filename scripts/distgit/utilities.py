@@ -17,8 +17,8 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
 try:
-    from fedrepo_req.pagure import get_pagure_auth_header
-    admin_headers = get_pagure_auth_header('admin', token_type='global')
+    from fedscm_admin.pagure import get_pagure_auth_header
+    admin_headers = get_pagure_auth_header('admin')
 except:
     traceback.print_exc()
     print("Failed to load admin tokens from fedrepo-req-admin")
