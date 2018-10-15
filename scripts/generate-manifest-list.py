@@ -92,12 +92,12 @@ def push_manifest_list(manifest_list, tags, name, registry, cert):
     print(f"Pushing the manifest list to {registry}")
     print(f"Pushing the manifest list for tags : {tags}")
 
-    auth = None
     # For candidate registries we need to use basic auth
     if "candidate" in registry:
         secrets = get_auth_creds(registry)
         if secrets is not None:
             auth = secrets.get("auth")
+            headers["Authorization"] = f"Basic {auth}"
 
     for tag in tags:
         res = requests.put(
@@ -105,7 +105,6 @@ def push_manifest_list(manifest_list, tags, name, registry, cert):
             data=json.dumps(manifest_list),
             headers=headers,
             cert=cert,
-            auth=auth,
         )
 
         if not res.ok:
