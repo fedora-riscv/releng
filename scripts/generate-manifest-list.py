@@ -10,7 +10,9 @@
 # SPDX-License-Identifier:	GPL-2.0+
 import argparse
 import json
+import os
 from functools import wraps
+from pathlib import Path
 
 import requests
 
@@ -40,6 +42,23 @@ def certs(function):
         return function(*args, **kwargs)
 
     return get_certs_path
+
+
+def get_auth_creds(registry):
+    """ Helper function to get the credentials
+    to authenticate to the candidate-registries
+    """
+
+    config_path = os.path.join(Path.home(), ".docker/config.json")
+    if os.path.exists(config_path):
+        with open(config_path) as fp:
+            config = json.load(fp)
+        secrets = config.get("auths")
+        return secrets.get(registry)
+
+    else:
+        print(f"ERROR: {config_path} does not exists")
+        return None
 
 
 @certs
@@ -74,12 +93,20 @@ def push_manifest_list(manifest_list, tags, name, registry, cert):
     print(f"Pushing the manifest list to {registry}")
     print(f"Pushing the manifest list for tags : {tags}")
 
+    auth = None
+    # For candidate registries we need to use basic auth
+    if "candidate" in registry:
+        secrets = get_auth_creds(registry)
+        if secrets is not None:
+            auth = secrets.get("auth")
+
     for tag in tags:
         res = requests.put(
             f"https://{registry}/v2/{name}/manifests/{tag}",
             data=json.dumps(manifest_list),
             headers=headers,
             cert=cert,
+            auth=auth,
         )
 
         if not res.ok:
@@ -97,9 +124,7 @@ if __name__ == "__main__":
         help="name of the container registry",
         default="registry.fedoraproject.org",
     )
-    parser.add_argument(
-        "--tag", help="tag to apply to the container image"
-    )
+    parser.add_argument("--tag", help="tag to apply to the container image")
     parser.add_argument("--image", help="name of the container image", default="fedora")
     args = parser.parse_args()
 
@@ -120,8 +145,5 @@ if __name__ == "__main__":
         tags = [args.release]
 
     push_manifest_list(
-        manifest_list=MANIFEST_LIST,
-        tags=tags,
-        name=args.image,
-        registry=args.registry,
+        manifest_list=MANIFEST_LIST, tags=tags, name=args.image, registry=args.registry
     )
