@@ -73,7 +73,6 @@ def create_image_manifest(tag, name, registry, cert):
     )
 
     if res.ok:
-        data = res.json()
         image = {
             "mediaType": res.headers["Content-Type"],
             "size": int(res.headers["Content-Length"]),
