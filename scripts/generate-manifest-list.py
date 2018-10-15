@@ -71,6 +71,9 @@ def push_manifest_list(manifest_list, tags, name, registry, cert):
 
     headers = {"Content-Type": MEDIA_TYPE_LIST_V2}
 
+    print(f"Pushing the manifest list to {registry}")
+    print(f"Pushing the manifest list for tags : {tags}")
+
     for tag in tags:
         res = requests.put(
             f"https://{registry}/v2/{name}/manifests/{tag}",
