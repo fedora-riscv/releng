@@ -15,10 +15,10 @@ Action
 ======
 .. Describe the action and provide examples
 
-Run the following commands in the bodhi backend.
+Run the following command on your own workstation.
 
 ::
-    $ bodhi-manage-releases create \
+    $ bodhi releases create \
         --name F25 \
         --long-name "Fedora 25" \
         --id-prefix FEDORA \
@@ -33,6 +33,10 @@ Run the following commands in the bodhi backend.
         --override-tag f25-override \
         --state pending \
         --username <user_name>
+
+.. warning:: Due to a `bug <https://github.com/fedora-infra/bodhi/issues/2177>`_ in Bodhi, it is
+   critical that Bodhi processes be restarted any time ``bodhi releases create`` or
+   ``bodhi releases edit`` are used.
 
 Now edit the Bodhi ``production.ini.j2`` template in the Infrastructure Ansible repository to
 configure the new release's pre-beta policy
@@ -49,7 +53,18 @@ configure the new release's pre-beta policy
 
 In the same file, look for the section about "Mirror settings" with the ``*_repomd`` settings, and
 make sure they are correct for the new release. You should also define a ``*_primary_arches``
-setting for the new release.
+setting for the new release::
+
+   fedora_29_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%s/Everything/%s/repodata/repomd.xml
+   fedora_29_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/testing/%s/Everything/%s/repodata/repomd.xml
+   …
+   fedora_29_stable_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/%s/Everything/%s/repodata/repomd.xml
+   fedora_29_testing_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/testing/%s/Everything/%s/repodata/repomd.xml
+   …
+   fedora_29_primary_arches = aarch64 armhfp x86_64
+
+You need to restart all Bodhi processess (httpd and fedmsg-hub) on all machines for this and other
+things to take effect.
 
 Now edit the Greenwave policy to configure a policy for the new release by editing
 ``roles/openshift-apps/greenwave/templates/configmap.yml`` in the Infrastructure Ansible repository.
