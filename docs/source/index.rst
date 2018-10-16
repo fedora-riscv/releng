@@ -44,7 +44,8 @@ you.
 Team Composition
 ================
 
-* `Dennis Gilmore (dgilmore) <https://fedoraproject.org/wiki/User:Ausil>`_ (Lead)
+* `Mohan Boddu (mboddu) <https://fedoraproject.org/wiki/User:mohanboddu>`_ (Lead)
+* `Dennis Gilmore (dgilmore) <https://fedoraproject.org/wiki/User:Ausil>`_
 * `Kevin Fenzi (nirik) <https://fedoraproject.org/wiki/User:kevin>`_
 * `Till Maas (tyll) <https://fedoraproject.org/wiki/User:till>`_
 * `Jon Disnard (masta) <https://fedoraproject.org/wiki/User:parasense>`_
@@ -53,7 +54,6 @@ Team Composition
 * `Adam Miller (maxamillion) <https://fedoraproject.org/wiki/User:maxamillion>`_
 * `Patrick Uiterwijk (puiterwijk) <https://fedoraproject.org/wiki/User:puiterwijk>`_
 * `Ralph Bean (threebean) <https://fedoraproject.org/wiki/User:ralph>`_
-* `Mohan Boddu (mboddu) <https://fedoraproject.org/wiki/User:mohanboddu>`_
 * Kellin (Kellin)
 
 Release Team members are approved by FESCo.  However, FESCo has
