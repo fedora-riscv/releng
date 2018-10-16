@@ -29,6 +29,7 @@ desttag = 'f29' # Tag where fixed builds go
 epoch = '2018-07-12 17:00:00.000000' # Date to check for failures from
 failures = {} # dict of owners to lists of packages that failed.
 failed = [] # raw list of failed packages
+ownerdataurl = 'https://src.fedoraproject.org/extras/pagure_owner_alias.json'
 
 
 def retry_session():
@@ -44,6 +45,11 @@ def retry_session():
     session.mount('http://', adapter)
     session.mount('https://', adapter)
     return session
+
+
+def get_owner_data():
+    owners = requests.get(ownerdataurl).json()
+    return owners
 
 
 def get_failed_builds(kojisession, epoch, buildtag, desttag):
@@ -90,18 +96,7 @@ def get_failed_builds(kojisession, epoch, buildtag, desttag):
     taskinfos = kojisession.multiCall()
     for build, [taskinfo] in zip(failbuilds, taskinfos):
         build['taskinfo'] = taskinfo
-    # Get owners of the packages with failures
-    http = retry_session()
-    for build in failbuilds:
-        build['package_owner'] = get_package_owner(http, build['package_name'])
     return failbuilds
-
-def get_package_owner(http, package):
-    url = 'https://src.fedoraproject.org/api/0/rpms/{0}'.format(package)
-    response = http.get(url, timeout=30)
-    if not bool(response):
-        return 'releng'
-    return response.json()['access_users']['owner'][0]
 
 
 if __name__ == '__main__':
@@ -110,17 +105,18 @@ if __name__ == '__main__':
 
     failbuilds = get_failed_builds(kojisession, epoch, buildtag, desttag)
 
+    owners = get_owner_data()
 
     # Generate the dict with the failures and urls
     for build in failbuilds:
         if not build['taskinfo']['request'][1] == buildtag:
             continue
         taskurl = 'https://koji.fedoraproject.org/koji/taskinfo?taskID=%s' % build['task_id']
-        owner = build['package_owner']
         pkg = build['package_name']
-        if not pkg in failed:
+        for owner in owners['rpms'][pkg]:
+            failures.setdefault(owner, {})[pkg] = taskurl
+        if pkg not in failed:
             failed.append(pkg)
-        failures.setdefault(owner, {})[pkg] = taskurl
 
     now = datetime.datetime.now()
     now_str = "%s UTC" % str(now.utcnow())
