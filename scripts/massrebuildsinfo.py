@@ -20,6 +20,8 @@ PKG_SKIP_LIST = [
     'shim-unsigned-x64',
 ]
 
+
+# keep this sorted new -> old
 MASSREBUILDS = {
     "f30":
     {
