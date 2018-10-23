@@ -64,12 +64,12 @@ IMAGE_TYPES_MAPPING = {
 }
 
 PREVIOUS_MAJOR_RELEASE_FINAL_COMMITS = {
-    'aarch64': None,
-    'ppc64le': None,
-    'x86_64':  None,
+    'aarch64': '6b8d55e59750cfe8e490dbfa63ab12ccdb0a231a4d58e1b074793dddb6c49648',
+    'ppc64le': '4a95f167ee4063556daf59e13b85f7d84fb1073db4150c8f3dd6a4a36c80523f',
+    'x86_64':  '8df48fa2e70ad1952153ae00edbba08ed18b53c3d4095a22985d1085f5203ac6',
 }
 TARGET_REF = "fedora/%s/%s/atomic-host" # example fedora/27/x86_64/atomic-host
-COMPOSE_BASEDIR = "/mnt/koji/compose/updates/"
+DEFAULT_COMPOSE_BASEDIR = "/mnt/koji/compose/updates/"
 
 # FIXME ???? Do we need a real STMP server here?
 ATOMIC_HOST_EMAIL_SMTP = "localhost"
@@ -383,7 +383,7 @@ Fedora Release Engineering
 
 def stage_atomic_release(
         pungi_compose_id,
-        compose_basedir=COMPOSE_BASEDIR,
+        compose_basedir=DEFAULT_COMPOSE_BASEDIR,
         dest_base_dir=ATOMIC_HOST_STABLE_BASEDIR):
     """
     stage_atomic_release
@@ -680,12 +680,26 @@ if __name__ == '__main__':
            an incremental static delta.
         """
     )
+    parser.add_argument(
+        "--compose-basedir",
+        dest='compose_basedir',
+        help="""
+               Base directory for where to look for compose. By default it will look
+               into /mnt/koji/compose/updates/
+            """
+    )
     pargs = parser.parse_args()
 
     # This one is only specified if it differs from --pungi-compose-id
     # If missing just assign it the value of pungi-compose-id.
     if not pargs.ostree_pungi_compose_id:
         pargs.ostree_pungi_compose_id = pargs.pungi_compose_id
+
+    # Compose base directory is specified when it is not /mnt/koji/compose/updates/
+    if pargs.compose_basedir:
+        compose_basedir = pargs.compose_basedir
+    else:
+        compose_basedir = DEFAULT_COMPOSE_BASEDIR
 
     log.info("Fetching images information for Compose ID %s", pargs.pungi_compose_id )
     # Get image artifacts information for given Pungi Compose ID
@@ -774,7 +788,7 @@ if __name__ == '__main__':
     log.info("Signing image metadata - compose")
     sign_checksum_files(
         pargs.key,
-        os.path.join(COMPOSE_BASEDIR, pargs.pungi_compose_id),
+        os.path.join(compose_basedir, pargs.pungi_compose_id),
     )
 
     # Perform the necessary ostree repo manipulations for the release
@@ -807,7 +821,7 @@ if __name__ == '__main__':
         update_ostree_summary_file()
 
     log.info("Staging release content in /pub/alt/atomic/stable/")
-    stage_atomic_release(pargs.pungi_compose_id)
+    stage_atomic_release(pargs.pungi_compose_id, compose_basedir)
 
     # url: https://apps.fedoraproject.org/datagrepper/raw?topic=org.fedoraproject.prod.releng.atomic.twoweek.complete
     log.info("Sending fedmsg releng.atomic.twoweek.complete")
