@@ -45,7 +45,7 @@ Bodhi tasks
 -----------
 * Run the following end of life script from bodhi backend
   ::
-    bodhi-manage-releases edit --name F21 --state archived
+    bodhi releases edit --name F21 --state archived
 
 
 .. warning:: Due to a `bug <https://github.com/fedora-infra/bodhi/issues/2177>`_ in Bodhi, it is
