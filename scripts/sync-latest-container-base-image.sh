@@ -33,7 +33,7 @@ EOF
 ARCHES=("aarch64" "armhfp" "ppc64le" "s390x" "x86_64")
 # This is the release of Fedora that is currently stable, it will define if we
 # need to move the fedora:latest tag
-current_stable="28"
+current_stable="29"
 # Define what is rawhide so we know to push that tag
 current_rawhide="30"
 # Sanity checking
