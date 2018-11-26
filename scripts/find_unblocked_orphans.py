@@ -44,6 +44,7 @@ cache = dogpile.cache.make_region().configure(
         filename=os.path.expanduser('~/.cache/dist-git-orphans-cache.dbm')),
 )
 PAGURE_URL = 'https://src.fedoraproject.org'
+PAGURE_MAX_ENTRIES_PER_PAGE = 100
 
 
 EPEL6_RELEASE = dict(
@@ -221,13 +222,25 @@ def setup_yum(repo=RAWHIDE_RELEASE["repo"],
 
 @cache.cache_on_arguments()
 def orphan_packages(namespace='rpms'):
+    pkgs, pages = get_pagure_orphans(namespace)
+    for page in range(2, pages + 1):
+        new_pkgs, _ = get_pagure_orphans(namespace, page)
+        pkgs.update(new_pkgs)
+    return pkgs
+
+
+@cache.cache_on_arguments()
+def get_pagure_orphans(namespace, page=1):
     url = PAGURE_URL + '/api/0/projects'
-    params = dict(owner=ORPHAN_UID, namespace=namespace)
+    params = dict(owner=ORPHAN_UID, namespace=namespace,
+                  page=page,
+                  per_page=PAGURE_MAX_ENTRIES_PER_PAGE)
     response = requests.get(url, params=params)
     if not bool(response):
         raise IOError("%r gave %r" % (response.request.url, response))
     pkgs = response.json()['projects']
-    return dict([(p['name'], p) for p in pkgs])
+    pages = response.json()['pagination']['pages']
+    return dict([(p['name'], p) for p in pkgs]), pages
 
 
 def unblocked_packages(packages, tagID=RAWHIDE_RELEASE["tag"]):
