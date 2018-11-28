@@ -39,7 +39,7 @@ except ImportError:
 
 cache = dogpile.cache.make_region().configure(
     'dogpile.cache.dbm',
-    expiration_time=187000,
+    expiration_time=86400,
     arguments=dict(
         filename=os.path.expanduser('~/.cache/dist-git-orphans-cache.dbm')),
 )
