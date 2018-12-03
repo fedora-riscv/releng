@@ -64,9 +64,9 @@ IMAGE_TYPES_MAPPING = {
 }
 
 PREVIOUS_MAJOR_RELEASE_FINAL_COMMITS = {
-    'aarch64': '6b8d55e59750cfe8e490dbfa63ab12ccdb0a231a4d58e1b074793dddb6c49648',
-    'ppc64le': '4a95f167ee4063556daf59e13b85f7d84fb1073db4150c8f3dd6a4a36c80523f',
-    'x86_64':  '8df48fa2e70ad1952153ae00edbba08ed18b53c3d4095a22985d1085f5203ac6',
+    'aarch64': None,
+    'ppc64le': None,
+    'x86_64':  None,
 }
 TARGET_REF = "fedora/%s/%s/atomic-host" # example fedora/27/x86_64/atomic-host
 DEFAULT_COMPOSE_BASEDIR = "/mnt/koji/compose/updates/"
