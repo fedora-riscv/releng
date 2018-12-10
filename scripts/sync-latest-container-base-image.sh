@@ -57,12 +57,7 @@ fi
 #
 #   Need fXX-updates-canddiate to get actual latest nightly
 #
-if [[ "${1}" > 27 ]];
-then
-    build_name=$(koji -q latest-build --type=image f${1}-updates-candidate Fedora-Container-Base | awk '{print $1}')
-else
-    build_name=$(koji -q latest-build --type=image f${1}-updates-candidate Fedora-Docker-Base | awk '{print $1}')
-fi
+build_name=$(koji -q latest-build --type=image f${1}-updates-candidate Fedora-Container-Base | awk '{print $1}')
 
 if [[ ${1} -eq "$current_stable" ]]; then
     tagname="latest"
