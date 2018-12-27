@@ -1,4 +1,4 @@
-#! /usr/bin/python -tt
+#! /usr/bin/python3
 #
 # find_unblocked_orphans.py - A utility to find orphaned packages in pagure
 #                             that are unblocked in koji and to show what
@@ -11,9 +11,9 @@
 #     Jesse Keating <jkeating@redhat.com>
 #     Till Maas <opensource@till.name>
 
-from __future__ import print_function
-from Queue import Queue
 from collections import OrderedDict
+from functools import lru_cache
+from queue import Queue
 from threading import Thread
 import argparse
 import datetime
@@ -35,11 +35,6 @@ try:
     with_table = True
 except ImportError:
     with_table = False
-
-try:
-    from functools import lru_cache
-except ImportError:
-    from backports.functools_lru_cache import lru_cache
 
 
 cache = dogpile.cache.make_region().configure(
@@ -133,6 +128,12 @@ https://pagure.io/releng/blob/master/f/scripts/find_unblocked_orphans.py
 """
 
 
+def eprint(*args, **kwargs):
+    kwargs.setdefault('file', sys.stderr)
+    kwargs.setdefault('flush', True)
+    print(*args, **kwargs)
+
+
 def send_mail(from_, to, subject, text, bcc=None):
     if bcc is None:
         bcc = []
@@ -141,7 +142,7 @@ def send_mail(from_, to, subject, text, bcc=None):
     msg["Subject"] = subject
     msg["From"] = from_
     msg["To"] = to
-    if isinstance(to, basestring):
+    if isinstance(to, str):
         to = [to]
     smtp = smtplib.SMTP('127.0.0.1')
     errors = smtp.sendmail(from_, to + bcc, msg.as_string())
@@ -149,21 +150,19 @@ def send_mail(from_, to, subject, text, bcc=None):
     return errors
 
 
-class PagureInfo(object):
+class PagureInfo:
     def __init__(self, package, branch=RAWHIDE_RELEASE["branch"], ns='rpms'):
         self.package = package
         self.branch = branch
 
         try:
-            response = requests.get(PAGURE_URL + '/api/0/' + ns + '/' + package)
+            response = requests.get(f'{PAGURE_URL}/api/0/{ns}/{package}')
             self.pkginfo = response.json()
             if 'error' in self.pkginfo:
                 # This is likely a "project not found" 404 error.
                 raise ValueError(self.pkginfo['error'])
         except Exception:
-            sys.stderr.write(
-                "Error getting pagure info for {}/{} on {}\n".format(
-                    ns, package, branch))
+            eprint(f"Error getting pagure info for {ns}/{package} on {branch}")
             traceback.print_exc(file=sys.stderr)
             self.pkginfo = None
             return
@@ -208,7 +207,7 @@ def setup_dnf(repo=RAWHIDE_RELEASE["repo"],
     # use digest to make repo id unique for each URL
     for baseurl, name in (repo, 'repo'), (source_repo, 'repo-source'):
         r = base.repos.add_new_repo(
-            name + '-' + hashlib.sha256(baseurl).hexdigest(),
+            name + '-' + hashlib.sha256(baseurl.encode()).hexdigest(),
             base.conf,
             baseurl=[baseurl],
             skip_if_unavailable=False,
@@ -237,10 +236,10 @@ def get_pagure_orphans(namespace, page=1):
                   per_page=PAGURE_MAX_ENTRIES_PER_PAGE)
     response = requests.get(url, params=params)
     if not bool(response):
-        raise IOError("%r gave %r" % (response.request.url, response))
+        raise IOError(f"{response.request.url!r} gave {response!r}")
     pkgs = response.json()['projects']
     pages = response.json()['pagination']['pages']
-    return dict([(p['name'], p) for p in pkgs]), pages
+    return {p['name']: p for p in pkgs}, pages
 
 
 def unblocked_packages(packages, tagID=RAWHIDE_RELEASE["tag"]):
@@ -265,21 +264,17 @@ def unblocked_packages(packages, tagID=RAWHIDE_RELEASE["tag"]):
                 # TODO - what state does this condition represent?
                 pass
         else:
-            print("ERROR: {pkgname}: {error}".format(
-                pkgname=pkgname, error=result))
+            print(f"ERROR: {pkgname}: {result}")
     return unblocked
 
 
-class DepChecker(object):
+class DepChecker:
     def __init__(self, release, repo=None, source_repo=None, namespace='rpms'):
         self._src_by_bin = None
         self._bin_by_src = None
         self.release = release
-        if repo is None:
-            repo = RELEASES[release]["repo"]
-
-        if source_repo is None:
-            source_repo = RELEASES[release]["source_repo"]
+        repo = repo or RELEASES[release]["repo"]
+        source_repo = source_repo or RELEASES[release]["source_repo"]
 
         dnfquery = setup_dnf(repo=repo, source_repo=source_repo)
         self.dnfquery = dnfquery
@@ -337,8 +332,7 @@ class DepChecker(object):
             rpms = self.by_src[srpmname]
         except KeyError:
             # If we don't have a package in the repo, there is nothing to do
-            sys.stderr.write(
-                "Package {0} not found in repo\n".format(srpmname))
+            eprint(f"Package {srpmname} not found in repo")
             self.not_in_repo.append(srpmname)
             rpms = []
 
@@ -355,14 +349,14 @@ class DepChecker(object):
             # normalise "//" to "/":
             # os.path.normpath("//") == "//", but
             # os.path.normpath("///") == "/"
-            file_provides = [os.path.normpath('//%s' % fn) for fn in pkg.files]
+            file_provides = [os.path.normpath(f'//{fn}') for fn in pkg.files]
             provides.extend(file_provides)
 
         # Zip through the provides and find what's needed
         for prov in provides:
             # check only base provide, ignore specific versions
             # "foo = 1.fc20" -> "foo"
-            base_provide = prov.split()[0]
+            base_provide, *_ = prov.split()
 
             # FIXME: Workaround for:
             # https://bugzilla.redhat.com/show_bug.cgi?id=1191178
@@ -375,8 +369,7 @@ class DepChecker(object):
                 # FIXME: might miss broken dependencies in case the other
                 # provider depends on a to-be-removed package as well
                 if pkg.name in ignore:
-                    #sys.stderr.write("Ignoring provider package %s\n" %
-                    #                  pkg.name)
+                    # eprint(f"Ignoring provider package {pkg.name}")
                     pass
                 else:
                     break
@@ -405,8 +398,8 @@ class DepChecker(object):
             package = self.pagureinfo_queue.get()
             if package not in self.pagure_dict:
                 pkginfo = PagureInfo(package, branch)
-                sys.stderr.write("Got info for {} on {}, todo: {}\n".format(
-                    package, branch, self.pagureinfo_queue.qsize()))
+                qsize = self.pagureinfo_queue.qsize()
+                eprint(f"Got info for {package} on {branch}, todo: {qsize}")
                 self.pagure_dict[package] = pkginfo
             self.pagureinfo_queue.task_done()
 
@@ -428,16 +421,14 @@ class DepChecker(object):
         # dict for all dependent packages for each to-be-removed package
         dep_map = OrderedDict()
         for name in sorted(packages):
-            sys.stderr.write(
-                "Getting packages depending on: {0}\n".format(name))
+            eprint(f"Getting packages depending on: {name}")
             ignore = rpm_pkg_names
             dep_map[name] = OrderedDict()
             to_check = [name]
             allow_more = True
             seen = []
             while True:
-                sys.stderr.write("to_check ({}): {}\n".format(len(to_check),
-                                                              repr(to_check)))
+                eprint(f"to_check ({len(to_check)}): {to_check}")
                 check_next = to_check.pop(0)
                 seen.append(check_next)
                 dependent_packages = self.find_dependent_packages(check_next,
@@ -450,9 +441,9 @@ class DepChecker(object):
                             srpm_name = self.by_bin[pkg].name
                         else:
                             srpm_name = pkg.name
-                        if srpm_name not in to_check and \
-                                srpm_name not in new_names and \
-                                srpm_name not in seen:
+                        if (srpm_name not in to_check and
+                                srpm_name not in new_names and
+                                srpm_name not in seen):
                             new_names.append(srpm_name)
                         new_srpm_names.add(srpm_name)
 
@@ -469,29 +460,26 @@ class DepChecker(object):
                     if allow_more:
                         to_check.extend(new_names)
                         found_deps = dep_map[name].keys()
-                        dep_count = len(set(found_deps + to_check))
+                        dep_count = len(set(found_deps) | set(to_check))
                         if dep_count > max_deps:
                             todo_deps = max_deps - len(found_deps)
                             if todo_deps < 0:
                                 todo_deps = 0
                             incomplete.append(name)
-                            sys.stderr.write(
-                                "Dep count is {}\n".format(dep_count))
-                            sys.stderr.write(
-                                "incomplete is {}\n".format(incomplete))
+                            eprint(f"Dep count is {dep_count}")
+                            eprint(f"incomplete is {incomplete}")
 
                             allow_more = False
                             to_check = to_check[0:todo_deps]
                 if not to_check:
                     break
             if not allow_more:
-                sys.stderr.write("More than {0} broken deps for package "
-                                 "'{1}', dependency check not"
-                                 " completed\n".format(max_deps, name))
+                eprint(f"More than {max_deps} broken deps for package "
+                       f"'{name}', dependency check not completed")
 
-        sys.stderr.write("Waiting for (co)maintainer information...")
+        eprint("Waiting for (co)maintainer information...", end=' ')
         self.pagureinfo_queue.join()
-        sys.stderr.write("done\n")
+        eprint("done")
         return dep_map, incomplete
 
     # This function was stolen from pungi
@@ -499,8 +487,8 @@ class DepChecker(object):
         """Given a package object, get a package object for the
         corresponding source rpm. Requires dnf still configured
         and a valid package object."""
-        srpm = package.sourcerpm.split('.src.rpm')[0]
-        (sname, sver, srel) = srpm.rsplit('-', 2)
+        srpm, *_ = package.sourcerpm.split('.src.rpm')
+        sname, sver, srel = srpm.rsplit('-', 2)
         return srpm_nvr_object(self.dnfquery, sname, sver, srel)
 
 
@@ -513,8 +501,8 @@ def srpm_nvr_object(query, name, version, release):
                               arch='src').run()[0]
         return srpmpo
     except IndexError:
-        sys.stderr.write(
-            "Error: Cannot find a source rpm for {}\n".format(srpm))
+        eprint(
+            f"Error: Cannot find a source rpm for {name}-{version}-{release}")
         sys.exit(1)
 
 
@@ -536,12 +524,12 @@ def maintainer_table(packages, pagure_dict):
             affected_people.setdefault(p, set()).add(package_name)
         p = ', '.join(people)
         age = pkginfo.age
-        agestr = "{} weeks ago".format(age.days / 7)
+        agestr = f"{age.days // 7} weeks ago"
 
         if with_table:
             table.add_row([package_name, p, agestr])
         else:
-            table += "{} {} {}\n".format(package_name, p, agestr)
+            table += f"{package_name} {p} {agestr}\n"
 
     if with_table:
         table = table.draw()
@@ -554,7 +542,7 @@ def dependency_info(dep_map, affected_people, pagure_dict, incomplete):
         if subdict:
             pkginfo = pagure_dict[package_name]
             status_change = pkginfo.status_change.strftime("%Y-%m-%d")
-            age = pkginfo.age.days / 7
+            age = pkginfo.age.days // 7
             fmt = "Depending on: {} ({}), status change: {} ({} weeks ago)\n"
             info += fmt.format(package_name, len(subdict.keys()),
                                status_change, age)
@@ -563,26 +551,24 @@ def dependency_info(dep_map, affected_people, pagure_dict, incomplete):
                 for p in people:
                     affected_people.setdefault(p, set()).add(package_name)
                 p = ", ".join(people)
-                info += "\t{0} (maintained by: {1})\n".format(fedora_package,
-                                                              p)
+                info += f"\t{fedora_package} (maintained by: {p})\n"
                 for dep in dependent_packages:
                     provides = ", ".join(sorted(dependent_packages[dep]))
-                    info += "\t\t%s requires %s\n" % (dep, provides)
+                    info += f"\t\t{dep} requires {provides}\n"
                 info += "\n"
         if package_name in incomplete:
-            info += "\tToo many dependencies for {}, ".format(package_name)
-            info += "not all listed here\n".format(package_name)
-            info += "\n"
+            info += f"\tToo many dependencies for {package_name}, "
+            info += "not all listed here\n\n"
     return info
 
 
 def maintainer_info(affected_people):
     info = ""
-    for person in sorted(affected_people.iterkeys()):
+    for person in sorted(affected_people):
         packages = affected_people[person]
         if person == ORPHAN_UID:
             continue
-        info += "{0}: {1}\n".format(person, ", ".join(packages))
+        info += f"{person}: {', '.join(packages)}\n"
     return info
 
 
@@ -600,7 +586,7 @@ def package_info(unblocked, dep_map, depchecker, orphans=None, failed=None,
     info += maintainer_info(affected_people)
 
     if release:
-        release_text = " ({})".format(release)
+        release_text = f" ({release})"
         branch = RELEASES[release]["branch"]
     else:
         release_text = ""
@@ -612,7 +598,7 @@ def package_info(unblocked, dep_map, depchecker, orphans=None, failed=None,
 
     def wrap_and_format(label, pkgs):
         count = len(pkgs)
-        text = "{} ({}): {}".format(label, count, " ".join(pkgs))
+        text = f"{label} ({count}): {' '.join(pkgs)}"
         wrappedtext = "\n" + wrapper.fill(text) + "\n\n"
         return wrappedtext
 
@@ -626,35 +612,34 @@ def package_info(unblocked, dep_map, depchecker, orphans=None, failed=None,
 
         orphans_breaking_deps_stale = [
             o for o in orphans_breaking_deps if
-            (pagure_dict[o].age.days / 7) >= week_limit]
+            (pagure_dict[o].age.days // 7) >= week_limit]
 
         info += wrap_and_format(
-            "Orphans{} for at least {} weeks (dependend on)".format(
-                release_text, week_limit),
+            f"Orphans{release_text} for at least {week_limit} "
+            "weeks (dependend on)",
             orphans_breaking_deps_stale)
 
         orphans_not_breaking_deps = [o for o in orphans if not dep_map.get(o)]
 
-        info += wrap_and_format("Orphans {}(not depended on)".format(
-            release_text),
-            orphans_not_breaking_deps)
+        info += wrap_and_format(f"Orphans{release_text} (not depended on)",
+                                orphans_not_breaking_deps)
 
         orphans_not_breaking_deps_stale = [
             o for o in orphans_not_breaking_deps if
-            (pagure_dict[o].age.days / 7) >= week_limit]
+            (pagure_dict[o].age.days // 7) >= week_limit]
 
         if orphans_not_breaking_deps_stale:
-            sys.stderr.write("fedretire --orphan --branch {} -- {}\n".format(
-                branch, " ".join(orphans_not_breaking_deps_stale)))
+            eprint(f"fedretire --orphan --branch {branch} -- " +
+                   " ".join(orphans_not_breaking_deps_stale))
 
         info += wrap_and_format(
-            "Orphans{} for at least {} weeks (not dependend on)".format(
-                release_text, week_limit),
+            f"Orphans{release_text} for at least {week_limit} "
+            "weeks (not dependend on)",
             orphans_not_breaking_deps_stale)
 
     breaking = set()
     for package, deps in dep_map.items():
-        breaking = breaking.union(set(deps.keys()))
+        breaking = breaking.union(set(deps))
 
     if breaking:
         info += wrap_and_format("Depending packages" + release_text,
@@ -669,18 +654,14 @@ def package_info(unblocked, dep_map, depchecker, orphans=None, failed=None,
                 stale_breaking = stale_breaking.union(
                     set(dep_map[package].keys()))
             for depender, providers in reverse_deps.items():
-                sys.stderr.write("fedretire --orphan-dependent {} "
-                                 "--branch {} -- {}\n".format(
-                                     " ".join(providers), branch, depender
-                                 ))
+                eprint(f"fedretire --orphan-dependent {' '.join(providers)} "
+                       f"--branch {branch} -- {depender}")
                 for providingpkg in providers:
-                    sys.stderr.write(
-                        "fedretire --orphan --branch {} -- {}\n".format(
-                            branch, providingpkg)
-                    )
+                    eprint("fedretire --orphan --branch "
+                           f"{branch} -- {providingpkg}")
             info += wrap_and_format(
-                "Packages depending on packages orphaned{} for more than "
-                "{} weeks".format(release_text, week_limit),
+                f"Packages depending on packages orphaned{release_text} "
+                f"for more than {week_limit} weeks",
                 sorted(stale_breaking))
 
     if failed:
@@ -703,8 +684,8 @@ def package_info(unblocked, dep_map, depchecker, orphans=None, failed=None,
         info += wrap_and_format("Not found in repo" + release_text,
                                 sorted(depchecker.not_in_repo))
 
-    addresses = ["{0}@fedoraproject.org".format(p)
-                 for p in affected_people.keys() if p != ORPHAN_UID]
+    addresses = [f"{p}@fedoraproject.org"
+                 for p in affected_people if p != ORPHAN_UID]
     return info, addresses
 
 
@@ -744,28 +725,28 @@ def main():
         orphans = []
     else:
         # list of orphans from pagure
-        sys.stderr.write('Contacting pagure for list of orphans...')
+        eprint('Contacting pagure for list of orphans...', end=' ')
         orphans = sorted(orphan_packages())
-        sys.stderr.write('done\n')
+        eprint('done')
 
-    sys.stderr.write('Getting builds from koji...')
+    eprint('Getting builds from koji...', end=' ')
     koji_tag = RELEASES[args.release]["tag"]
     allpkgs = sorted(list(set(list(orphans) + failed)))
     if args.skipblocked:
         unblocked = unblocked_packages(allpkgs, tagID=koji_tag)
     else:
         unblocked = allpkgs
-    sys.stderr.write('done\n')
+    eprint('done')
 
     text = HEADER.format(RELEASES[args.release]["tag"].upper())
-    sys.stderr.write("Setting up dependency checker...")
+    eprint("Setting up dependency checker...", end=' ')
     depchecker = DepChecker(args.release)
-    sys.stderr.write("done\n")
-    sys.stderr.write('Calculating dependencies...')
+    eprint("done")
+    eprint('Calculating dependencies...', end=' ')
     # Create dnf object and depsolve out if requested.
     # TODO: add app args to either depsolve or not
     dep_map, incomplete = depchecker.recursive_deps(unblocked)
-    sys.stderr.write('done\n')
+    eprint('done')
     info, addresses = package_info(
         unblocked, dep_map, depchecker, orphans=orphans, failed=failed,
         release=args.release, incomplete=incomplete)
@@ -777,7 +758,7 @@ def main():
     if args.mailto or args.send:
         now = datetime.datetime.utcnow()
         today = now.strftime("%Y-%m-%d")
-        subject = "Orphaned Packages in {} ({})".format(args.release, today)
+        subject = f"Orphaned Packages in {args.release} ({today})"
         if args.mailto:
             mailto = args.mailto
         else:
@@ -788,10 +769,10 @@ def main():
             bcc = None
         mail_errors = send_mail(args.mailfrom, mailto, subject, text, bcc)
         if mail_errors:
-            sys.stderr.write("mail errors: " + repr(mail_errors) + "\n")
+            eprint("mail errors: " + repr(mail_errors))
 
-    sys.stderr.write("Addresses ({}): {}\n".format(len(addresses),
-                                                   ", ".join(addresses)))
+    eprint(f"Addresses ({len(addresses)}):", ", ".join(addresses))
+
 
 if __name__ == "__main__":
     main()
