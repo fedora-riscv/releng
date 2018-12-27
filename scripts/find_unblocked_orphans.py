@@ -25,16 +25,21 @@ import sys
 import textwrap
 import traceback
 
+import dnf
 import dogpile.cache
 import requests
 import koji
-import yum
 
 try:
     import texttable
     with_table = True
 except ImportError:
     with_table = False
+
+try:
+    from functools import lru_cache
+except ImportError:
+    from backports.functools_lru_cache import lru_cache
 
 
 cache = dogpile.cache.make_region().configure(
@@ -195,29 +200,24 @@ class PagureInfo(object):
         return self.pkginfo.__getitem__(*args, **kwargs)
 
 
-def setup_yum(repo=RAWHIDE_RELEASE["repo"],
+def setup_dnf(repo=RAWHIDE_RELEASE["repo"],
               source_repo=RAWHIDE_RELEASE["source_repo"]):
-    """ Setup YumBase with two repos
-    This code was mostly stolen from
-    http://yum.baseurl.org/wiki/YumCodeSnippet/SetupArbitraryRepo
+    """ Setup dnf query with two repos
     """
-
-    yb = yum.YumBase()
-    yb.preconf.init_plugins = False
-    # FIXME: Maybe reuse should be False here
-    if not yb.setCacheDir(force=True, reuse=True):
-        print("Can't create a tmp. cachedir.", file=sys.stderr)
-        sys.exit(1)
-
-    yb.conf.cache = 0
-
-    yb.repos.disableRepo('*')
+    base = dnf.Base()
     # use digest to make repo id unique for each URL
-    yb.add_enable_repo('repo-' + hashlib.sha256(repo).hexdigest(), [repo])
-    yb.add_enable_repo('repo-source-' + hashlib.sha256(repo).hexdigest(),
-                       [source_repo])
-    yb.arch.archlist.append('src')
-    return yb
+    for baseurl, name in (repo, 'repo'), (source_repo, 'repo-source'):
+        r = base.repos.add_new_repo(
+            name + '-' + hashlib.sha256(baseurl).hexdigest(),
+            base.conf,
+            baseurl=[baseurl],
+            skip_if_unavailable=False,
+        )
+        r.enable()
+        r.load()
+
+    base.fill_sack(load_system_repo=False, load_available_repos=True)
+    return base.sack.query()
 
 
 @cache.cache_on_arguments()
@@ -281,8 +281,8 @@ class DepChecker(object):
         if source_repo is None:
             source_repo = RELEASES[release]["source_repo"]
 
-        yumbase = setup_yum(repo=repo, source_repo=source_repo)
-        self.yumbase = yumbase
+        dnfquery = setup_dnf(repo=repo, source_repo=source_repo)
+        self.dnfquery = dnfquery
         self.pagureinfo_queue = Queue()
         self.pagure_dict = {}
         self.not_in_repo = []
@@ -290,10 +290,9 @@ class DepChecker(object):
     def create_mapping(self):
         src_by_bin = {}  # Dict of source pkg objects by binary package objects
         bin_by_src = {}  # Dict of binary pkgobjects by srpm name
-        all_packages = self.yumbase.pkgSack.returnPackages()
 
         # Populate the dicts
-        for rpm_package in all_packages:
+        for rpm_package in self.dnfquery:
             if rpm_package.arch == 'src':
                 continue
             srpm = self.SRPM(rpm_package)
@@ -347,21 +346,17 @@ class DepChecker(object):
         provides = []
         for pkg in rpms:
             # add all the provides from the package as strings
-            string_provides = [yum.misc.prco_tuple_to_string(prov)
-                               for prov in pkg.provides]
+            string_provides = [str(prov) for prov in pkg.provides]
             provides.extend(string_provides)
 
             # add all files as provides
-            # pkg.files is a dict with keys like "file" and "dir"
-            # values are a list of file/dir paths
-            for paths in pkg.files.itervalues():
-                # sometimes paths start with "//" instead of "/"
-                # normalise "//" to "/":
-                # os.path.normpath("//") == "//", but
-                # os.path.normpath("///") == "/"
-                file_provides = [os.path.normpath('//%s' % fn)
-                                 for fn in paths]
-                provides.extend(file_provides)
+            # pkg.files is a list of paths
+            # sometimes paths start with "//" instead of "/"
+            # normalise "//" to "/":
+            # os.path.normpath("//") == "//", but
+            # os.path.normpath("///") == "/"
+            file_provides = [os.path.normpath('//%s' % fn) for fn in pkg.files]
+            provides.extend(file_provides)
 
         # Zip through the provides and find what's needed
         for prov in provides:
@@ -376,7 +371,7 @@ class DepChecker(object):
                 base_provide = base_provide.replace("]", "?")
 
             # Elide provide if also provided by another package
-            for pkg in self.yumbase.pkgSack.searchProvides(base_provide):
+            for pkg in self.dnfquery.filter(provides=base_provide):
                 # FIXME: might miss broken dependencies in case the other
                 # provider depends on a to-be-removed package as well
                 if pkg.name in ignore:
@@ -386,8 +381,8 @@ class DepChecker(object):
                 else:
                     break
             else:
-                for dependent_pkg in self.yumbase.pkgSack.searchRequires(
-                        base_provide):
+                for dependent_pkg in self.dnfquery.filter(
+                        requires=base_provide):
                     # skip if the dependent rpm package belongs to the
                     # to-be-removed Fedora package
                     if dependent_pkg in self.by_src[srpmname]:
@@ -418,12 +413,10 @@ class DepChecker(object):
     def recursive_deps(self, packages, max_deps=20):
         incomplete = []
         # Start threads to get information about (co)maintainers for packages
-        for i in range(0, 2):
+        for _ in range(0, 2):
             people_thread = Thread(target=self.pagure_worker)
             people_thread.daemon = True
             people_thread.start()
-        # keep pylint silent
-        del i
         # get a list of all rpm_pkgs that are to be removed
         rpm_pkg_names = []
         for name in packages:
@@ -504,20 +497,25 @@ class DepChecker(object):
     # This function was stolen from pungi
     def SRPM(self, package):
         """Given a package object, get a package object for the
-        corresponding source rpm. Requires yum still configured
+        corresponding source rpm. Requires dnf still configured
         and a valid package object."""
         srpm = package.sourcerpm.split('.src.rpm')[0]
         (sname, sver, srel) = srpm.rsplit('-', 2)
-        try:
-            srpmpo = self.yumbase.pkgSack.searchNevra(name=sname,
-                                                      ver=sver,
-                                                      rel=srel,
-                                                      arch='src')[0]
-            return srpmpo
-        except IndexError:
-            sys.stderr.write(
-                "Error: Cannot find a source rpm for {}\n".format(srpm))
-            sys.exit(1)
+        return srpm_nvr_object(self.dnfquery, sname, sver, srel)
+
+
+@lru_cache(maxsize=2048)
+def srpm_nvr_object(query, name, version, release):
+    try:
+        srpmpo = query.filter(name=name,
+                              version=version,
+                              release=release,
+                              arch='src').run()[0]
+        return srpmpo
+    except IndexError:
+        sys.stderr.write(
+            "Error: Cannot find a source rpm for {}\n".format(srpm))
+        sys.exit(1)
 
 
 def maintainer_table(packages, pagure_dict):
@@ -569,7 +567,7 @@ def dependency_info(dep_map, affected_people, pagure_dict, incomplete):
                                                               p)
                 for dep in dependent_packages:
                     provides = ", ".join(sorted(dependent_packages[dep]))
-                    info += "\t\t%s requires %s\n" % (dep.nvra, provides)
+                    info += "\t\t%s requires %s\n" % (dep, provides)
                 info += "\n"
         if package_name in incomplete:
             info += "\tToo many dependencies for {}, ".format(package_name)
@@ -764,7 +762,7 @@ def main():
     depchecker = DepChecker(args.release)
     sys.stderr.write("done\n")
     sys.stderr.write('Calculating dependencies...')
-    # Create yum object and depsolve out if requested.
+    # Create dnf object and depsolve out if requested.
     # TODO: add app args to either depsolve or not
     dep_map, incomplete = depchecker.recursive_deps(unblocked)
     sys.stderr.write('done\n')
