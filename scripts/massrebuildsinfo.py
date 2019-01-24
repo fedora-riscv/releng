@@ -25,6 +25,7 @@ MASSREBUILDS = {
     {
         "buildtag": 'f30-rebuild',  # tag to build from
         "epoch": '2019-01-31 10:10:00.000000',  # rebuild anything not built after this date
+        "module_epoch": '2019-02-12T21:00:00Z',  # rebuild anything not built after this date for modules
         "targets": ['f30-candidate', 'rawhide', 'f30'],  # build targets to check for existing builds to skip rebuild
         "target": 'f30-rebuild',  # target to build into
         "desttag": 'f30',  # Tag where fixed builds go
