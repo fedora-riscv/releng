@@ -44,7 +44,7 @@ Action
 #. Check out the Release Engineering ``git`` repo
 
    ::
-        $ git clone git://git.fedorahosted.org/git/releng
+        $ git clone https://pagure.io/releng.git
 
 #. Change directories to the ``scripts`` directory to execute
    ``sigulsign_unsigned.py``.

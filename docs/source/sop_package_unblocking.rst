@@ -17,12 +17,7 @@ Action
 Find Unblock requests
 ---------------------
 
-Unblock requests are usually reported in the rel-eng trac instance at
-Fedorahosted in the component koji. You can use a trac query to list all
-`unassigned Koji tickets`_. This query also includes requests, that are not an
-unblock request, because there is no automated way to distinguish them. The
-results of the query are also available as an RSS feed, the link is in the
-footer of the page.
+Unblock requests are usually reported in the `rel-eng issue tracker`_.
 
 Perform the unblocking
 ----------------------
@@ -128,5 +123,5 @@ Consider Before Running
   deps related to the package.  We may have to re-block the package in order
   to fix the deps.
 
-.. _unassigned Koji tickets:
-    https://fedorahosted.org/rel-eng/query?status=new&status=assigned&status=reopened&component=koji&owner=rel-eng%40lists.fedoraproject.org&order=priority
+.. _releng_issue_tracker:
+    https://pagure.io/releng/issues

@@ -295,6 +295,6 @@ Consider Before Running
 .. _yum: https://fedoraproject.org/wiki/Yum
 .. _spin-kickstarts: https://pagure.io/fedora-kickstarts/
 .. _file a rel-eng ticket:
-    https://fedorahosted.org/rel-eng/newticket?summary=Update%20nightly%20spin%20kickstart&type=task&component=production&priority=critical&milestone=Hot%20issues&cc=kevin
+    https://pagure.io/releng/new_issue
 .. _Fedora Layered Image Build System:
     https://docs.pagure.org/releng/layered_image_build_service.html

@@ -156,8 +156,8 @@ Current activities
 
 See our `kanban board`_ for ongoing project work.
 
-See our `ticket queue <https://fedorahosted.org/rel-eng/report>`_ for the
-things we are currently working.
+See our `ticket queue <https://pagure.io/releng/issues>`_ for the things we are
+currently working.
 
 See `Releases <https://fedoraproject.org/wiki/Releases>`_ for information
 about Fedora releases, including schedules.

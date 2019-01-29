@@ -27,7 +27,7 @@ Normal Action (automated)
 #. Clone the fedora-infrastructure tools repository:
     ::
 
-        git clone ssh://git.fedorahosted.org/git/releng.git
+        git clone https://pagure.io/releng.git
 
 #. In scripts/process-git-requests, run "process-git-requests". Answer the
    prompts.

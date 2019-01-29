@@ -134,4 +134,4 @@ always available to users.
 .. _the four F's: https://fedoraproject.org/wiki/Foundations
 .. _Fedora Download: https://dl.fedoraproject.org/pub/
 .. _mirrorlists: https://admin.fedoraproject.org/mirrormanager
-.. _mirrormanager: https://fedorahosted.org/mirrormanager/
+.. _mirrormanager: https://github.com/fedora-infra/mirrormanager2

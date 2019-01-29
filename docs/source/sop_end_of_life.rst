@@ -99,7 +99,7 @@ Badges tasks
     * Clone the repo with `` $ git clone ssh://git@pagure.io/fedora-badges-assets.git``
     * Edit `rules/you-can-pry-it-from-my-cold-undead-hands.yml` and add the EOL
       release to the list in the trigger section on line 19.
-    * Push that back to fedorahosted.
+    * Push that back to Pagure.
     * Push the rule change out live to our servers by logging into batcave and
       running the `manual/push-badges.yml` playbook.
       https://infrastructure.fedoraproject.org/cgit/ansible.git/tree/playbooks/manual/push-badges.yml

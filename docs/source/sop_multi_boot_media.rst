@@ -22,7 +22,7 @@ sure to get the latest version from the git repo.
     $ https://github.com/spotrh/multiboot-media-creator
     $ https://pagure.io/multiboot-media-creator
 
-https://fedorahosted.org/rel-eng/ticket/6151
+https://pagure.io/releng/issue/6151
 
 More info on the multiboot-media-creator tool is in the README file.
 
