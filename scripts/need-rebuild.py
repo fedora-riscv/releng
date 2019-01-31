@@ -76,7 +76,7 @@ def needRebuild(kojihub):
 
     # Populate the task info dict
     for request in requests:
-        if len(request) > 1:
+        if len(request) > 1 or request[0] == None:
             continue
         tasks[request[0]['id']] = request[0]
 
