@@ -24,9 +24,9 @@ from requests.packages.urllib3.util.retry import Retry
 
 # Set some variables
 # Some of these could arguably be passed in as args.
-buildtag = 'f29-rebuild' # tag to check
-desttag = 'f29' # Tag where fixed builds go
-epoch = '2018-07-12 17:00:00.000000' # Date to check for failures from
+buildtag = 'f30-rebuild' # tag to check
+desttag = 'f30' # Tag where fixed builds go
+epoch = '2019-01-31 10:10:00.000000' # Date to check for failures from
 failures = {} # dict of owners to lists of packages that failed.
 failed = [] # raw list of failed packages
 ownerdataurl = 'https://src.fedoraproject.org/extras/pagure_owner_alias.json'
