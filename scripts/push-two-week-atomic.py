@@ -47,7 +47,7 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(os.path.basename(sys.argv[0]))
 
 # Define "constants"
-ATOMIC_REPO = "/mnt/koji/atomic/repo/"
+ATOMIC_REPO = "/mnt/koji/ostree/repo/"
 ARCHES = ['x86_64', 'aarch64', 'ppc64le']
 
 # Possible image types available for Atomic Host
