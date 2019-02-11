@@ -32,7 +32,7 @@ BZCLIENT = RHBugzilla(url="%s/xmlrpc.cgi" % bzurl,
                       user="releng@fedoraproject.org")
 
 DEFAULT_COMMENT = \
-"""{component} failed to build from source in {product} {version}
+"""{component} failed to build from source in {product} {version}/f{rawhide_version}
 
 https://koji.fedoraproject.org/koji/taskinfo?taskID={task_id}
 {extrainfo}
@@ -50,7 +50,7 @@ https://fedoraproject.org/wiki/Fails_to_build_from_source
 """
 
 def report_failure(massrebuild, component, task_id, logs,
-                   summary="{component}: FTBFS in {product} {version}",
+                   summary="{component}: FTBFS in {product} {version}/f{rawhide_version}",
                    comment=DEFAULT_COMMENT, extrainfo=""):
     """This function files a new bugzilla bug for component with given
     arguments
@@ -68,7 +68,7 @@ def report_failure(massrebuild, component, task_id, logs,
     format_values = dict(**massrebuild)
     format_values["task_id"] = task_id
     format_values["component"] = component
-    format_values["nextversion"] = str(int(massrebuild["version"]) + 1)
+    format_values["nextversion"] = str(int(massrebuild["rawhide_version"]) + 1)
     format_values["extrainfo"] = extrainfo
 
     summary = summary.format(**format_values)

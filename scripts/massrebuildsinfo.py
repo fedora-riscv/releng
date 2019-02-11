@@ -30,6 +30,7 @@ MASSREBUILDS = {
         "desttag": 'f30',  # Tag where fixed builds go
         "product": "Fedora",  # for BZ product field
         "version": "rawhide",  # for BZ version field, rawhide before branching or xx after branching
+        "rawhide_version": "30",  # for next version calculation and other comments
         "tracking_bug": "1674516",  # Tracking bug for mass build failures
         "wikipage": "https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild",
         "pkg_skip_list": PKG_SKIP_LIST,  # packages to skip in rebuild
