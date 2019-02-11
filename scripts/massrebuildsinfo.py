@@ -30,7 +30,7 @@ MASSREBUILDS = {
         "desttag": 'f30',  # Tag where fixed builds go
         "product": "Fedora",  # for BZ product field
         "version": "30",  # for BZ version field
-        "tracking_bug": "NA",  # Tracking bug for mass build failures
+        "tracking_bug": "1674516",  # Tracking bug for mass build failures
         "wikipage": "https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild",
         "pkg_skip_list": PKG_SKIP_LIST,  # packages to skip in rebuild
     },
