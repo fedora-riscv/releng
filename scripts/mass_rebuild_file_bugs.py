@@ -146,6 +146,21 @@ def attach_logs(bug, logs):
         finally:
             fp.close()
 
+def get_filed_bugs(tracking_bug):
+    """Query bugzilla if given bug has already been filed
+
+    Keyword arguments:
+    product -- bugzilla product (usually Fedora)
+    component -- component (package) to file bug against
+    version -- component version to file bug for (usually rawhide for Fedora)
+    summary -- short bug summary
+    """
+    query_data = {'blocks': tracking_bug}
+    bzurl = 'https://bugzilla.redhat.com'
+    bzclient = RHBugzilla(url="%s/xmlrpc.cgi" % bzurl)
+
+    return bzclient.query(query_data)
+
 def get_task_failed(kojisession, task_id):
     ''' For a given task_id, use the provided kojisession to return the
     task_id of the first children that failed to build.
