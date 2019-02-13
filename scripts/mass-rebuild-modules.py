@@ -72,7 +72,6 @@ if __name__ == '__main__':
     f = open(token_file, 'r')
     token = f.read()
     f.close()
-    cwd = os.getcwd()
     pdc = 'https://pdc.fedoraproject.org/'
     modules = []
     #Query pdc to get the modules that are not eol'd
@@ -122,23 +121,19 @@ if __name__ == '__main__':
             if rv_json['meta']['total'] != 0:
                 print("Skipping {} module build for {} stream, since its already built".format(name,stream))
             else:
-                os.chdir(cwd)
-                # Clone module git
-                fedpkgcmd = ['fedpkg', '--user', 'releng', 'clone', 'modules/'+name]
-                print('Cloning module %s' % name)
-                if runme(fedpkgcmd, 'fedpkg', name, enviro):
-                    continue
-
-                # Check for the clone
+                # Check if the clone already exists
                 if not os.path.exists(os.path.join(workdir, name)):
-                    sys.stderr.write('%s failed checkout.\n' % name)
-                    continue
-                os.chdir(os.path.join(workdir, name))
+                    # Clone module git
+                    fedpkgcmd = ['fedpkg', '--user', 'releng', 'clone', 'modules/'+name]
+                    print('Cloning module %s' % name)
+                    if runme(fedpkgcmd, 'fedpkg', name, enviro):
+                        continue
 
                 # Checkout the stream branch
                 fedpkgcheckoutcmd = ['fedpkg', 'switch-branch', stream]
                 print('Checking out the %s stream branch' % stream)
-                if runme(fedpkgcheckoutcmd, 'fedpkg', stream, enviro):
+                if runme(fedpkgcheckoutcmd, 'fedpkg', stream, enviro,
+                                 cwd=os.path.join(workdir, name)):
                     continue
 
                 # Check for a noautobuild file
