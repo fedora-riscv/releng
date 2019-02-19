@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 """
 Author: Mohan Boddu <mboddu@bhujji.com>
@@ -41,7 +41,7 @@ def runme(cmd, action, pkg, env, cwd=workdir):
 
     try:
         subprocess.check_call(cmd, env=env, cwd=cwd)
-    except subprocess.CalledProcessError, e:
+    except subprocess.CalledProcessError as e:
         sys.stderr.write('%s failed %s: %s\n' % (pkg, action, e))
         return 1
     return 0
@@ -56,8 +56,8 @@ def runmeoutput(cmd, action, pkg, env, cwd=workdir):
 
     try:
         pid = subprocess.Popen(cmd, env=env, cwd=cwd,
-                               stdout=subprocess.PIPE)
-    except BaseException, e:
+                               stdout=subprocess.PIPE, encoding='utf8')
+    except BaseException as e:
         sys.stderr.write('%s failed %s: %s\n' % (pkg, action, e))
         return 0
     result = pid.communicate()[0].rstrip('\n')
@@ -69,9 +69,8 @@ args = parser.parse_args()
 
 if __name__ == '__main__':
     token_file = args.token_file
-    f = open(token_file, 'r')
-    token = f.read()
-    f.close()
+    with open(token_file, 'r', encoding='utf-8') as f:
+        token = f.read().strip()
     pdc = 'https://pdc.fedoraproject.org/'
     modules = []
     #Query pdc to get the modules that are not eol'd
@@ -91,7 +90,7 @@ if __name__ == '__main__':
         url = rv_json['next']
         if not url:
             break
-    print(modules)
+    #print(modules)
 
     # Environment for using releng credentials for pushing and building
     enviro['GIT_SSH'] = '/usr/local/bin/relengpush'
@@ -111,7 +110,7 @@ if __name__ == '__main__':
             #Use this info to figure out whether you need to resubmit the build or not
             #This is useful when the script execution fails for unknown reasons and
             #dont have to submit all the builds again.
-            mbs="https://mbs.fedoraproject.org/module-build-service/1/module-builds/?submitted_after={}&name={}&stream={}".format(module_epoch,name,stream)
+            mbs="https://mbs.fedoraproject.org/module-build-service/1/module-builds/?submitted_after={}&name={}&stream={}&state=ready&state=init&state=wait&state=build&state=done".format(module_epoch,name,stream)
             rv = requests.get(mbs)
             if not rv.ok:
                 print("Unable to get info about {} module and {} stream, skipping the build".format(name,stream))
@@ -151,13 +150,16 @@ if __name__ == '__main__':
 
                 #Use libmodulemd to determine if this module stream applies to this platform version
                 try:
-                    stream = Modulemd.ModuleStream.read_file(modulemd, True)
+                    mmd = Modulemd.ModuleStream.read_file(modulemd, True)
                 except:
                     print("Could not able to read the modulemd file")
                     continue
-                needs_building = stream.build_depends_on_stream('platform', rebuildid)
+                needs_building = mmd.build_depends_on_stream('platform', rebuildid)
 
-                if needs_building:
+                if not needs_building:
+                    print("Not required to build module {} for stream {}".format(name,stream))
+                    continue
+                else:
                     # Set the git user.name and user.email
                     set_name = ['git', 'config', 'user.name', 'Fedora Release Engineering']
                     set_mail = ['git', 'config', 'user.email', 'releng@fedoraproject.org']
@@ -190,17 +192,25 @@ if __name__ == '__main__':
                                  cwd=os.path.join(workdir, name))
                     if not url:
                         continue
+                    #mbs requires git url to have ?# before git hash
+                    #whereas fedpkg giturl returns just # before the hash
+                    #This will replace # with ?# for this reason
+                    url = url.replace('#', '?#')
 
                     # Module build
                     data = json.dumps({
-                        'scmurl': giturl,
+                        'scmurl': url,
                         'branch': stream,
                         'rebuild_strategy': 'all'
                     })
                     rv = requests.post('https://mbs.fedoraproject.org/module-build-service/2/module-builds/', data=data, headers=headers)
                     if rv.ok:
                         print('Building {} module for stream {}'.format(name,stream))
-                        pprint(rv.json())
+                        #pprint(rv.json())
+                    elif rv.status_code == 401:
+                        print('The token is unauthorized', file=sys.stderr)
+                        print(rv.text)
+                        sys.exit(1)
                     else:
                         print(rv.text)
                         print('Unable to submit the module build {} for branch {}'.format(name,stream))
