@@ -22,6 +22,7 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('servername', help='PDC server name.  See /etc/pdc.d/')
 parser.add_argument('token', help='PDC token for authentication.')
 parser.add_argument('branch', help='Name of the release branch (f27)')
+parser.add_argument('namespace', help='Name of the namespace (rpm or module)')
 parser.add_argument('eol', help='End of life date for the release, in the '
                                 'format of "2020-01-01"')
 parser.add_argument('--createfile', action='store_true', default=False,
@@ -52,7 +53,7 @@ if __name__ == '__main__':
 
     active_components = set()
     for branch in pdc.get_paged(res=pdc['component-branches/'],
-                                name='master', active=True, page_size=100):
+                                name='master', active=True, type=args.namespace, page_size=100):
         active_components.add(
             '%s/%s' % (branch['type'], branch['global_component']))
         package = branch['global_component']
