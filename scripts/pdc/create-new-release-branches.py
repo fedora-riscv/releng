@@ -54,16 +54,19 @@ if __name__ == '__main__':
     active_components = set()
     for branch in pdc.get_paged(res=pdc['component-branches/'],
                                 name='master', active=True, type=args.namespace, page_size=100):
-        active_components.add(
-            '%s/%s' % (branch['type'], branch['global_component']))
         package = branch['global_component']
         package_type = branch['type']
         critpath = branch['critical_path']
-        print('Ensuring {0}/{1}#{2} exists'.format(
-            package_type, package, args.branch))
-        utilities.ensure_component_branches(
-            pdc, package, slas, args.eol, args.branch,
-            package_type, critpath=critpath, force=True)
+        #Skip the packages that start with 'rust-'
+        #https://pagure.io/fesco/issue/2068
+        if not package.startswith('rust-'):
+            active_components.add(
+                '%s/%s' % (package_type, package))
+            print('Ensuring {0}/{1}#{2} exists'.format(
+                package_type, package, args.branch))
+            utilities.ensure_component_branches(
+                pdc, package, slas, args.eol, args.branch,
+                package_type, critpath=critpath, force=True)
 
     if args.createfile:
         components_txt = os.path.abspath(os.path.join(
