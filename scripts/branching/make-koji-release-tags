@@ -45,6 +45,7 @@ KOJICLI=koji
 "${KOJICLI}" add-tag --parent "f${release}" "f${release}-atomic"
 "${KOJICLI}" add-tag --parent "f${release}" "f${release}-atomic-host-installer"
 "${KOJICLI}" add-tag "f${release}-atomic-host-overrides"
+"${KOJICLI}" edit-tag -x mock.new_chroot=0  "f${release}"
 "${KOJICLI}" edit-tag --perm=admin "f${release}-build"
 "${KOJICLI}" edit-tag --perm=fedora-override "f${release}-override"
 "${KOJICLI}" edit-tag --perm=admin "f${release}-updates"
