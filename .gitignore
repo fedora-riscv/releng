@@ -3,3 +3,4 @@ pylint-log
 .vagrant
 tests/pylint/.pylint.d/
 *.pyc
+.idea/
