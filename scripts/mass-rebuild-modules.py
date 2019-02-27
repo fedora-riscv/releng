@@ -65,10 +65,14 @@ def runmeoutput(cmd, action, pkg, env, cwd=workdir):
 
 parser = argparse.ArgumentParser()
 parser.add_argument('token_file', help='MBS token file for authentication.')
+#During mass rebuild, we need to check if a module has build time dependencies on module_mass_rebuild_platform
+#During mass branching, we need to check if a module has run time dependencies on module_mass_branching_platform
+parser.add_argument('process', help='build or branch, build is used during mass rebuild time, branch is used during branching time')
 args = parser.parse_args()
 
 if __name__ == '__main__':
     token_file = args.token_file
+    process = args.process
     with open(token_file, 'r', encoding='utf-8') as f:
         token = f.read().strip()
     pdc = 'https://pdc.fedoraproject.org/'
@@ -154,7 +158,18 @@ if __name__ == '__main__':
                 except:
                     print("Could not able to read the modulemd file")
                     continue
-                needs_building = mmd.build_depends_on_stream('platform', rebuildid)
+                if process == build:
+                    platform = massrebuild['module_mass_rebuild_platform']
+                    #check if a module has build time dependency on platform
+                    needs_building = mmd.build_depends_on_stream('platform', platform)
+                elif process == branch:
+                    platform = massrebuild['module_mass_branching_platform']
+                    #check if a module has run time dependency on platform
+                    needs_building = mmd.depends_on_stream('platform', platform)
+                else:
+                    print("Please select either build or branch for the process type")
+                    sys.exit(1)
+
 
                 if not needs_building:
                     print("Not required to build module {} for stream {}".format(name,stream))
@@ -172,7 +187,13 @@ if __name__ == '__main__':
                         continue
 
                     # Empty git commit
-                    commit = ['git', 'commit', '-s', '--allow-empty', '-m', comment]
+                    if process == build:
+                        commit = ['git', 'commit', '-s', '--allow-empty', '-m', comment]
+                    elif process == branch:
+                        commit = ['git', 'commit', '-s', '--allow-empty', '-m', 'Branching {} from rawhide'.format(platform)]
+                    else:
+                        print("Please select either build or branch for the process type")
+                        sys.exit(1)
                     print('Committing changes for %s' % name)
                     if runme(commit, 'commit', name, enviro,
                                  cwd=os.path.join(workdir, name)):
