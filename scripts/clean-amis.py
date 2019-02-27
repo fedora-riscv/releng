@@ -29,7 +29,7 @@
 #   Composes which contain date in the `compose label` are also picked up for
 #   deletion.
 #   GA composes also have the compose_type set to production. So to distinguish
-#   then we filter them if the compose_label have date in them. The GA 
+#   then we filter them if the compose_label have date in them. The GA
 #   composes dont have date whereas they have the version in format of X.Y
 #
 # - Updated permissions of AMIs
@@ -52,32 +52,34 @@ import requests
 from datetime import datetime, timedelta, date
 
 import logging
+
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger()
 
 env = os.environ
-aws_access_key_id = os.environ.get('AWS_ACCESS_KEY')
-aws_secret_access_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
+aws_access_key_id = os.environ.get("AWS_ACCESS_KEY")
+aws_secret_access_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
 
-DATAGREPPER_URL = 'https://apps.fedoraproject.org/datagrepper/'
-NIGHTLY = 'nightly'
+DATAGREPPER_URL = "https://apps.fedoraproject.org/datagrepper/"
+NIGHTLY = "nightly"
 
 REGIONS = (
-    'us-east-1',
-    'us-east-2',
-    'us-west-2',
-    'us-west-1',
-    'eu-west-1',
-    'eu-central-1',
-    'ap-south-1',
-    'ap-southeast-1',
-    'ap-northeast-1',
-    'ap-northeast-2',
-    'ap-southeast-2',
-    'sa-east-1',
-    'ca-central-1',
-    'eu-west-2',
+    "us-east-1",
+    "us-east-2",
+    "us-west-2",
+    "us-west-1",
+    "eu-west-1",
+    "eu-central-1",
+    "ap-south-1",
+    "ap-southeast-1",
+    "ap-northeast-1",
+    "ap-northeast-2",
+    "ap-southeast-2",
+    "sa-east-1",
+    "ca-central-1",
+    "eu-west-2",
 )
+
 
 def _is_timestamp_newer(timestamp1, timestamp2):
     """ Return true if timestamp1 is newer than timestamp2
@@ -91,23 +93,23 @@ def _is_timestamp_newer(timestamp1, timestamp2):
 def _get_raw_url():
     """ Get the datagrepper raw URL to fetch the message from
     """
-    return DATAGREPPER_URL + '/raw'
+    return DATAGREPPER_URL + "/raw"
 
 
 def get_page(page, delta, topic, start=None, end=None):
 
     params = {
-        'topic': topic,
-        'delta': delta,
-        'rows_per_page': 100,
-        'page': page,
+        "topic": topic,
+        "delta": delta,
+        "rows_per_page": 100,
+        "page": page,
     }
 
     if start:
-        params.update({'start': start})
+        params.update({"start": start})
 
     if end:
-        params.update({'end': end})
+        params.update({"end": end})
 
     resp = requests.get(_get_raw_url(), params=params)
 
@@ -117,23 +119,20 @@ def get_page(page, delta, topic, start=None, end=None):
 def _get_two_week_atomic_released_compose_id(delta, start=None, end=None):
     """ Returns the release compose ids for last n days """
 
-    topic = 'org.fedoraproject.prod.releng.atomic.twoweek.complete'
+    topic = "org.fedoraproject.prod.releng.atomic.twoweek.complete"
     data = get_page(1, delta, topic, start, end)
 
-    messages = data.get('raw_messages', [])
+    messages = data.get("raw_messages", [])
 
-    for page in range(1, data['pages']):
+    for page in range(1, data["pages"]):
         data = get_page(
-            topic=topic,
-            page=page+1,
-            delta=delta,
-            start=start,
-            end=end)
-        messages.extend(data['raw_messages'])
+            topic=topic, page=page + 1, delta=delta, start=start, end=end
+        )
+        messages.extend(data["raw_messages"])
 
-    messages = [msg['msg'] for msg in messages]
+    messages = [msg["msg"] for msg in messages]
 
-    released_compose_ids = []
+    released_atomic_compose_ids = []
     for msg in messages:
         # This is to support the older-format fedmsg messages
         if "atomic_raw" in msg:
@@ -152,7 +151,7 @@ def _get_two_week_atomic_released_compose_id(delta, start=None, end=None):
                 msg["ppc64le"]["atomic_raw"]["compose_id"]
             )
 
-    return set(released_compose_ids)
+    return set(released_atomic_compose_ids)
 
 
 def _get_nightly_amis_nd(delta, start=None, end=None):
@@ -162,29 +161,25 @@ def _get_nightly_amis_nd(delta, start=None, end=None):
     """
     amis = []
     released_atomic_compose_ids = _get_two_week_released_atomic_compose_id(
-        delta=delta,
-        start=start,
-        end=end)
+        delta=delta, start=start, end=end
+    )
 
-    topic = 'org.fedoraproject.prod.fedimg.image.publish'
+    topic = "org.fedoraproject.prod.fedimg.image.publish"
     data = get_page(1, delta, topic, start, end)
-    messages = data.get('raw_messages', [])
+    messages = data.get("raw_messages", [])
 
-    for page in range(1, data['pages']):
+    for page in range(1, data["pages"]):
         data = get_page(
-            topic=topic,
-            page=page+1,
-            delta=delta,
-            start=start,
-            end=end)
-        messages.extend(data['raw_messages'])
+            topic=topic, page=page + 1, delta=delta, start=start, end=end
+        )
+        messages.extend(data["raw_messages"])
 
     for message in messages:
-        msg = message.get('msg')
-        ami_id = msg['extra']['id']
-        region = msg['destination']
+        msg = message.get("msg")
+        ami_id = msg["extra"]["id"]
+        region = msg["destination"]
 
-        compose_id = msg['compose']
+        compose_id = msg["compose"]
         compose_info = fedfind.release.get_release(cid=compose_id)
         compose_type = compose_info.type
         compose_label = compose_info.label
@@ -203,7 +198,7 @@ def _get_nightly_amis_nd(delta, start=None, end=None):
         else:
             # Include AMIs that have date in them
             # These are the production compose type but not GA
-            result = re.search('-(\d{8}).', compose_label)
+            result = re.search("-(\d{8}).", compose_label)
             if result is None:
                 continue
             amis.append((compose_id, ami_id, region))
@@ -217,48 +212,48 @@ def delete_amis_nd(deletetimestamp, dry_run=False):
     :args deletetimestamp: the timestamp for the delete 
     :args dry_run: dry run the flow
     """
-    log.info('Deleting AMIs')
+    log.info("Deleting AMIs")
     for region in REGIONS:
-        log.info('%s Starting' % region)
+        log.info("%s Starting" % region)
         # Create a connection to an AWS region
         conn = boto3.client(
-            'ec2',
+            "ec2",
             region,
             aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key)
-        log.info('%s: Connected' % region)
+            aws_secret_access_key=aws_secret_access_key,
+        )
+        log.info("%s: Connected" % region)
 
         response = conn.describe_images(
-                Filters=[
-                    {
-                        "Name": "tag-key",
-                        "Values": [
-                            "LaunchPermissionRevoked"
-                        ]
-                    },
-                ])
-        amis = response.get('Images', [])
+            Filters=[{"Name": "tag-key", "Values": ["LaunchPermissionRevoked"]}]
+        )
+        amis = response.get("Images", [])
 
         for ami in amis:
             try:
-                ami_id = ami['ImageId']
-                is_launch_permitted = ami['Public']
-                _index = len(ami['BlockDeviceMappings'])
-                snapshot_id = ami['BlockDeviceMappings'][0]['Ebs']['SnapshotId']
-                tags = ami['Tags']
+                ami_id = ami["ImageId"]
+                is_launch_permitted = ami["Public"]
+                _index = len(ami["BlockDeviceMappings"])
+                snapshot_id = ami["BlockDeviceMappings"][0]["Ebs"]["SnapshotId"]
+                tags = ami["Tags"]
 
-                revoketimestamp = ''
+                revoketimestamp = ""
                 for tag in tags:
-                    if 'LaunchPermissionRevoked' in tag.values():
-                        revoketimestamp = tag['Value']
+                    if "LaunchPermissionRevoked" in tag.values():
+                        revoketimestamp = tag["Value"]
 
                 if not revoketimestamp:
-                    log.warn('%s ami has LaunchPermissionRevoked tag but no value' % ami_id)
+                    log.warn(
+                        "%s ami has LaunchPermissionRevoked tag but no value"
+                        % ami_id
+                    )
                     continue
 
                 if is_launch_permitted:
-                    log.warn('%s ami has LaunchPermissionRevoked tag
-                              but launch permission is still enabled' % ami_id)
+                    log.warn(
+                        "%s ami has LaunchPermissionRevoked tag "
+                        "but launch permission is still enabled" % ami_id
+                    )
                     continue
 
                 # The revoke timestamp allows us to tell how long ago an image
@@ -268,14 +263,12 @@ def delete_amis_nd(deletetimestamp, dry_run=False):
                     continue
 
                 if not dry_run:
-                    conn.deregister_image(
-                            ImageId=ami_id)
-                    conn.delete_snapshot(
-                            SnapshotId=snapshot_id)
+                    conn.deregister_image(ImageId=ami_id)
+                    conn.delete_snapshot(SnapshotId=snapshot_id)
                 else:
                     print(ami_id)
             except Exception as ex:
-                log.error('%s: %s failed\n%s' % (region, ami_id, ex))
+                log.error("%s: %s failed\n%s" % (region, ami_id, ex))
 
 
 def change_amis_permission_nd(amis, dry_run=False):
@@ -287,18 +280,19 @@ def change_amis_permission_nd(amis, dry_run=False):
     :args amis: list of AMIs
     :args dry_run: dry run the flow
     """
-    log.info('Changing permission for AMIs')
+    log.info("Changing permission for AMIs")
     todaystimestamp = date.today().strftime("%d%m%Y")
 
     for region in REGIONS:
-        log.info('%s: Starting' % region)
+        log.info("%s: Starting" % region)
         # Create a connection to an AWS region
         conn = boto3.client(
-            'ec2',
+            "ec2",
             region,
             aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key)
-        log.info('%s: Connected' % region)
+            aws_secret_access_key=aws_secret_access_key,
+        )
+        log.info("%s: Connected" % region)
 
         # Filter all the nightly AMIs belonging to this region
         r_amis = [(c, a, r) for c, a, r in amis if r == region]
@@ -308,38 +302,37 @@ def change_amis_permission_nd(amis, dry_run=False):
             try:
                 if not dry_run:
                     conn.modify_image_attribute(
-                            ImageId=ami_id,
-                            LaunchPermission={
-                                'Remove': [
-                                    {
-                                        'Group': 'all',
-                                    }
-                                ]
-                            })
+                        ImageId=ami_id,
+                        LaunchPermission={"Remove": [{"Group": "all"}]},
+                    )
                     conn.create_tags(
-                            Resources=[
-                                ami_id,
-                            ],
-                            Tags=[{
-                             'Key': 'LaunchPermissionRevoked',
-                             'Value': todaystimestamp,
-                            }])
+                        Resources=[ami_id],
+                        Tags=[
+                            {
+                                "Key": "LaunchPermissionRevoked",
+                                "Value": todaystimestamp,
+                            }
+                        ],
+                    )
                 else:
                     print(ami_id)
             except Exception as ex:
-                log.error('%s: %s failed \n %s' % (region, ami_id, ex))
+                log.error("%s: %s failed \n %s" % (region, ami_id, ex))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     argument_parser = argparse.ArgumentParser()
     argument_parser.add_argument(
         "--delete",
         help="Delete the AMIs whose launch permissions have been removed",
-        action="store_true", default=False)
+        action="store_true",
+        default=False,
+    )
     argument_parser.add_argument(
         "--days",
         help="Specify the number of days worth of AMI fedmsg information to fetch from datagrepper.",
-        type=int)
+        type=int,
+    )
     argument_parser.add_argument(
         "--deletewaitperiod",
         help="Specify the number of days to wait after removing launch perms before deleting",
@@ -355,21 +348,29 @@ if __name__ == '__main__':
     argument_parser.add_argument(
         "--change-perms",
         help="Change the launch permissions of the AMIs to private",
-        action="store_true", default=False)
+        action="store_true",
+        default=False,
+    )
     argument_parser.add_argument(
         "--dry-run",
         help="Dry run the action to be performed",
-        action="store_true", default=False)
+        action="store_true",
+        default=False,
+    )
     args = argument_parser.parse_args()
 
     if not args.delete and not args.change_perms:
-        raise Exception('Either of the argument, delete or change permission is required')
+        raise Exception(
+            "Either of the argument, delete or change permission is required"
+        )
 
     if args.delete and args.change_perms:
-        raise Exception('Both the argument delete and change permission is not allowed')
+        raise Exception(
+            "Both the argument delete and change permission is not allowed"
+        )
 
     # Ideally, we could search through all the AMIs that ever were created but this
-    # this would create huge load on datagrepper. 
+    # this would create huge load on datagrepper.
     # default to 4 weeks/ 28 days
     days = 28
     if args.days:
@@ -381,18 +382,23 @@ if __name__ == '__main__':
     # The AMIs deleted are the nightly AMIs that are uploaded via fedimg everyday.
     # The clean up of the AMIs happens through a cron job.
     # The steps followed while deleting the AMIs:
-    # - The selected AMIs are made private, so that if people report issue we can make it 
-    #   public again. 
+    # - The selected AMIs are made private, so that if people report issue we can make it
+    #   public again.
     # - If no issues are reported in 10 days, the AMIs are deleted permanently.
 
     if args.change_perms:
         if days < permswaitperiod:
-            raise Exception('permswaitperiod param cannot be more than days param')
-        end = (datetime.now() - timedelta(days=permswaitperiod)).strftime('%s')
-        amis = _get_nightly_amis_nd(delta=86400 * (days-permswaitperiod), end=int(end))
+            raise Exception(
+                "permswaitperiod param cannot be more than days param"
+            )
+        end = (datetime.now() - timedelta(days=permswaitperiod)).strftime("%s")
+        amis = _get_nightly_amis_nd(
+            delta=86400 * (days - permswaitperiod), end=int(end)
+        )
         change_amis_permission_nd(amis, dry_run=args.dry_run)
 
     if args.delete:
-        deletetimestamp = (datetime.now() - timedelta(days=deletewaitperiod)).strftime("%d%m%Y")
+        deletetimestamp = (
+            datetime.now() - timedelta(days=deletewaitperiod)
+        ).strftime("%d%m%Y")
         delete_amis_nd(deletetimestamp, dry_run=args.dry_run)
-
