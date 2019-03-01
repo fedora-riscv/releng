@@ -219,11 +219,25 @@ if __name__ == '__main__':
                     url = url.replace('#', '?#')
 
                     # Module build
-                    data = json.dumps({
-                        'scmurl': url,
-                        'branch': stream,
-                        'rebuild_strategy': 'all'
-                    })
+                    # For mass rebuild we need to rebuild all modules again
+                    # For mass branching, since we can reuse already existing
+                    # modules, we dont need rebuild_strategy = all option.
+                    # This saves time and resources
+                    if process == build:
+                        data = json.dumps({
+                            'scmurl': url,
+                            'branch': stream,
+                            'rebuild_strategy': 'all'
+                        })
+                    elif process == branch:
+                        data = json.dumps({
+                            'scmurl': url,
+                            'branch': stream,
+                        })
+                    else:
+                        print("Please select either build or branch for the process type")
+                        sys.exit(1)
+
                     rv = requests.post('https://mbs.fedoraproject.org/module-build-service/2/module-builds/', data=data, headers=headers)
                     if rv.ok:
                         print('Building {} module for stream {}'.format(name,stream))
