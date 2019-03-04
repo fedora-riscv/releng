@@ -14,8 +14,8 @@ import requests
 
 
 log = logging.getLogger(__name__)
-RETIRING_BRANCHES = ["el6", "epel7", "master"]
-PROD_ONLY_BRANCHES = ["el6", "epel7", "master"]
+RETIRING_BRANCHES = ["el6", "epel7", "f30", "master"]
+PROD_ONLY_BRANCHES = ["el6", "epel7", "f30", "master"]
 
 PRODUCTION_PKGDB = "https://admin.fedoraproject.org/pkgdb"
 STAGING_PKGDB = "https://admin.stg.fedoraproject.org/pkgdb"
