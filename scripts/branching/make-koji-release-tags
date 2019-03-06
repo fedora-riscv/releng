@@ -50,7 +50,7 @@ KOJICLI=koji
 "${KOJICLI}" edit-tag --perm=fedora-override "f${release}-override"
 "${KOJICLI}" edit-tag --perm=admin "f${release}-updates"
 "${KOJICLI}" edit-tag --perm=admin "f${release}-updates-testing"
-"${KOJICLI}" edit-tag --perm=admin "f${release}-updates-testing-pending"
+"${KOJICLI}" edit-tag --perm=autosign "f${release}-updates-testing-pending"
 "${KOJICLI}" edit-tag --perm=admin "f${release}-updates-pending"
 "${KOJICLI}" edit-tag --perm=admin "f${release}-atomic"
 "${KOJICLI}" edit-tag --perm=autosign "f${release}-signing-pending"
@@ -77,7 +77,7 @@ old_modular_release=${old_release}-modular
 "${KOJICLI}" edit-tag --perm=fedora-override "f${modular_release}-override"
 "${KOJICLI}" edit-tag --perm=admin "f${modular_release}-updates"
 "${KOJICLI}" edit-tag --perm=admin "f${modular_release}-updates-testing"
-"${KOJICLI}" edit-tag --perm=admin "f${modular_release}-updates-testing-pending"
+"${KOJICLI}" edit-tag --perm=autosign "f${modular_release}-updates-testing-pending"
 "${KOJICLI}" edit-tag --perm=admin "f${modular_release}-updates-pending"
 "${KOJICLI}" edit-tag --perm=autosign "f${modular_release}-signing-pending"
 
