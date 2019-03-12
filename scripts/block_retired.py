@@ -123,8 +123,8 @@ def unblocked_packages(branch="master", staging=False, namespace=DEFAULT_NS):
     return unblocked
 
 
-def get_retired_packages(branch="master", staging=False, namespace=DEFAULT_NS):
-    retiredpkgs = []
+def get_active_packages(branch="master", staging=False, namespace=DEFAULT_NS):
+    activepkgs = []
     # PDC uses singular names such as rpm and container
     if namespace.endswith('s'):
         content_type = namespace[:-1]
@@ -132,25 +132,25 @@ def get_retired_packages(branch="master", staging=False, namespace=DEFAULT_NS):
         content_type = namespace
     url = PRODUCTION_PDC if not staging else STAGING_PDC
     url = ('{0}/rest_api/v1/component-branches/?name={1}&type={2}'
-           '&active=false&page_size=100&fields=global_component'.format(
+           '&active=true&page_size=100&fields=global_component'.format(
                url, branch, content_type))
     while True:
         rv = requests.get(url)
         if not rv.ok:
-            raise RuntimeError('Failed getting the retired packages from '
+            raise RuntimeError('Failed getting the active packages from '
                                'PDC. The response was: {0}'
                                .format(rv.content))
 
         rv_json = rv.json()
         for branch in rv_json['results']:
-            retiredpkgs.append(branch['global_component'])
+            activepkgs.append(branch['global_component'])
 
         if rv_json['next']:
             url = rv_json['next']
         else:
             break
 
-    return retiredpkgs
+    return activepkgs
 
 
 def run_koji(koji_params, staging=False):
@@ -211,7 +211,7 @@ def block_all_retired(branches=RETIRING_BRANCHES, staging=False,
             log.warning('%s in namespace "%s" not handled in staging..' %
                         (branch, namespace))
             continue
-        retired = get_retired_packages(branch, staging, namespace)
+        activepkgs = get_active_packages(branch, staging, namespace)
         unblocked = []
 
         # Check which packages are included in a tag but not blocked, this
@@ -219,8 +219,8 @@ def block_all_retired(branches=RETIRING_BRANCHES, staging=False,
         # blocked. Packages might not be in the rawhide tag if they are retired
         # too fast, e.g. because they are EPEL-only
         allunblocked = unblocked_packages(branch, staging, namespace)
-        for pkg in retired:
-            if pkg in allunblocked:
+        for pkg in allunblocked:
+            if pkg not in activepkgs:
                 unblocked.append(pkg)
 
         errors = block_package(unblocked, branch, staging=staging, namespace=namespace)
