@@ -72,7 +72,7 @@ RAWHIDE_RELEASE = dict(
          'latest-Fedora-Rawhide/compose/Everything/i386/os',
     source_repo='https://kojipkgs.fedoraproject.org/compose/rawhide/'
                 'latest-Fedora-Rawhide/compose/Everything/source/tree/',
-    tag='f30',
+    tag='f31',
     branch='master',
     mailto='devel@lists.fedoraproject.org',
     bcc=[],
@@ -80,11 +80,11 @@ RAWHIDE_RELEASE = dict(
 
 BRANCHED_RELEASE = dict(
     repo='https://kojipkgs.fedoraproject.org/compose/branched/'
-         'latest-Fedora-29/compose/Everything/i386/os',
+         'latest-Fedora-30/compose/Everything/i386/os',
     source_repo='https://kojipkgs.fedoraproject.org/compose/branched/'
-                'latest-Fedora-29/compose/Everything/source/tree/',
-    tag='f29',
-    branch='f29',
+                'latest-Fedora-30/compose/Everything/source/tree/',
+    tag='f30',
+    branch='f30',
     mailto='devel@lists.fedoraproject.org',
     bcc=[],
 )
