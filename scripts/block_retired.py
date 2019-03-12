@@ -153,7 +153,8 @@ def get_retired_packages(branch="master", staging=False, namespace=DEFAULT_NS,
             content_type = namespace
         url = PRODUCTION_PDC if not staging else STAGING_PDC
         url = ('{0}/rest_api/v1/component-branches/?name={1}&type={2}'
-               '&active=false&page_size=100'.format(url, branch, content_type))
+               '&active=false&page_size=100&fields=global_component'.format(
+                   url, branch, content_type))
         while True:
             rv = requests.get(url)
             if not rv.ok:
