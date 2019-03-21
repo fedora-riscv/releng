@@ -24,8 +24,9 @@ rebuildid = 'f30'
 massrebuild = MASSREBUILDS[rebuildid]
 user = 'Fedora Release Engineering <releng@fedoraproject.org>'
 comment = '- Rebuilt for ' + massrebuild['wikipage']
-module_epoch = massrebuild['module_epoch']
-workdir = os.path.expanduser('~/massbuild_modules')
+module_mass_rebuild_epoch = massrebuild['module_mass_rebuild_epoch']
+module_mass_branching_epoch = massrebuild['module_mass_branching_epoch']
+workdir = os.path.expanduser('~/mass_branch_modules')
 enviro = os.environ
 
 
@@ -110,11 +111,18 @@ if __name__ == '__main__':
         else:
             name = list(module.keys())[0]
             stream = module[name]
-            #Get the list of builds that are submitted after the module_epoch datetime
+            #Get the list of builds that are submitted after the module epoch datetime
             #Use this info to figure out whether you need to resubmit the build or not
             #This is useful when the script execution fails for unknown reasons and
             #dont have to submit all the builds again.
-            mbs="https://mbs.fedoraproject.org/module-build-service/1/module-builds/?submitted_after={}&name={}&stream={}&state=ready&state=init&state=wait&state=build&state=done".format(module_epoch,name,stream)
+            if process == 'build':
+                mbs="https://mbs.fedoraproject.org/module-build-service/1/module-builds/?submitted_after={}&name={}&stream={}&state=ready&state=init&state=wait&state=build&state=done".format(module_mass_rebuild_epoch,name,stream)
+            elif process == 'branch':
+                mbs="https://mbs.fedoraproject.org/module-build-service/1/module-builds/?submitted_after={}&name={}&stream={}&state=ready&state=init&state=wait&state=build&state=done".format(module_mass_branching_epoch,name,stream)
+            else:
+                print("Please select either build or branch for the process type")
+                sys.exit(1)
+
             rv = requests.get(mbs)
             if not rv.ok:
                 print("Unable to get info about {} module and {} stream, skipping the build".format(name,stream))
@@ -158,11 +166,11 @@ if __name__ == '__main__':
                 except:
                     print("Could not able to read the modulemd file")
                     continue
-                if process == build:
+                if process == 'build':
                     platform = massrebuild['module_mass_rebuild_platform']
                     #check if a module has build time dependency on platform
                     needs_building = mmd.build_depends_on_stream('platform', platform)
-                elif process == branch:
+                elif process == 'branch':
                     platform = massrebuild['module_mass_branching_platform']
                     #check if a module has run time dependency on platform
                     needs_building = mmd.depends_on_stream('platform', platform)
@@ -187,10 +195,10 @@ if __name__ == '__main__':
                         continue
 
                     # Empty git commit
-                    if process == build:
+                    if process == 'build':
                         commit = ['git', 'commit', '-s', '--allow-empty', '-m', comment]
-                    elif process == branch:
-                        commit = ['git', 'commit', '-s', '--allow-empty', '-m', 'Branching {} from rawhide'.format(platform)]
+                    elif process == 'branch':
+                        commit = ['git', 'commit', '-s', '--allow-empty', '-m', 'Branching {} from rawhide, second attempt after platform:f31 enablement'.format(rebuildid)]
                     else:
                         print("Please select either build or branch for the process type")
                         sys.exit(1)
@@ -223,13 +231,13 @@ if __name__ == '__main__':
                     # For mass branching, since we can reuse already existing
                     # modules, we dont need rebuild_strategy = all option.
                     # This saves time and resources
-                    if process == build:
+                    if process == 'build':
                         data = json.dumps({
                             'scmurl': url,
                             'branch': stream,
                             'rebuild_strategy': 'all'
                         })
-                    elif process == branch:
+                    elif process == 'branch':
                         data = json.dumps({
                             'scmurl': url,
                             'branch': stream,
