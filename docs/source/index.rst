@@ -74,7 +74,7 @@ For information on the Fedora Release Engineering Philosophy, see
 Fedora Release Engineering Leadership
 =====================================
 
-Dennis Gilmore (dgilmore on IRC, FAS username ausil)
+Mohan Boddu (mboddu on IRC, FAS username mohanboddu)
 
 Leadership is currently appointed by FESCo with input from the current release
 team.
