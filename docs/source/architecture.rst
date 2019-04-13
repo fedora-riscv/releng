@@ -20,3 +20,4 @@ Architecture Documents
     :maxdepth: 1
 
     layered_image_build_service
+    workflow_automation

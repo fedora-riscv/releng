@@ -69,6 +69,7 @@ Standard Operating Procedures
     sop_pushing_updates
     sop_release_package_signing
     sop_remote_dist_git_branches
+    sop_requesting_task_automation_users
     sop_retire_orphaned_packages
     sop_sigul_client_setup
     sop_stage_final_release_for_mirrors
