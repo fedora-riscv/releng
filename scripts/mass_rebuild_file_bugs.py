@@ -96,11 +96,17 @@ def report_failure(massrebuild, component, task_id, logs,
         attach_logs(bug, logs)
     except Fault as ex:
         print(ex)
-        username = raw_input('Bugzilla username: ')
-        BZCLIENT.login(user=username,
-                       password=getpass.getpass())
-        return report_failure(massrebuild, component, task_id, logs, summary,
-                              comment)
+        #sometimes there wont be BZ component, for ex: Fedora-KDE-Live
+        #skip those packages/components
+        if ex.faultCode == 51:
+            print(ex.faultString)
+            return None
+        else:
+            username = raw_input('Bugzilla username: ')
+            BZCLIENT.login(user=username,
+                           password=getpass.getpass())
+            return report_failure(massrebuild, component, task_id, logs, summary,
+                                  comment)
     return bug
 
 def attach_logs(bug, logs):
@@ -110,7 +116,16 @@ def attach_logs(bug, logs):
 
     for log in logs:
         name = log.rsplit('/', 1)[-1]
-        response = urllib2.urlopen(log)
+        try:
+            response = urllib2.urlopen(log)
+        except urllib2.HTTPError, e:
+            #sometimes there wont be any logs attached to the task.
+            #skip attaching logs for those tasks
+            if e.code == 404:
+                print("Failed to attach {} log".format(name))
+                continue
+            else:
+                break
         fp = tempfile.TemporaryFile()
 
         CHUNK = 2 ** 20
