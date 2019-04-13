@@ -20,6 +20,17 @@ def koji2datetime(d):
 def bug2str(bug):
     return f"{bug.id} ({bug.summary})"
 
+def release2disttag(release):
+    assert release.startswith('f')
+    return 'fc' + release[1:]
+
+def parse_bool(s):
+    if s.lower() in {'0', 'false', 'no'}:
+        return False
+    if s.lower() in {'1', 'true', 'yes'}:
+        return True
+    raise ValueError
+
 def bug_closer(to_close, bz, dry_run):
     while True:
         item = to_close.get()
@@ -44,12 +55,21 @@ There has been at least one successfull build after mass rebuild.
 def main():
     rebuilds_info = {k: v for k, v in MASSREBUILDS.items() if "buildtag" in v}
 
-    parser = argparse.ArgumentParser(description="Close FTBFS bugs which have been fixed.")
+    parser = argparse.ArgumentParser(description="Close FTBFS bugs which have been fixed")
     verbose_opt = parser.add_mutually_exclusive_group()
     verbose_opt.add_argument("-d", "--debug", action="store_true")
     verbose_opt.add_argument("-v", "--verbose", action="store_true")
     parser.add_argument("-n", "--dry-run", action="store_true")
     parser.add_argument("-t", "--threads", type=int, default=0)
+    parser.add_argument("--strict-disttag", type=parse_bool,
+                        help='Only close bugs where the build tag matches the release '
+                             '(ignore builds for different releases)',
+                        nargs='?', const=True, metavar='BOOL')
+    parser.add_argument("--strict-title", type=parse_bool,
+                        help='Only close bugs where the title matches the expected pattern '
+                             '(<component>: FTBFS in ...)',
+                        nargs='?', const=True, metavar='BOOL',
+                        default=True)
     parser.add_argument("release", choices=rebuilds_info.keys())
     args = parser.parse_args()
 
@@ -94,7 +114,8 @@ def main():
             LOGGER.debug(f"{bug2str(bug)}\n"
                           "  → Skipping closed bug")
             continue
-        if not bug.summary.startswith(f"{bug.component}: FTBFS in F"):
+        if (args.strict_title and
+            not bug.summary.startswith(f"{bug.component}: FTBFS in F")):
             # They might need special care
             LOGGER.debug(f"{bug2str(bug)}\n"
                           "  → Skipping bug with non-standard name")
@@ -118,8 +139,14 @@ def main():
             LOGGER.debug(f"{bug2str(bug)}\n"
                           "  → No successful builds")
             continue
-        build = builds[0]
-        to_close.put((bug, build))
+        for build in builds:
+            if args.strict_disttag:
+                nvr = build['nvr']
+                if not nvr.endswith('.' + release2disttag(args.release)):
+                    LOGGER.debug(f"{bug2str(bug)}\n"
+                                 "  → Ignoring build with wrong nvr ({nvr})")
+                    continue
+            to_close.put((bug, build))
 
     # Wait untill all bugs closed
     to_close.join()
