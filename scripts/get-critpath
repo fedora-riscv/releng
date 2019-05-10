@@ -12,9 +12,6 @@ import sys
 
 import pdc_client
 
-def get_branches(pdc):
-    for branch in pdc.get_paged(pdc['component-branches'], active=True):
-        yield branch
 
 def setup_args():
     usage = "\nget-critpath <branch>"
