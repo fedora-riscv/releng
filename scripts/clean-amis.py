@@ -47,6 +47,7 @@ import boto3
 import functools
 import fedfind
 import fedfind.release
+import libpagure
 import requests
 
 from datetime import datetime, timedelta, date
@@ -59,6 +60,18 @@ log = logging.getLogger()
 env = os.environ
 aws_access_key_id = os.environ.get("AWS_ACCESS_KEY")
 aws_secret_access_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
+
+pagure_access_token = os.environ.get("PAGURE_ACCESS_TOKEN")
+instance_url = "https://stg.pagure.io/"
+repo_name = "ami-purge-report"
+#
+# Make the connection to Pagure
+project = libpagure.Pagure(pagure_token=pagure_access_token,
+                           pagure_repository=repo_name,
+                           instance_url=instance_url)
+no_auth_project = libpagure.Pagure(
+                           pagure_repository=repo_name,
+                           instance_url=instance_url)
 
 DATAGREPPER_URL = "https://apps.fedoraproject.org/datagrepper/"
 NIGHTLY = "nightly"
@@ -213,6 +226,7 @@ def delete_amis_nd(deletetimestamp, dry_run=False):
     :args dry_run: dry run the flow
     """
     log.info("Deleting AMIs")
+    deleted_amis = []
     for region in REGIONS:
         log.info("%s Starting" % region)
         # Create a connection to an AWS region
@@ -232,6 +246,7 @@ def delete_amis_nd(deletetimestamp, dry_run=False):
         for ami in amis:
             try:
                 ami_id = ami["ImageId"]
+                ami_name = ami['Name']
                 is_launch_permitted = ami["Public"]
                 _index = len(ami["BlockDeviceMappings"])
                 snapshot_id = ami["BlockDeviceMappings"][0]["Ebs"]["SnapshotId"]
@@ -265,10 +280,13 @@ def delete_amis_nd(deletetimestamp, dry_run=False):
                 if not dry_run:
                     conn.deregister_image(ImageId=ami_id)
                     conn.delete_snapshot(SnapshotId=snapshot_id)
+                    deleted_amis.append((ami_id, region, revoketimestamp, ami_name))
                 else:
                     print(ami_id)
             except Exception as ex:
                 log.error("%s: %s failed\n%s" % (region, ami_id, ex))
+
+    return deleted_amis
 
 
 def change_amis_permission_nd(amis, dry_run=False):
@@ -282,6 +300,7 @@ def change_amis_permission_nd(amis, dry_run=False):
     """
     log.info("Changing permission for AMIs")
     todaystimestamp = date.today().strftime("%d%m%Y")
+    changed_permission_amis = []
 
     for region in REGIONS:
         log.info("%s: Starting" % region)
@@ -296,6 +315,14 @@ def change_amis_permission_nd(amis, dry_run=False):
 
         # Filter all the nightly AMIs belonging to this region
         r_amis = [(c, a, r) for c, a, r in amis if r == region]
+        amis_meta = conn.describe_images(
+                ImageIds=[a for _, a, _ in amis]
+        )
+
+        ami_info = {}
+        for ami_meta in amis_meta:
+            image_id = ami_meta["ImageId"]
+            ami_info[image_id] = ami_meta['Name']
 
         # Loop through the AMIs change the permissions
         for _, ami_id, region in r_amis:
@@ -314,10 +341,142 @@ def change_amis_permission_nd(amis, dry_run=False):
                             }
                         ],
                     )
+                    name = ami_info.get('Name', '')
+                    changed_permission_amis.append((ami_id, region, name))
                 else:
                     print(ami_id)
             except Exception as ex:
                 log.error("%s: %s failed \n %s" % (region, ami_id, ex))
+
+    return changed_permission_amis
+
+
+def generate_report_changed_permission(dg_amis, pc_amis):
+    """ This is to generate the report via issue tracker in Pagure.
+
+    :args dg_amis: list of AMIs that was generated from Datagrepper
+    :args pc_amis: list of AMIs whose perms were actually changed.
+    """
+    log.info("Generating report for the day: Change Permissions")
+    todaystimestamp = date.today().strftime("%d%m%Y")
+    dg_output_string = []
+    pc_output_string = []
+
+    output_tmpl = """
+{region}
+---
+{amis}
+"""
+
+    for region in REGIONS:
+        r_amis = [a for c, a, r in dg_amis if r == region]
+        dg_output_string.append(output_tmpl.format(
+            region=region,
+            amis='\n'.join(r_amis)
+        ))
+
+    for region in REGIONS:
+        r_amis = ["%s - %s" % (a, n) for a, r, n in pc_amis if r == region]
+        pc_output_string.append(output_tmpl.format(
+            region=region,
+            amis='\n'.join(r_amis)
+        ))
+
+    dg_output_string = "\n\n".join(dg_output_string)
+    pc_output_string = "\n\n".join(pc_output_string)
+    content = "Report for the run on {todaystimestamp}".format(
+        todaystimestamp=todaystimestamp)
+
+    create_issue_params = {
+        'title': todaystimestamp,
+        'content': content,
+    }
+
+    try:
+        created_issue = project.create_issue(**create_issue_params)
+        created_issue_id = created_issue['issue']['id']
+    except Exception as ex:
+        log.error("There was an error creating issue: %s" % ex)
+        return
+
+    # Comment the details of the AMIs fetched from datagrepper
+    content = """
+The list of AMIs that we fetch from Datagrepper
+{dg_output_string}""".format(dg_output_string=dg_output_string)
+
+    dg_params = {
+        'issue_id': created_issue_id,
+        'body': content,
+    }
+    try:
+        project.comment_issue(**dg_params)
+    except Exception as ex:
+        log.error("There was an error creating issue: %s" % ex)
+
+    # Comment the details of the AMIs whose permissions were changed.
+    content = """
+The list of AMIs whose permissions were changed.
+{pc_output_string}""".format(pc_output_string=pc_output_string)
+
+    pc_params = {
+        'issue_id': created_issue_id,
+        'body': content,
+    }
+
+    try:
+        project.comment_issue(**pc_params)
+    except Exception as ex:
+        log.error("There was an error creating issue: %s" % ex)
+
+
+def generate_report_delete(dl_amis):
+    """ This is to generate the report via issue tracker in Pagure.
+
+    :args dl_amis: list of AMIs that were deleted
+    """
+    log.info("Generating report for the day: Delete")
+    todaystimestamp = date.today().strftime("%d%m%Y")
+    created_issue_id = None
+    dl_output_string = []
+
+    output_tmpl = """
+{region}
+---
+{amis}
+"""
+
+    for region in REGIONS:
+        r_amis = ["%s - %s - %s" % (a, n, t) for a, r, t, n in dl_amis if r == region]
+        dl_output_string.append(output_tmpl.format(
+            region=region,
+            amis='\n'.join(r_amis)
+        ))
+
+    dl_output_string = "\n\n".join(dl_output_string)
+
+    issues = no_auth_project.list_issues()
+    for issue in issues:
+        if issue['title'] == todaystimestamp:
+            created_issue_id = issue['id']
+            break
+
+    if created_issue_id is None:
+        log.info("We could not find the request issue: %s" % todaystimestamp)
+        return
+
+    # Comment the details of the AMIs which were deleted
+    content = """
+The list of AMIs that were deleted.
+{dl_output_string}""".format(dl_output_string=dl_output_string)
+
+    dl_params = {
+        'issue_id': created_issue_id,
+        'body': content,
+    }
+    try:
+        project.comment_issue(**dl_params)
+    except Exception as ex:
+        log.error("There was an error creating issue: %s" % ex)
 
 
 if __name__ == "__main__":
@@ -393,12 +552,16 @@ if __name__ == "__main__":
             )
         end = (datetime.now() - timedelta(days=permswaitperiod)).strftime("%s")
         amis = _get_nightly_amis_nd(
-            delta=86400 * (days - permswaitperiod), end=int(end)
+           delta=86400 * (days - permswaitperiod), end=int(end)
         )
-        change_amis_permission_nd(amis, dry_run=args.dry_run)
+        perms_changed_amis = change_amis_permission_nd(amis, dry_run=args.dry_run)
+        if not args.dry_run:
+            generate_report_changed_permission(amis, perms_changed_amis)
 
     if args.delete:
         deletetimestamp = (
-            datetime.now() - timedelta(days=deletewaitperiod)
+           datetime.now() - timedelta(days=deletewaitperiod)
         ).strftime("%d%m%Y")
-        delete_amis_nd(deletetimestamp, dry_run=args.dry_run)
+        deleted_amis = delete_amis_nd(deletetimestamp, dry_run=args.dry_run)
+        if not args.dry_run:
+            generate_report_delete(deleted_amis)
