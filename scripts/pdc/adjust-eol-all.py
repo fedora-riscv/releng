@@ -28,7 +28,7 @@ if __name__ == '__main__':
     else:
         pdc = 'https://pdc.fedoraproject.org/'
     sla_ids = set()
-    url = '{0}/rest_api/v1/component-branch-slas/?page_size=100&branch={1}'.format(pdc,branch)
+    url = '{0}/rest_api/v1/component-branch-slas/?page_size=100&branch={1}&branch_active=true'.format(pdc,branch)
     while True:
         rv = requests.get(url)
         if not rv.ok:
