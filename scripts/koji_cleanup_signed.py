@@ -27,7 +27,7 @@ KEYS = [
     '030d5aed', '81b46521',
     'e372e838', 'fdb19c98',
     '3b921d09', '64dab85d',
-    'f5282ee4'
+    'f5282ee4', '9db62fb1',
 ]
 
 PREFIX = 'data/signed'
