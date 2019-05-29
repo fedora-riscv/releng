@@ -62,7 +62,7 @@ aws_access_key_id = os.environ.get("AWS_ACCESS_KEY")
 aws_secret_access_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
 
 pagure_access_token = os.environ.get("PAGURE_ACCESS_TOKEN")
-instance_url = "https://stg.pagure.io/"
+instance_url = "https://pagure.io/"
 repo_name = "ami-purge-report"
 #
 # Make the connection to Pagure
