@@ -63,8 +63,8 @@ failed = []
 updated = []
 
 
-def new_ftbfs_bugz(tracker=TRACKING, version='29'):
-    query = bzapi.build_query(product='Fedora', status='NEW', version=version)
+def new_ftbfs_bugz(tracker=TRACKING):
+    query = bzapi.build_query(product='Fedora', status='NEW')
     query['blocks'] = tracker
     return bzapi.query(query)
 
