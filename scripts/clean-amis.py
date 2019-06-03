@@ -323,12 +323,21 @@ def change_amis_permission_nd(amis, dry_run=False):
         r_amis_meta = [a for _, a, _ in r_amis]
         amis_meta = []
         try:
-            amis_meta = conn.describe_images(
-                    ImageIds=r_amis_meta
-            )
+            if r_amis_meta:
+                amis_meta = conn.describe_images(
+                        ImageIds=r_amis_meta
+                )
+            else:
+                continue
         except Exception as ex:
             log.error("Failed to describe the images: %s\n%s" % (region, ex))
-            notexistamis = re.findall(r'\[([^]]*)\]', str(ex))[0].split(", ")
+
+            # We check if we queried any missing amis
+            notexistamis = re.findall(r'\[([^]]*)\]', str(ex))
+            if not notexistamis:
+                continue
+
+            notexistamis = notexistamis[0].split(", ")
             r_amis_meta = list(set(r_amis_meta) - set(notexistamis))
             if r_amis_meta:
                 amis_meta = conn.describe_images(
@@ -336,15 +345,15 @@ def change_amis_permission_nd(amis, dry_run=False):
                 )
             else:
                 log.error("No amis left to process: %s" % region)
-                return changed_permission_amis
+                continue
 
         ami_info = {}
-        for ami_meta in amis_meta:
+        for ami_meta in amis_meta['Images']:
             image_id = ami_meta["ImageId"]
             ami_info[image_id] = ami_meta['Name']
 
         # Loop through the AMIs change the permissions
-        for _, ami_id, region in r_amis:
+        for ami_id in r_amis_meta:
             try:
                 if not dry_run:
                     conn.modify_image_attribute(
