@@ -238,9 +238,14 @@ def delete_amis_nd(deletetimestamp, dry_run=False):
         )
         log.info("%s: Connected" % region)
 
-        response = conn.describe_images(
-            Filters=[{"Name": "tag-key", "Values": ["LaunchPermissionRevoked"]}]
-        )
+        response = {}
+        try:
+            response = conn.describe_images(
+                Filters=[{"Name": "tag-key", "Values": ["LaunchPermissionRevoked"]}]
+            )
+        except Exception as ex:
+            log.error("Failed to describe the images: %s\n%s" % (region, ex))
+
         amis = response.get("Images", [])
 
         for ami in amis:
@@ -315,9 +320,23 @@ def change_amis_permission_nd(amis, dry_run=False):
 
         # Filter all the nightly AMIs belonging to this region
         r_amis = [(c, a, r) for c, a, r in amis if r == region]
-        amis_meta = conn.describe_images(
-                ImageIds=[a for _, a, _ in amis]
-        )
+        r_amis_meta = [a for _, a, _ in r_amis]
+        amis_meta = []
+        try:
+            amis_meta = conn.describe_images(
+                    ImageIds=r_amis_meta
+            )
+        except Exception as ex:
+            log.error("Failed to describe the images: %s\n%s" % (region, ex))
+            notexistamis = re.findall(r'\[([^]]*)\]', str(ex))[0].split(", ")
+            r_amis_meta = list(set(r_amis_meta) - set(notexistamis))
+            if r_amis_meta:
+                amis_meta = conn.describe_images(
+                        ImageIds=r_amis_meta
+                )
+            else:
+                log.error("No amis left to process: %s" % region)
+                return changed_permission_amis
 
         ami_info = {}
         for ami_meta in amis_meta:
