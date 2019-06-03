@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # clean-amis.py - A utility to remove the nightly AMIs every 5 days.
 #
