@@ -67,10 +67,10 @@ repo_name = "ami-purge-report"
 #
 # Make the connection to Pagure
 project = libpagure.Pagure(pagure_token=pagure_access_token,
-                           pagure_repository=repo_name,
+                           repo_to=repo_name,
                            instance_url=instance_url)
 no_auth_project = libpagure.Pagure(
-                           pagure_repository=repo_name,
+                           repo_to=repo_name,
                            instance_url=instance_url)
 
 DATAGREPPER_URL = "https://apps.fedoraproject.org/datagrepper/"
