@@ -50,6 +50,7 @@ Standard Operating Procedures
     sop_branching
     sop_breaking_development_freeze
     sop_composing_fedora
+    sop_clean_amis
     sop_create_release_signing_key
     sop_creating_live_translation_images
     sop_custom_spins
