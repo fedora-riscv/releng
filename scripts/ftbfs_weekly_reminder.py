@@ -51,8 +51,12 @@ not appropriate [1]. If you are working on a fix, set the status to ASSIGNED to
 acknowledge this. Following the latest policy for such packages [2], your package
 can be orphaned if this bug remains in NEW state more than 8 weeks.
 
+A week before the mass branching of Fedora {int(FEDORA)+1} according to the schedule [3],
+any packages which still have open FTBFS bugs from Fedora {FEDORA} will be retired.
+
 [1] https://fedoraproject.org/wiki/Updates_Policy
 [2] https://docs.fedoraproject.org/en-US/fesco/Fails_to_build_from_source_Fails_to_install/
+[3] https://fedoraproject.org/wiki/Releases/{int(FEDORA)+1}/Schedule
 """  # noqa
 
 cache_dir = pathlib.Path('~/.cache/FTBFS_weekly_reminder/').expanduser()
