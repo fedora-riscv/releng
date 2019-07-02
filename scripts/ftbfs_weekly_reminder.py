@@ -83,13 +83,16 @@ def needinfo(requestee):
     }
 
 
-def send_reminder(bug, comment=TEMPLATE):
-    flags = [needinfo(bug.assigned_to)]
+def send_reminder(bug, comment=TEMPLATE, set_needinfo=True):
+    flags = [needinfo(bug.assigned_to)] if set_needinfo else []
     update = bzapi.build_update(comment=comment, flags=flags)
     try:
         bzapi.update_bugs([bug.id], update)
-    except Exception:
+    except Exception as e:
         LOGGER.exception(bug.weburl)
+        if "You can't ask" in getattr(e,'faultString', ''):
+            print(e.faultString, file=sys.stderr)
+            return send_reminder(bug, comment=comment, set_needinfo=False)
         failed.append(bug)
     else:
         updated.append(bug)
