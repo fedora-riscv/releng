@@ -91,8 +91,10 @@ def send_reminder(bug, comment=TEMPLATE, set_needinfo=True):
         bzapi.update_bugs([bug.id], update)
     except Exception as e:
         LOGGER.exception(bug.weburl)
-        if "You can't ask" in getattr(e,'faultString', ''):
+        if "You can't ask" in getattr(e, 'faultString', ''):
             print(e.faultString, file=sys.stderr)
+            return send_reminder(bug, comment=comment, set_needinfo=False)
+        if 'set multiple times' in getattr(e, 'faultString', ''):
             return send_reminder(bug, comment=comment, set_needinfo=False)
         failed.append(bug)
     else:
