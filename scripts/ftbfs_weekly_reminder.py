@@ -21,7 +21,7 @@ LOGGER.addHandler(fh)
 
 # get the latest Fedora version and tracking bug
 for key, value in massrebuildsinfo.MASSREBUILDS.items():
-    fedora = key.upper().replace('F', '')
+    fedora = key
     tracking = value['tracking_bug']
     break
 
@@ -38,7 +38,7 @@ config.read(config_path)
 URL = config['bugzilla'].get('url', 'https://bugzilla.redhat.com')
 USERNAME = config['bugzilla']['username']
 PASSWORD = config['bugzilla']['password']
-FEDORA = config['bugzilla'].get('fedora', fedora)
+FEDORA = config['bugzilla'].get('fedora', fedora).upper().replace('F', '')
 TRACKING = config['bugzilla'].get('tracking', tracking)
 
 
