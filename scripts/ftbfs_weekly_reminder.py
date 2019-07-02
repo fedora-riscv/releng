@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import configparser
+from datetime import datetime
 import bugzilla
 import pathlib
 import sys
@@ -100,12 +101,17 @@ def send_reminder(bug, comment=TEMPLATE, set_needinfo=True):
             print(bug.id, file=f)
 
 
+today = datetime.today()
 if ALREADY_FILED.exists():
-    print(f'Loading bug IDs from {ALREADY_FILED}. Will not fill those. '
-          f'Remove {ALREADY_FILED} to stop this from happening.')
-    ignore = [
-        int(line.rstrip()) for line in ALREADY_FILED.read_text().splitlines()
-    ]
+    age = today - datetime.fromtimestamp(ALREADY_FILED.stat().st_mtime)
+    # we gracefully approximate a "less than a week" age here
+    # the file is intended for immediate repeated runs, not forever
+    if age.days < 6:
+        print(f'Loading bug IDs from {ALREADY_FILED}. Will not fill those. '
+              f'Remove {ALREADY_FILED} to stop this from happening.')
+        ignore = [
+            int(l.rstrip()) for l in ALREADY_FILED.read_text().splitlines()
+        ]
 else:
     ignore = []
 
