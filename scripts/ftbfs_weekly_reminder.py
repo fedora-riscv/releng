@@ -20,7 +20,7 @@ LOGGER.addHandler(fh)
 
 # get the latest Fedora version and tracking bug
 for key, value in massrebuildsinfo.MASSREBUILDS.items():
-    fedora = key.upper()
+    fedora = key.upper().replace('F', '')
     tracking = value['tracking_bug']
     break
 
