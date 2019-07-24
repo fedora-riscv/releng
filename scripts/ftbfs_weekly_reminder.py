@@ -115,6 +115,10 @@ if ALREADY_FILED.exists():
         ignore = [
             int(l.rstrip()) for l in ALREADY_FILED.read_text().splitlines()
         ]
+    else:
+        target = ALREADY_FILED.parent / f'~{ALREADY_FILED.name}'
+        print(f'Moving too old {ALREADY_FILED} to {target}')
+        ALREADY_FILED.rename(target)
 
 print('Gathering bugz, this can take a while...')
 
