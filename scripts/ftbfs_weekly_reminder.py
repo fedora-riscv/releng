@@ -103,20 +103,18 @@ def send_reminder(bug, comment=TEMPLATE, set_needinfo=True):
             print(bug.id, file=f)
 
 
+ignore = []
 today = datetime.today()
 if ALREADY_FILED.exists():
     age = today - datetime.fromtimestamp(ALREADY_FILED.stat().st_mtime)
     # we gracefully approximate a "less than a week" age here
     # the file is intended for immediate repeated runs, not forever
     if age.days < 6:
-        print(f'Loading bug IDs from {ALREADY_FILED}. Will not fill those. '
+        print(f'Loading bug IDs from {ALREADY_FILED}. Will not file those. '
               f'Remove {ALREADY_FILED} to stop this from happening.')
         ignore = [
             int(l.rstrip()) for l in ALREADY_FILED.read_text().splitlines()
         ]
-else:
-    ignore = []
-
 
 print('Gathering bugz, this can take a while...')
 
