@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # mass_rebuild_file_bugs.py - A utility to discover failed builds in a
 #    given tag and file bugs in bugzilla for these failed builds
@@ -23,7 +23,7 @@ from find_failures import get_failed_builds
 # here
 from massrebuildsinfo import MASSREBUILDS
 
-rebuildid = 'f30'
+rebuildid = 'f31'
 failures = {} # dict of owners to lists of packages that failed.
 failed = [] # raw list of failed packages
 

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # mass-tag.py - A utility to tag rebuilt packages.
 #
