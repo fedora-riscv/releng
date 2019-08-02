@@ -14,9 +14,9 @@ from __future__ import print_function
 import koji
 import getpass
 import tempfile
-import urllib2
+import urllib
 from bugzilla.rhbugzilla import RHBugzilla
-from xmlrpclib import Fault
+from xmlrpc.client import Fault
 from find_failures import get_failed_builds
 
 # contains info about all rebuilds, add new rebuilds there and update rebuildid
@@ -99,12 +99,13 @@ def report_failure(massrebuild, component, task_id, logs,
         #Because of having image build requirement of having the image name in koji
         #as a package name, they are missing in the components of koji and we need
         #to skip them.
-        if ex.faultCode == 51:
+        if ex.faultCode == -32000:
+            print(component)
         #if "There is no component" in ex.faultString:
             print(ex.faultString)
             return None
         else:
-            username = raw_input('Bugzilla username: ')
+            username = input('Bugzilla username: ')
             BZCLIENT.login(user=username,
                            password=getpass.getpass())
             return report_failure(massrebuild, component, task_id, logs, summary,
@@ -119,8 +120,8 @@ def attach_logs(bug, logs):
     for log in logs:
         name = log.rsplit('/', 1)[-1]
         try:
-            response = urllib2.urlopen(log)
-        except urllib2.HTTPError, e:
+            response = urllib.request.urlopen(log)
+        except urllib.error.HTTPError as e:
             #sometimes there wont be any logs attached to the task.
             #skip attaching logs for those tasks
             if e.code == 404:
