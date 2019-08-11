@@ -57,9 +57,9 @@ if __name__ == '__main__':
         package = branch['global_component']
         package_type = branch['type']
         critpath = branch['critical_path']
-        #Skip the packages that start with 'rust-'
-        #https://pagure.io/fesco/issue/2068
-        if not package.startswith('rust-'):
+        # Skip the Rust packages
+        # https://pagure.io/fesco/issue/2068
+        if not package.startswith('rust-') and package not in {'zola', 'stratisd'}:
             active_components.add(
                 '%s/%s' % (package_type, package))
             print('Ensuring {0}/{1}#{2} exists'.format(
