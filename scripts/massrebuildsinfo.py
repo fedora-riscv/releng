@@ -27,9 +27,9 @@ MASSREBUILDS = {
     {
         "buildtag": 'f31-rebuild',  # tag to build from
         "epoch": '2019-07-24 09:40:00.000000',  # rebuild anything not built after this date
-        "module_mass_rebuild_epoch": '',  # rebuild anything not built after this date for modules
+        "module_mass_rebuild_epoch": '2019-07-24T09:40:00Z',  # rebuild anything not built after this date for modules
         "module_mass_branching_epoch": '',  # rebuild anything not built after this date for modules
-        "module_mass_rebuild_platform": "",  # rebuild all modules that has build time dependency on this platform, this is used during mass rebuild time
+        "module_mass_rebuild_platform": "f31",  # rebuild all modules that has build time dependency on this platform, this is used during mass rebuild time
         "module_mass_branching_platform": "",  # rebuild all modules that has run time dependency on this platform, this is used during mass branching time
         "targets": ['f31-candidate', 'rawhide', 'f31'],  # build targets to check for existing builds to skip rebuild
         "target": 'f31-rebuild',  # target to build into
