@@ -6,7 +6,7 @@ set -o pipefail
 tracker=${1:-1674516}
 date="${2:-2019-01-31 10:10:00.000000}"
 
-GIT_SSH=/usr/local/bin/relengpush
+export GIT_SSH=/usr/local/bin/relengpush
 
 for line in $(bugzilla query --blocked $tracker --status NEW,ASSIGNED,POST,MODIFIED --outputformat "%{id}:%{component}"); do
   bug_component=( ${line/:/ } )
@@ -18,7 +18,7 @@ for line in $(bugzilla query --blocked $tracker --status NEW,ASSIGNED,POST,MODIF
   if [ -z "$builds" ]; then
     echo "$component fails to build from source: https://bugzilla.redhat.com/show_bug.cgi?id=$bug"
     fedpkg --user releng clone $component
-    (cd $component && fedpkg --user releng retire "$component fails to build from source: https://bugzilla.redhat.com/show_bug.cgi?id=$bug")
+    (cd $component && git config user.name 'Fedora Release Engineering' && git config user.email 'releng@fedoraproject.org' && fedpkg --user releng retire "$component fails to build from source: https://bugzilla.redhat.com/show_bug.cgi?id=$bug")
     rm -rf $component
     bugzilla modify --status CLOSED --close EOL --comment "The package was retired." $bug
   else
