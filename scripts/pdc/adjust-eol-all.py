@@ -15,7 +15,7 @@ parser.add_argument('token', help='PDC token for authentication.')
 parser.add_argument('branch', help='Name of the branch (f26, or 1.12, or master)')                                
 parser.add_argument('eol', help='End of life date for the SLAs, '                                                 
 'in the format of "2020-01-01".')
-parser.add_argument('stg', help='Use Staging PDC', default = False)
+parser.add_argument('stg', help='Use Staging PDC', default = False, action="store_false")
 
 args = parser.parse_args()
 
