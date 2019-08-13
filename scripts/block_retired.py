@@ -14,8 +14,8 @@ import requests
 
 
 log = logging.getLogger(__name__)
-RETIRING_BRANCHES = ["el6", "epel7", "f30", "master"]
-PROD_ONLY_BRANCHES = ["el6", "epel7", "f30", "master"]
+RETIRING_BRANCHES = ["el6", "epel7", "f30", "f31", "master"]
+PROD_ONLY_BRANCHES = ["el6", "epel7", "f30", "f31", "master"]
 
 PRODUCTION_PKGDB = "https://admin.fedoraproject.org/pkgdb"
 STAGING_PKGDB = "https://admin.stg.fedoraproject.org/pkgdb"
@@ -48,7 +48,8 @@ class ReleaseMapper(object):
         if namespace == "container":
             # git branchname, koji tag, epel build tag
             self.mapping = (
-                ("master", "f31-container", ""),
+                ("master", "f32-container", ""),
+                ("f31", "f31-container", ""),
                 ("f30", "f30-container", ""),
                 ("f29", "f29-container", ""),
                 ("f28", "f28-container", ""),
@@ -59,7 +60,8 @@ class ReleaseMapper(object):
         else:
             # git branchname, koji tag, epel build tag
             self.mapping = (
-                ("master", "f31", ""),
+                ("master", "f32", ""),
+                ("f31", "f31", ""),
                 ("f30", "f30", ""),
                 ("f29", "f29", ""),
                 ("f28", "f28", ""),
