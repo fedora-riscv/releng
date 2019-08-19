@@ -85,7 +85,8 @@ Robosignatory needs to be configured to signed the rawhide builds before these b
 Branching Rawhide
 -----------------
 
-When it is time to branch rawhide, a new release should be created following the steps above, the existing release in bodhi should be modified has follow.
+When it is time to branch rawhide, a new release should be created (eg. F32) following the steps above. The old rawhide release (eg. F31) should stay configured as rawhide until we active Bodhi
+for it (2 weeks later). To activate Bodhi on the old rawhide (eg. F31) the existing release in bodhi should be modified has follow.
 
 ::
     $ bodhi releases edit --name "F31" --stable-tag f31-updates --no-create-automatic-updates --composed-by-bodhi
@@ -93,7 +94,7 @@ When it is time to branch rawhide, a new release should be created following the
 Robosignatory configuration
 +++++++++++++++++++++++++++
 
-Robosignatory configuration needs to be update to match the normal configuration of bodhi releases.
+At Bodhi activation time the Robosignatory configuration needs to be update to match the normal configuration of bodhi releases.
 
 ::
 
