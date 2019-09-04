@@ -13,6 +13,7 @@ import operator
 import requests
 import json
 import argparse
+import time
 
 import gi
 gi.require_version('Modulemd', '2.0')
@@ -69,11 +70,17 @@ parser.add_argument('token_file', help='MBS token file for authentication.')
 #During mass rebuild, we need to check if a module has build time dependencies on module_mass_rebuild_platform
 #During mass branching, we need to check if a module has run time dependencies on module_mass_branching_platform
 parser.add_argument('process', help='build or branch, build is used during mass rebuild time, branch is used during branching time')
+parser.add_argument(
+    '--wait',
+    action='store_true',
+    help='Wait until each module build completes/fails before moving on to the next',
+)
 args = parser.parse_args()
 
 if __name__ == '__main__':
     token_file = args.token_file
     process = args.process
+    wait = args.wait
     with open(token_file, 'r', encoding='utf-8') as f:
         token = f.read().strip()
     pdc = 'https://pdc.fedoraproject.org/'
@@ -250,6 +257,27 @@ if __name__ == '__main__':
                     if rv.ok:
                         print('Building {} module for stream {}'.format(name,stream))
                         #pprint(rv.json())
+                        if not wait:
+                            continue
+
+                        build_id = rv.json()['id']
+                        build_url = (
+                            'https://mbs.fedoraproject.org/module-build-service/2/module-builds/{}?short=true'
+                            .format(build_id)
+                        )
+                        while True:
+                            print('Waiting for 15 seconds')
+                            time.sleep(15)
+                            print('Checking the status of module build {}'.format(build_id))
+                            get_rv = requests.get(build_url, timeout=15)
+                            # If the get request fails, simply try again in 15 seconds
+                            if not get_rv.ok:
+                                continue
+
+                            state = get_rv.json()['state_name']
+                            if state in ('failed', 'ready'):
+                                print('The module build {} completed and is in the {} state'.format(build_id, state))
+                                break
                     elif rv.status_code == 401:
                         print('The token is unauthorized', file=sys.stderr)
                         print(rv.text)
