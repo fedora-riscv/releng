@@ -37,7 +37,7 @@ MASSREBUILDS = {
         "product": "Fedora",  # for BZ product field
         "version": "rawhide",  # for BZ version field, rawhide before branching or xx after branching
         "rawhide_version": "31",  # for next version calculation and other comments
-        "tracking_bug": "1732841",  # Tracking bug for mass build failures
+        "tracking_bug": "1700317",  # Tracking bug for mass build failures
         "wikipage": "https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild",
         "pkg_skip_list": PKG_SKIP_LIST,  # packages to skip in rebuild
     },
