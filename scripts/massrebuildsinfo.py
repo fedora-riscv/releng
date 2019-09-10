@@ -23,6 +23,10 @@ PKG_SKIP_LIST = [
 
 # keep this sorted new -> old
 MASSREBUILDS = {
+    #"f32":
+    #{
+    #    "tracking_bug": "1750908",  # Tracking bug for mass build failures
+    #},
     "f31":
     {
         "buildtag": 'f31-rebuild',  # tag to build from
