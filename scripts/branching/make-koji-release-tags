@@ -51,6 +51,8 @@ KOJICLI=koji
 "${KOJICLI}" edit-tag-inheritance "f${old_release}-updates-pending" "f${old_release}-updates"
 "${KOJICLI}" edit-tag-inheritance "f${old_release}-override" "f${old_release}-updates"
 "${KOJICLI}" edit-tag -x mock.new_chroot=0  "f${release}"
+"${KOJICLI}" edit-tag -x tag2distrepo.enabled=true -x tag2distrepo.keys=47dd8ef9  "f${release}-infra"
+"${KOJICLI}" edit-tag -x tag2distrepo.enabled=true -x tag2distrepo.keys=47dd8ef9  "f${release}-infra-stg"
 "${KOJICLI}" edit-tag --perm=admin "f${release}-build"
 "${KOJICLI}" edit-tag --perm=fedora-override "f${release}-override"
 "${KOJICLI}" edit-tag --perm=admin "f${release}-updates"
