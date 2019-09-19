@@ -122,10 +122,18 @@ if __name__ == '__main__':
             #Use this info to figure out whether you need to resubmit the build or not
             #This is useful when the script execution fails for unknown reasons and
             #dont have to submit all the builds again.
+            mbs_template = (
+                "https://mbs.fedoraproject.org/module-build-service/1/module-builds/"
+                "?name={}&stream={}&state=ready&state=init&state=wait"
+                "&state=build&state=done&base_module_br_name=platform"
+            ).format(name, stream)
+            mbs_template += "&submitted_after={}&base_module_br_stream={}"
             if process == 'build':
-                mbs="https://mbs.fedoraproject.org/module-build-service/1/module-builds/?submitted_after={}&name={}&stream={}&state=ready&state=init&state=wait&state=build&state=done".format(module_mass_rebuild_epoch,name,stream)
+                platform = massrebuild['module_mass_rebuild_platform']
+                mbs = mbs_template.format(module_mass_rebuild_epoch, platform)
             elif process == 'branch':
-                mbs="https://mbs.fedoraproject.org/module-build-service/1/module-builds/?submitted_after={}&name={}&stream={}&state=ready&state=init&state=wait&state=build&state=done".format(module_mass_branching_epoch,name,stream)
+                platform = massrebuild['module_mass_branching_platform']
+                mbs = mbs_template.format(module_mass_branching_epoch, platform)
             else:
                 print("Please select either build or branch for the process type")
                 sys.exit(1)
@@ -174,11 +182,9 @@ if __name__ == '__main__':
                     print("Could not able to read the modulemd file")
                     continue
                 if process == 'build':
-                    platform = massrebuild['module_mass_rebuild_platform']
                     #check if a module has build time dependency on platform
                     needs_building = mmd.build_depends_on_stream('platform', platform)
                 elif process == 'branch':
-                    platform = massrebuild['module_mass_branching_platform']
                     #check if a module has run time dependency on platform
                     needs_building = mmd.depends_on_stream('platform', platform)
                 else:
