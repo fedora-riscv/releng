@@ -84,7 +84,7 @@ if __name__ == '__main__':
     with open(token_file, 'r', encoding='utf-8') as f:
         token = f.read().strip()
     pdc = 'https://pdc.fedoraproject.org/'
-    modules = []
+    modules = {}
     #Query pdc to get the modules that are not eol'd
     url = '{0}/rest_api/v1/component-branch-slas/?page_size=100&branch_type=module&branch_active=1'.format(pdc)
     while True:
@@ -93,12 +93,10 @@ if __name__ == '__main__':
             raise RuntimeError('Failed with: {0}'.format(rv.text))
         rv_json = rv.json()
         for sla in rv_json['results']:
-            module = {}
-            #module['module_name'] = sla['branch']['global_component']
-            #module['module_stream'] = sla['branch']['name']
-            module[sla['branch']['global_component']] = sla['branch']['name']
-            if not module in modules:
-                modules.append(module)
+            module_name = sla['branch']['global_component']
+            modules.setdefault(module_name, set())
+            stream = sla['branch']['name']
+            modules[module_name].add(stream)
         url = rv_json['next']
         if not url:
             break
@@ -111,13 +109,8 @@ if __name__ == '__main__':
         'Authorization': 'Bearer {}'.format(token)
     }
 
-    for module in modules:
-        if(len(list(module.keys()))) > 1:
-            print('Something is wrong, {} has more than 1 stream in the dict'.format(list(module.keys())[0]))
-            continue
-        else:
-            name = list(module.keys())[0]
-            stream = module[name]
+    for name, streams in modules.items():
+        for stream in streams:
             #Get the list of builds that are submitted after the module epoch datetime
             #Use this info to figure out whether you need to resubmit the build or not
             #This is useful when the script execution fails for unknown reasons and
