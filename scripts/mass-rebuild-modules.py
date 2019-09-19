@@ -260,23 +260,30 @@ if __name__ == '__main__':
                         if not wait:
                             continue
 
-                        build_id = rv.json()['id']
-                        build_url = (
-                            'https://mbs.fedoraproject.org/module-build-service/2/module-builds/{}?short=true'
-                            .format(build_id)
-                        )
+                        build_url_template = 'https://mbs.fedoraproject.org/module-build-service/2/module-builds/{}?short=true'
+                        build_ids = [build['id'] for build in rv.json()]
                         while True:
                             print('Waiting for 15 seconds')
                             time.sleep(15)
-                            print('Checking the status of module build {}'.format(build_id))
-                            get_rv = requests.get(build_url, timeout=15)
-                            # If the get request fails, simply try again in 15 seconds
-                            if not get_rv.ok:
-                                continue
+                            print('Checking the status of module build(s) {!r}'.format(build_ids))
+                            all_done = True
+                            for build_id in build_ids:
+                                build_url = build_url_template.format(build_id)
+                                get_rv = requests.get(build_url, timeout=15)
+                                # If the get request fails, simply try again in 15 seconds
+                                if not get_rv.ok:
+                                    all_done = False
+                                    break
 
-                            state = get_rv.json()['state_name']
-                            if state in ('failed', 'ready'):
-                                print('The module build {} completed and is in the {} state'.format(build_id, state))
+                                state = get_rv.json()['state_name']
+                                if state in ('failed', 'ready'):
+                                    print('The module build {} completed and is in the {} state'.format(build_id, state))
+                                else:
+                                    print('The module build {} is not complete and is in the {} state'.format(build_id, state))
+                                    all_done = False
+                                    break
+
+                            if all_done:
                                 break
                     elif rv.status_code == 401:
                         print('The token is unauthorized', file=sys.stderr)
