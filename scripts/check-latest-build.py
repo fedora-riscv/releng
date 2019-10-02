@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2013 Red Hat, Inc.
@@ -40,7 +40,7 @@ else:
     KOJIHUB = args.arch
 
 
-def _rpmvercmp((e1, v1, r1), (e2, v2, r2)):
+def _rpmvercmp(e1, v1, r1, e2, v2, r2):
     """find out which build is newer"""
     if e1 == "None":
         e1 = "0"
@@ -84,7 +84,7 @@ for latest in latest_builds:
     builds = kojisession.listTagged(args.tag, package=latest['package_name'])
     for b in builds:
         evr = (str(b['epoch']), b['version'], b['release'])
-        res = _rpmvercmp(latest_evr, evr)
+        res = _rpmvercmp(*latest_evr, *evr)
         if res == -1:
             print("\t%s < %s" % (latest['nvr'], b['nvr']))
             if args.fix is True:
