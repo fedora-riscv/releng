@@ -19,6 +19,7 @@ import argparse
 import datetime
 import email.mime.text
 import hashlib
+import json
 import os
 import smtplib
 import sys
@@ -706,6 +707,9 @@ def main():
                         help="Source repo URL to use for depcheck")
     parser.add_argument("--repo", default=None,
                         help="Repo URL to use for depcheck")
+    parser.add_argument("--json", default=None,
+                        help="Export status_change info about orphaned "
+                             "packages to a specified JSON file")
     parser.add_argument("--no-skip-blocked", default=True,
                         dest="skipblocked", action="store_false",
                         help="Do not skip blocked pkgs")
@@ -742,6 +746,7 @@ def main():
     eprint("Setting up dependency checker...", end=' ')
     depchecker = DepChecker(args.release)
     eprint("done")
+
     eprint('Calculating dependencies...', end=' ')
     # Create dnf object and depsolve out if requested.
     # TODO: add app args to either depsolve or not
@@ -754,6 +759,17 @@ def main():
     text += info
     text += FOOTER
     print(text)
+
+    if args.json is not None:
+        eprint(f'Saving {args.json} with status chnage times')
+        sc = {pkg: depchecker.pagure_dict[pkg].status_change.isoformat()
+              for pkg in orphans if pkg in depchecker.pagure_dict}
+        try:
+            with open(args.json, 'w') as f:
+                json.dump(sc, f, indent=4, sort_keys=True)
+        except OSError as e:
+            eprint(f'Cannot save {args.json}:', end=' ')
+            eprint(f'{type(e).__name__}: e')
 
     if args.mailto or args.send:
         now = datetime.datetime.utcnow()
