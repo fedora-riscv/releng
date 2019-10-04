@@ -1,0 +1,115 @@
+# Don't mess with things already moved
+volume fedora_koji_archive00 :: skip
+
+hastag do-not-archive-yet :: skip
+
+# Don't move modular builds yet
+hashtag f*modular* :: skip
+#match release *.el[5678] *.el[5678]_[0-9] *.el[5678]_1[0-9] :: skip
+
+# stuff we're not ready to move yet
+#buildtag RHEL-[5678]* rhel-[5678]* *-rhel-[5678]* dist-[567]E* :: skip
+#buildtag *-[567]E *-[567]E-* :: skip
+
+#hastag RHEL-[5678]* rhel-[5678]* *-rhel-[5678]* dist-[567]E* :: skip
+#hastag *-[567]E *-[567]E-* :: skip
+
+buildtag dist-fc6* :: fedora_koji_archive00
+imported && hastag dist-fc6* :: fedora_koji_archive00
+
+buildtag dist-fc7* :: fedora_koji_archive00
+hastag f7-final :: fedora_koji_archive00
+hastag f7-test4 :: fedora_koji_archive00
+imported && hastag dist-fc7* :: fedora_koji_archive00
+imported && hastag fe7-merge :: fedora_koji_archive00
+
+buildtag dist-f8* :: fedora_koji_archive00
+hastag dist-f8* :: fedora_koji_archive00
+hastag f8-final :: fedora_koji_archive00
+
+buildtag dist-f9* :: fedora_koji_archive00
+hastag dist-f9* :: fedora_koji_archive00
+hastag f9-alpha :: fedora_koji_archive00
+hastag f9-betal :: fedora_koji_archive00
+hastag f9-final :: fedora_koji_archive00
+hastag f9-build-cutoff :: fedora_koji_archive00
+hastag f9-cutoff :: fedora_koji_archive00
+
+buildtag dist-f10* :: fedora_koji_archive00
+hastag dist-f10* :: fedora_koji_archive00
+hastag f10-alpha :: fedora_koji_archive00
+hastag f10-betal :: fedora_koji_archive00
+hastag f10-final :: fedora_koji_archive00
+hastag f10-kernel :: fedora_koji_archive00
+
+buildtag dist-f11* :: fedora_koji_archive00
+hastag dist-f11* :: fedora_koji_archive00
+hastag f11* :: fedora_koji_archive00
+
+buildtag dist-f12* :: fedora_koji_archive00
+hastag dist-f12* :: fedora_koji_archive00
+hastag f12* :: fedora_koji_archive00
+
+buildtag dist-f13* :: fedora_koji_archive00
+hastag dist-f13* :: fedora_koji_archive00
+hastag f13* :: fedora_koji_archive00
+
+buildtag dist-f14* :: fedora_koji_archive00
+hastag dist-f14* :: fedora_koji_archive00
+hastag f14* :: fedora_koji_archive00
+
+buildtag dist-f15* :: fedora_koji_archive00
+hastag dist-f15* :: fedora_koji_archive00
+hastag f15* :: fedora_koji_archive00
+
+buildtag dist-f16* :: fedora_koji_archive00
+hastag dist-f16* :: fedora_koji_archive00
+hastag f16* :: fedora_koji_archive00
+
+buildtag dist-f17* :: fedora_koji_archive00
+hastag dist-f17* :: fedora_koji_archive00
+hastag f17* :: fedora_koji_archive00
+
+buildtag dist-f18* :: fedora_koji_archive00
+hastag dist-f18* :: fedora_koji_archive00
+hastag f18* :: fedora_koji_archive00
+
+buildtag dist-f19* :: fedora_koji_archive00
+hastag dist-f19* :: fedora_koji_archive00
+hastag f19* :: fedora_koji_archive00
+
+buildtag dist-f20* :: fedora_koji_archive00
+hastag dist-f20* :: fedora_koji_archive00
+hastag f20* :: fedora_koji_archive00
+
+buildtag dist-f21* :: fedora_koji_archive01
+hastag dist-f21* :: fedora_koji_archive01
+hastag f21* :: fedora_koji_archive01
+
+buildtag dist-f22* :: fedora_koji_archive01
+hastag dist-f22* :: fedora_koji_archive01
+hastag f22* :: fedora_koji_archive01
+
+buildtag dist-f23* :: fedora_koji_archive01
+hastag dist-f23* :: fedora_koji_archive01
+hastag f23* :: fedora_koji_archive01
+
+buildtag dist-f24* :: fedora_koji_archive01
+hastag dist-f24* :: fedora_koji_archive01
+hastag f24* :: fedora_koji_archive01
+
+buildtag dist-f25* :: fedora_koji_archive01
+hastag dist-f25* :: fedora_koji_archive01
+hastag f25* :: fedora_koji_archive01
+
+buildtag dist-f26* :: fedora_koji_archive01
+hastag dist-f26* :: fedora_koji_archive01
+hastag f26* :: fedora_koji_archive01
+
+buildtag dist-f27* :: fedora_koji_archive02
+hastag dist-f27* :: fedora_koji_archive02
+hastag f27* :: fedora_koji_archive02
+
+buildtag dist-f28* :: fedora_koji_archive02
+hastag dist-f28* :: fedora_koji_archive02
+hastag f28* :: fedora_koji_archive02
