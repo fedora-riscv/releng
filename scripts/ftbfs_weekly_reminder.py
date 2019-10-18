@@ -50,10 +50,11 @@ If you can fix your package to build, perform a build in koji, and either create
 an update in bodhi, or close this bug without creating an update, if updating is
 not appropriate [1]. If you are working on a fix, set the status to ASSIGNED to
 acknowledge this. Following the latest policy for such packages [2], your package
-can be orphaned if this bug remains in NEW state more than 8 weeks.
+will be orphaned if this bug remains in NEW state more than 8 weeks.
 
 A week before the mass branching of Fedora {int(FEDORA)+1} according to the schedule [3],
-any packages which still have open FTBFS bugs from Fedora {FEDORA} will be retired.
+any packages not successfully rebuilt at least on {int(FEDORA)-1} will be
+retired regardless of the status of this bug.
 
 [1] https://fedoraproject.org/wiki/Updates_Policy
 [2] https://docs.fedoraproject.org/en-US/fesco/Fails_to_build_from_source_Fails_to_install/
