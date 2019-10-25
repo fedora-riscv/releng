@@ -68,6 +68,11 @@ KOJICLI=koji
 "${KOJICLI}" edit-tag --perm=atomic "f${release}-atomic-host-installer"
 "${KOJICLI}" edit-tag --perm=atomic "f${release}-atomic-host-overrides"
 
+# FCOS continuous builds: https://pagure.io/releng/issue/8165
+"${KOJICLI}" add-tag "f${release}-coreos-continuous" --arches="x86_64 aarch64 ppc64le s390x"
+"${KOJICLI}" add-target "f${release}-coreos-continuous" "f${release}-build" "f${release}-coreos-continuous"
+"${KOJICLI}" edit-tag -x tag2distrepo.enabled=true "f${release}-coreos-continuous"
+
 # Set up a corresponding set of tags for modules.
 modular_release=${release}-modular
 old_modular_release=${old_release}-modular
