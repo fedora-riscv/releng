@@ -26,13 +26,13 @@ def main():
     parser = setup_args()
     args = parser.parse_args()
 
-    pdc = pdc_client.PDCClient('fedora')
+    pdc = pdc_client.PDCClient('fedora', develop=True)
 
     endpoint = pdc['component-branches']
     kwargs = dict(name=args.branch, active=True)
     existing = pdc.get_paged(endpoint, **kwargs)
     try:
-        existing.next()
+        next(existing)
     except StopIteration:
         print("%s not a valid branch." % args.branch, file=sys.stderr)
         sys.exit(1)

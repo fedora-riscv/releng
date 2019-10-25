@@ -27,10 +27,10 @@ critpath_groups = [
     '@critical-path-gnome', '@critical-path-kde', '@critical-path-lxde',
     '@critical-path-xfce'
 ]
-primary_arches=('armhfp', 'x86_64')
-alternate_arches=('i386','aarch64','ppc64','ppc64le','s390x')
+primary_arches=('armhfp', 'aarch64', 'x86_64')
+alternate_arches=('ppc64le','s390x')
 # There is not current a programmatic way to generate this list
-fakearch = {'i386':'i686', 'x86_64':'x86_64', 'ppc64':'ppc64', 'ppc':'ppc64', 'armhfp':'armv7hl', 'aarch64':'aarch64', 'ppc64le':'ppc64', 's390x':'s390x'}
+fakearch = {'i386':'i686', 'x86_64':'x86_64', 'ppc64':'ppc64', 'ppc':'ppc64', 'armhfp':'armv7hl', 'aarch64':'aarch64', 'ppc64le':'ppc64le', 's390x':'s390x'}
 fedora_baseurl = 'http://dl.fedoraproject.org/pub/fedora/linux/'
 fedora_alternateurl = 'http://dl.fedoraproject.org/pub/fedora-secondary/'
 releasepath = {
@@ -42,13 +42,13 @@ updatepath = {
     'rawhide': ''
 }
 
-for x in range(12,27,1):
+for x in range(12,32,1):
     r = str(x)
     releasepath[r] = 'releases/%s/Everything/$basearch/os/' % r
     updatepath[r] = 'updates/%s/$basearch/' % r
 
 # Branched Fedora goes here
-branched = '28'
+branched = '31'
 releasepath['branched'] = 'development/%s/Everything/$basearch/os' % branched
 updatepath['branched'] = ''
 
