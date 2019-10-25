@@ -1,0 +1,108 @@
+#!/usr/bin/python3
+
+# fedora-messaging replacement for fedmsg-logger
+# implemented are only features required by releng/scripts/fedmsg-functions.sh 
+
+# Copyright (c) 2019 Red Hat, Inc.
+#
+# Authors:
+#       Karsten Hopp <karsten@redhat.com>
+
+
+import argparse
+import json
+from fedora_messaging import api, message
+
+parser = argparse.ArgumentParser(description="Process commandline parameters.")
+parser.add_argument(
+    "--topic-prefix",
+    dest="topicprefix",
+    default="",
+    help="Prefix for the topic of each message sent.",
+)
+parser.add_argument(
+    "--modname",
+    dest="modname",
+    default="",
+    help="More control over the topic. Think org.fp.MODNAME.TOPIC.",
+)
+parser.add_argument(
+    "--message", dest="message", default="", help="The message to send."
+)
+parser.add_argument(
+    "--topic", dest="topic", default="", help="Think org.fedoraproject.dev.logger.TOPIC"
+)
+parser.add_argument(
+    "--json-input",
+    dest="jsoninput",
+    action="store_true",
+    help="Take each line of input as JSON.",
+)
+
+# unused options for backwards compatibility with fedmsg-logger scripts:
+parser.add_argument(
+    "--cert-prefix",
+    dest="certprefix",
+    default="",
+    help="Specify a different cert from /etc/fedora-messaging/ (unused)",
+)
+parser.add_argument(
+    "--io-threads",
+    dest="io-threads",
+    type=int,
+    default=1,
+    help="Number of io threads for 0mq to use (unused)",
+)
+parser.add_argument(
+    "--config-filename", dest="config-filename", default="", help="Config file to use."
+)
+parser.add_argument(
+    "--print-config",
+    dest="print-config",
+    action="store_true",
+    help="Simply print out the configuration and exit. No action taken. (unused)",
+)
+parser.add_argument(
+    "--timeout",
+    dest="timeout",
+    type=int,
+    default=0,
+    help="Timeout in seconds for any blocking zmq operations. (unused)",
+)
+parser.add_argument(
+    "--high-water-mark",
+    dest="high-water-mark",
+    type=int,
+    default=0,
+    help="Limit on the number of messages in the queue before blocking. (unused)",
+)
+parser.add_argument(
+    "--linger",
+    dest="linger",
+    type=int,
+    default=0,
+    help="Number of milliseconds to wait before timing out connections. (unused)",
+)
+
+args = parser.parse_args()
+print(args)
+print(args.topic)
+
+if args.jsoninput:
+    import sys
+    msgstring=""
+    for line in sys.stdin:
+        msgstring += line
+    body = json.loads(msgstring)
+elif args.message:
+    msgstring='{"log":"start","msg":"' +args.message+ '"}'
+    body = json.loads(msgstring)
+
+wholetopic=args.topicprefix+args.modname+args.topic
+msg = message.Message(
+    topic=wholetopic,
+    headers={u"niceness": u"very"},
+    body=body,
+)
+
+api.publish(msg)

@@ -21,13 +21,19 @@
 #           fedmsg_json_start=$(printf '{"log": "start", "branch": "f24", "arch": "x86_64"}')
 #           send_fedmsg "${fedmsg_json_start}" f24 start
 
+# This is the old fedmsg:
+#LOGGER=fedmsg-logger
+
+# This uses the new fedora-messaging bus:
+LOGGER=./fedora-messaging-logger
+
 function send_fedmsg()
 {
     jsoninput="${1}"
     dist="${2}"
     topic="${3}"
 
-    echo ${jsoninput} | fedmsg-logger \
+    echo ${jsoninput} | $LOGGER \
         --cert-prefix ${FEDMSG_CERTPREFIX} \
         --modname ${FEDMSG_MODNAME} \
         --topic "${dist}.${topic}" \
