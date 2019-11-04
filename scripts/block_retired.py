@@ -9,7 +9,6 @@ import subprocess
 import time
 
 import koji
-import pkgdb2client
 import requests
 
 
@@ -17,13 +16,10 @@ log = logging.getLogger(__name__)
 RETIRING_BRANCHES = ["el6", "epel7", "f30", "f31", "master"]
 PROD_ONLY_BRANCHES = ["el6", "epel7", "f30", "f31", "master"]
 
-PRODUCTION_PKGDB = "https://admin.fedoraproject.org/pkgdb"
-STAGING_PKGDB = "https://admin.stg.fedoraproject.org/pkgdb"
-
 PRODUCTION_PDC = "https://pdc.fedoraproject.org"
 STAGING_PDC = "https://pdc.stg.fedoraproject.org"
 
-# pkgdb default namespace
+# default namespace
 DEFAULT_NS = "rpms"
 
 
@@ -129,51 +125,31 @@ def unblocked_packages(branch="master", staging=False, namespace=DEFAULT_NS):
     return unblocked
 
 
-def get_retired_packages(branch="master", staging=False, namespace=DEFAULT_NS,
-                         source='pkgdb'):
+def get_retired_packages(branch="master", staging=False, namespace=DEFAULT_NS):
     retiredpkgs = []
-    if source == 'pkgdb':
-        url = PRODUCTION_PKGDB if not staging else STAGING_PKGDB
-        pkgdb = pkgdb2client.PkgDB(url)
-
-        try:
-            retiredresponse = pkgdb.get_packages(
-                branches=branch, page="all", status="Retired",
-                namespace=namespace)
-        except pkgdb2client.PkgDBException as e:
-            if "No packages found for these parameters" not in str(e):
-                raise
-            return []
-
-        retiredinfo = retiredresponse["packages"]
-        retiredpkgs = [p["name"] for p in retiredinfo]
-    elif source == 'pdc':
-        # PDC uses singular names such as rpm and container
-        if namespace.endswith('s'):
-            content_type = namespace[:-1]
-        else:
-            content_type = namespace
-        url = PRODUCTION_PDC if not staging else STAGING_PDC
-        url = ('{0}/rest_api/v1/component-branches/?name={1}&type={2}'
-               '&active=false&page_size=100'.format(url, branch, content_type))
-        while True:
-            rv = requests.get(url)
-            if not rv.ok:
-                raise RuntimeError('Failed getting the retired packages from '
-                                   'PDC. The response was: {0}'
-                                   .format(rv.content))
-
-            rv_json = rv.json()
-            for branch in rv_json['results']:
-                retiredpkgs.append(branch['global_component'])
-
-            if rv_json['next']:
-                url = rv_json['next']
-            else:
-                break
+    # PDC uses singular names such as rpm and container
+    if namespace.endswith('s'):
+        content_type = namespace[:-1]
     else:
-        raise RuntimeError('An invalid source of "{0}" was provided'
-                           .format(source))
+        content_type = namespace
+    url = PRODUCTION_PDC if not staging else STAGING_PDC
+    url = ('{0}/rest_api/v1/component-branches/?name={1}&type={2}'
+           '&active=false&page_size=100'.format(url, branch, content_type))
+    while True:
+        rv = requests.get(url)
+        if not rv.ok:
+            raise RuntimeError('Failed getting the retired packages from '
+                               'PDC. The response was: {0}'
+                               .format(rv.content))
+
+        rv_json = rv.json()
+        for branch in rv_json['results']:
+            retiredpkgs.append(branch['global_component'])
+
+        if rv_json['next']:
+            url = rv_json['next']
+        else:
+            break
 
     return retiredpkgs
 
@@ -229,14 +205,14 @@ def block_package(packages, branch="master", staging=False, namespace=DEFAULT_NS
 
 
 def block_all_retired(branches=RETIRING_BRANCHES, staging=False,
-                      namespace=DEFAULT_NS, source='pkgdb'):
+                      namespace=DEFAULT_NS):
     for branch in branches:
         log.debug("Processing branch %s", branch)
         if staging and branch in PROD_ONLY_BRANCHES:
             log.warning('%s in namespace "%s" not handled in staging..' %
                         (branch, namespace))
             continue
-        retired = get_retired_packages(branch, staging, namespace, source)
+        retired = get_retired_packages(branch, staging, namespace)
         unblocked = []
 
         # Check which packages are included in a tag but not blocked, this
@@ -303,16 +279,13 @@ if __name__ == "__main__":
         help="Branch to retire specified packages on, default: %(default)s")
     parser.add_argument(
         "--staging", default=False, action="store_true",
-        help="Talk to staging services (pkgdb/pdc), instead of production")
+        help="Talk to staging services (pdc), instead of production")
     parser.add_argument(
         "-p", "--profile", default="koji",
         help="Koji profile to use, default: %(default)s (ignored with --staging)")
     parser.add_argument(
         "--namespace", default=DEFAULT_NS,
-        help="pkgdb/pdc namespace to use, default: %(default)s")
-    parser.add_argument(
-        "--source", default='pdc', choices=['pkgdb', 'pdc'],
-        help="Source for retirement information, default: %(default)s")
+        help="pdc namespace to use, default: %(default)s")
     args = parser.parse_args()
 
     setup_logging(args.debug)
@@ -320,8 +293,7 @@ if __name__ == "__main__":
     PRODUCTION_KOJI_PROFILE = args.profile
     STAGING_KOJI_PROFILE = "stg"
     if not args.packages:
-        block_all_retired(staging=args.staging, namespace=args.namespace,
-                          source=args.source)
+        block_all_retired(staging=args.staging, namespace=args.namespace)
     else:
         block_package(args.packages, args.branch, staging=args.staging,
                       namespace=args.namespace)
