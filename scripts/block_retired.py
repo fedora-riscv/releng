@@ -166,7 +166,7 @@ def run_koji(koji_params, staging=False):
 
 
 def block_package(packages, branch="master", staging=False, namespace=DEFAULT_NS):
-    if isinstance(packages, basestring):
+    if isinstance(packages, str):
         packages = [packages]
 
     if len(packages) == 0:
