@@ -53,7 +53,7 @@ acknowledge this. Following the latest policy for such packages [2], your packag
 will be orphaned if this bug remains in NEW state more than 8 weeks.
 
 A week before the mass branching of Fedora {int(FEDORA)+1} according to the schedule [3],
-any packages not successfully rebuilt at least on {int(FEDORA)-1} will be
+any packages not successfully rebuilt at least on Fedora {int(FEDORA)-1} will be
 retired regardless of the status of this bug.
 
 [1] https://fedoraproject.org/wiki/Updates_Policy
