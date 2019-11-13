@@ -52,33 +52,8 @@ Configuration
 ::
 
     [client]
-    bridge-hostname: sign-bridge1
-    server-hostname: sign-vault1
-
-
-Configuration for Secondary Architectures
------------------------------------------
-
-All steps remain the same, however you will need admin privileges on your
-secondary koji instance (not primary's). When editing ``~/sigul/client.conf``,
-use:
-
-::
-
-    [client]
-    bridge-hostname: secondary-signer
-    server-hostname: secondary-signer-server
-
-    [koji]
-    # Config file used to connect to the Koji hub
-    ; koji-config: ~/.koji/config
-    # # Recognized alternative instances
-    koji-instances: ppc s390 arm
-
-    koji-config-ppc: /etc/koji/ppc-config
-    koji-config-s390: /etc/koji/s390-config
-    koji-config-arm: /etc/koji/arm-config
-
+    bridge-hostname: sign-bridge.phx2.fedoraproject.org
+    server-hostname: sign-vault.phx2.fedoraproject.org
 
 Updating your Fedora certificate
 ================================
