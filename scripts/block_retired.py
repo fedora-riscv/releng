@@ -1,4 +1,4 @@
-#!/usr/bin/python -tt
+#!/usr/bin/python3
 # vim: fileencoding=utf8
 # SPDX-License-Identifier: GPL-2.0+
 
