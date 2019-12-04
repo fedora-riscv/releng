@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 
 # Copyright (C) 2013 Red Hat Inc.
 # SPDX-License-Identifier:	GPL-2.0+
@@ -7,7 +7,7 @@ import os, os.path
 import sys
 from argparse import ArgumentParser
 import logging
-import ConfigParser
+import configparser
 import pprint
 
 #.composeinfo
@@ -51,8 +51,8 @@ def buildCompose(composePath, treeinfos, name):
         logging.critical(".composeinfo already exists under %s", composeFile)
         return 5
     variants = dict()
-    composeInfoParser = ConfigParser.ConfigParser()
-    treeInfoParser = ConfigParser.ConfigParser()
+    composeInfoParser = configparser.ConfigParser()
+    treeInfoParser = configparser.ConfigParser()
     for treeinfo in treeinfos:
         logging.debug("treeinfo: %s", treeinfo)
         # treepath is relative from the composepath.
@@ -60,7 +60,7 @@ def buildCompose(composePath, treeinfos, name):
 
         try:
             treeInfoParser.read(treeinfo)
-        except ConfigParser.MissingSectionHeaderError, e:
+        except configparser.MissingSectionHeaderError as e:
             logging.critical('%s is not parsable: %s', treeinfo, e)
             return 10
 
