@@ -73,6 +73,9 @@ KOJICLI=koji
 "${KOJICLI}" add-target "f${release}-coreos-continuous" "f${release}-build" "f${release}-coreos-continuous"
 "${KOJICLI}" edit-tag -x tag2distrepo.enabled=true "f${release}-coreos-continuous"
 
+# FCOS signing tags that feed the coreos-pool tag: https://pagure.io/releng/issue/8294
+"${KOJICLI}" add-tag "f${release}-coreos-signing-pending" --parent coreos-pool
+
 # Set up a corresponding set of tags for modules.
 modular_release=${release}-modular
 old_modular_release=${old_release}-modular
