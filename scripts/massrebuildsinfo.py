@@ -23,10 +23,24 @@ PKG_SKIP_LIST = [
 
 # keep this sorted new -> old
 MASSREBUILDS = {
-    #"f32":
-    #{
-    #    "tracking_bug": "1750908",  # Tracking bug for mass build failures
-    #},
+    "f32":
+    {
+        "buildtag": 'f32-rebuild',  # tag to build from
+        "epoch": '2020-01-28 03:30:00.000000',  # rebuild anything not built after this date
+        "module_mass_rebuild_epoch": '',  # rebuild anything not built after this date for modules
+        "module_mass_branching_epoch": '',  # rebuild anything not built after this date for modules
+        "module_mass_rebuild_platform": "1",  # rebuild all modules that has build time dependency on this platform, this is used during mass rebuild time
+        "module_mass_branching_platform": "",  # rebuild all modules that has run time dependency on this platform, this is used during mass branching time
+        "targets": ['f32-candidate', 'rawhide', 'f32'],  # build targets to check for existing builds to skip rebuild
+        "target": 'f32-rebuild',  # target to build into
+        "desttag": 'f32',  # Tag where fixed builds go
+        "product": "Fedora",  # for BZ product field
+        "version": "rawhide",  # for BZ version field, rawhide before branching or xx after branching
+        "rawhide_version": "32",  # for next version calculation and other comments
+        "tracking_bug": "1750908",  # Tracking bug for mass build failures
+        "wikipage": "https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild",
+        "pkg_skip_list": PKG_SKIP_LIST,  # packages to skip in rebuild
+    },
     "f31":
     {
         "buildtag": 'f31-rebuild',  # tag to build from
