@@ -28,9 +28,9 @@ MASSREBUILDS = {
         "buildtag": 'f32-rebuild',  # tag to build from
         "epoch": '2020-01-28 03:30:00.000000',  # rebuild anything not built after this date
         "module_mass_rebuild_epoch": '2020-01-28T03:30:00Z',  # rebuild anything not built after this date for modules
-        "module_mass_branching_epoch": '',  # rebuild anything not built after this date for modules
+        "module_mass_branching_epoch": '2020-02-11T23:30:00Z',  # rebuild anything not built after this date for modules
         "module_mass_rebuild_platform": "f32",  # rebuild all modules that has build time dependency on this platform, this is used during mass rebuild time
-        "module_mass_branching_platform": "",  # rebuild all modules that has run time dependency on this platform, this is used during mass branching time
+        "module_mass_branching_platform": "f33",  # rebuild all modules that has run time dependency on this platform, this is used during mass branching time
         "targets": ['f32-candidate', 'rawhide', 'f32'],  # build targets to check for existing builds to skip rebuild
         "target": 'f32-rebuild',  # target to build into
         "desttag": 'f32',  # Tag where fixed builds go
