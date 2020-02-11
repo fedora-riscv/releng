@@ -211,7 +211,7 @@ if __name__ == '__main__':
                     if process == 'build':
                         commit = ['git', 'commit', '-s', '--allow-empty', '-m', comment]
                     elif process == 'branch':
-                        commit = ['git', 'commit', '-s', '--allow-empty', '-m', 'Branching {} from rawhide, second attempt after platform:f31 enablement'.format(rebuildid)]
+                        commit = ['git', 'commit', '-s', '--allow-empty', '-m', 'Branching {} from rawhide'.format(rebuildid)]
                     else:
                         print("Please select either build or branch for the process type")
                         sys.exit(1)
