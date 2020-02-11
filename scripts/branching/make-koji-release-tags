@@ -45,11 +45,6 @@ KOJICLI=koji
 "${KOJICLI}" add-tag --parent "f${release}" "f${release}-atomic"
 "${KOJICLI}" add-tag --parent "f${release}" "f${release}-atomic-host-installer"
 "${KOJICLI}" add-tag "f${release}-atomic-host-overrides"
-"${KOJICLI}" edit-tag-inheritance "f${old_release}-updates-candidate" "f${old_release}-updates"
-"${KOJICLI}" edit-tag-inheritance "f${old_release}-updates-testing" "f${old_release}-updates"
-"${KOJICLI}" edit-tag-inheritance "f${old_release}-updates-testing-pending" "f${old_release}-updates-testing"
-"${KOJICLI}" edit-tag-inheritance "f${old_release}-updates-pending" "f${old_release}-updates"
-"${KOJICLI}" edit-tag-inheritance "f${old_release}-override" "f${old_release}-updates"
 "${KOJICLI}" edit-tag -x mock.new_chroot=0  "f${release}"
 "${KOJICLI}" edit-tag -x tag2distrepo.enabled=true -x tag2distrepo.keys=47dd8ef9  "f${release}-infra"
 "${KOJICLI}" edit-tag -x tag2distrepo.enabled=true -x tag2distrepo.keys=47dd8ef9  "f${release}-infra-stg"
@@ -108,8 +103,6 @@ old_modular_release=${old_release}-modular
 "${KOJICLI}" add-target "f${release}-container-candidate" "f${release}-container-build" "f${release}-container"
 "${KOJICLI}" edit-target rawhide --dest-tag="f${release}-updates-candidate" --build-tag="f${release}-build"
 "${KOJICLI}" edit-target rawhide-container-candidate --dest-tag="f${release}-container" --build-tag="f${release}-container-build"
-"${KOJICLI}" edit-target "f${old_release}" --dest-tag="f${old_release}-pending"
-"${KOJICLI}" edit-target "f${old_release}-candidate" --dest-tag="f${old_release}-pending"
 
 
 "${KOJICLI}" remove-tag-inheritance rawhide "f${old_release}"
