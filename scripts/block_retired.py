@@ -13,8 +13,8 @@ import requests
 
 
 log = logging.getLogger(__name__)
-RETIRING_BRANCHES = ["el6", "epel7", "f30", "f31", "master"]
-PROD_ONLY_BRANCHES = ["el6", "epel7", "f30", "f31", "master"]
+RETIRING_BRANCHES = ["el6", "epel7", "f32", "master"]
+PROD_ONLY_BRANCHES = ["el6", "epel7", "f32", "master"]
 
 PRODUCTION_PDC = "https://pdc.fedoraproject.org"
 STAGING_PDC = "https://pdc.stg.fedoraproject.org"
@@ -44,7 +44,8 @@ class ReleaseMapper(object):
         if namespace == "container":
             # git branchname, koji tag, epel build tag
             self.mapping = (
-                ("master", "f32-container", ""),
+                ("master", "f33-container", ""),
+                ("f32", "f32-container", ""),
                 ("f31", "f31-container", ""),
                 ("f30", "f30-container", ""),
                 ("f29", "f29-container", ""),
@@ -56,7 +57,8 @@ class ReleaseMapper(object):
         else:
             # git branchname, koji tag, epel build tag
             self.mapping = (
-                ("master", "f32", ""),
+                ("master", "f33", ""),
+                ("f32", "f32", ""),
                 ("f31", "f31", ""),
                 ("f30", "f30", ""),
                 ("f29", "f29", ""),
