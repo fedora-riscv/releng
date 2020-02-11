@@ -59,14 +59,16 @@ if __name__ == '__main__':
         critpath = branch['critical_path']
         # Skip the Rust packages
         # https://pagure.io/fesco/issue/2068
-        if not package.startswith('rust-') and package not in {'zola', 'stratisd'}:
-            active_components.add(
-                '%s/%s' % (package_type, package))
-            print('Ensuring {0}/{1}#{2} exists'.format(
-                package_type, package, args.branch))
-            utilities.ensure_component_branches(
-                pdc, package, slas, args.eol, args.branch,
-                package_type, critpath=critpath, force=True)
+        if (package.startswith('rust-') and package not in {'rust-srpm-macros', 'rust-packaging'})
+             or package in {'zola', 'stratisd'}:
+            continue
+        active_components.add(
+            '%s/%s' % (package_type, package))
+        print('Ensuring {0}/{1}#{2} exists'.format(
+            package_type, package, args.branch))
+        utilities.ensure_component_branches(
+            pdc, package, slas, args.eol, args.branch,
+            package_type, critpath=critpath, force=True)
 
     if args.createfile:
         components_txt = os.path.abspath(os.path.join(
