@@ -92,6 +92,10 @@ old_modular_release=${old_release}-modular
 "${KOJICLI}" edit-tag --perm=autosign "f${modular_release}-signing-pending"
 "${KOJICLI}" edit-tag --perm=autosign "f${modular_release}"
 
+#To add pkgs from old_modular_release tag to modular_release tag
+pkgs=$(koji list-pkgs --quiet --tag="f${old_modular_release}" | awk '{ print $1}')
+koji add-pkg --owner=releng "f${modular_release}" $pkgs
+
 "${KOJICLI}" add-tag --parent module-package-list "module-f${release}-build"
 "${KOJICLI}" add-external-repo -t "module-f${release}-build" "f${release}-build" "https://kojipkgs.fedoraproject.org/repos/f${release}-build/latest/\$arch/"
 
