@@ -1,4 +1,4 @@
-#!/usr/bin/python -tt
+#!/usr/bin/python3
 #
 # Copyright (C) 2013 Red Hat Inc,
 # SPDX-License-Identifier:  GPL-2.0+
@@ -48,7 +48,7 @@ for x in range(12,32,1):
     updatepath[r] = 'updates/%s/$basearch/' % r
 
 # Branched Fedora goes here
-branched = '31'
+branched = '32'
 releasepath['branched'] = 'development/%s/Everything/$basearch/os' % branched
 updatepath['branched'] = ''
 

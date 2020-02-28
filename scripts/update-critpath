@@ -34,7 +34,6 @@ import dogpile.cache
 
 # Here, 'fedora' is the name of the production instance, configured in
 # /etc/pdc.d/.  See the PDC SOP for more information on authenticating.
-pdc = pdc_client.PDCClient('fedora')
 
 # This is an on-disk cache to avoid hitting PDC over and over.
 cache_filename = "/var/tmp/pdc-branch-cache.dbm"
@@ -64,6 +63,9 @@ def setup_parser():
     parser.add_argument(
         'txtlist',
         help="Filename containing list of packages to critpath")
+    parser.add_argument(
+        'token',
+        help="PDC Token")
 
     return parser
 
@@ -77,7 +79,7 @@ def list_critpath(branch):
     :return: a set of package names with PDC branch IDs
     :rtype: set
     '''
-    if not isinstance(branch, basestring):
+    if not isinstance(branch, str):
         raise TypeError('branch *must* be a string')
 
     LOG.debug("Retrieving existing critpath list from PDC.")
@@ -100,14 +102,20 @@ def prepend_pdc_branch_ids(global_components, branch):
     @cache.cache_on_arguments()
     def _get_pdc_branch_id(**args):
         results = list(pdc.get_paged(endpoint, **args))
-        assert len(results) == 1
-        return results[0]
+        #critpath.py generates subpackages as well.
+        #As there wont be any pdc entries for subpackages
+        #we need to skip them
+        if(len(results) == 1):
+            return results[0]
+        else:
+            return None
 
     for i, component in enumerate(global_components):
         args = {'name': branch, 'type': 'rpm', 'global_component': component}
         result = _get_pdc_branch_id(**args)
 
-        pkgs.add("{id}:{global_component}".format(**result))
+        if result:
+            pkgs.add("{id}:{global_component}".format(**result))
     LOG.debug("Done finding PDC branch IDs for supplied critpath list.")
     return pkgs
 
@@ -143,9 +151,11 @@ def main():
     # Parse the commandline
     try:
         arg = parser.parse_args()
-    except argparse.ArgumentTypeError, err:
+    except argparse.ArgumentTypeError as err:
         print("\nError: {0}".format(err))
         return 2
+
+    token = arg.token
 
     if arg.debug:
         LOG.setLevel(logging.DEBUG)
@@ -154,6 +164,9 @@ def main():
         global pdc
         LOG.info("Using staging environment")
         pdc = pdc_client.PDCClient('staging')
+    else:
+        pdc = pdc_client.PDCClient('fedora', token)
+
 
 
     LOG.debug("Using pdc branch cache %r" % cache_filename)
@@ -182,7 +195,7 @@ def main():
     except KeyboardInterrupt:
         LOG.info("\nInterrupted by user.")
         return_code = 1
-    except Exception, err:
+    except Exception as err:
         LOG.exception("Caught generic error")
         return_code = 2
 
