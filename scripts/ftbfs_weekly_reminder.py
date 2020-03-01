@@ -44,13 +44,15 @@ TRACKING = config['bugzilla'].get('tracking', tracking)
 
 TEMPLATE = f"""Dear Maintainer,
 
-your package has not been built successfully in {FEDORA}. Action is required from you.
+your package has an open Fails To Build From Source bug for Fedora {FEDORA}.
+Action is required from you.
 
 If you can fix your package to build, perform a build in koji, and either create
 an update in bodhi, or close this bug without creating an update, if updating is
 not appropriate [1]. If you are working on a fix, set the status to ASSIGNED to
-acknowledge this. Following the latest policy for such packages [2], your package
-will be orphaned if this bug remains in NEW state more than 8 weeks.
+acknowledge this. If you have already fixed this issue, please close this Bugzilla report.
+Following the policy for such packages [2], your package will be orphaned if
+this bug remains in NEW state more than 8 weeks.
 
 A week before the mass branching of Fedora {int(FEDORA)+1} according to the schedule [3],
 any packages not successfully rebuilt at least on Fedora {int(FEDORA)-1} will be
