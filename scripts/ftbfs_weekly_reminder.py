@@ -58,7 +58,7 @@ retired regardless of the status of this bug.
 
 [1] https://fedoraproject.org/wiki/Updates_Policy
 [2] https://docs.fedoraproject.org/en-US/fesco/Fails_to_build_from_source_Fails_to_install/
-[3] https://fedoraproject.org/wiki/Releases/{int(FEDORA)+1}/Schedule
+[3] https://fedorapeople.org/groups/schedule/f-{int(FEDORA)+1}/f-{int(FEDORA)+1}-key-tasks.html
 """  # noqa
 
 cache_dir = pathlib.Path('~/.cache/FTBFS_weekly_reminder/').expanduser()
