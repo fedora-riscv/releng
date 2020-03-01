@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import configparser
-from datetime import datetime
+from datetime import datetime, date, timedelta
 import bugzilla
 import pathlib
 import sys
@@ -51,8 +51,9 @@ If you can fix your package to build, perform a build in koji, and either create
 an update in bodhi, or close this bug without creating an update, if updating is
 not appropriate [1]. If you are working on a fix, set the status to ASSIGNED to
 acknowledge this. If you have already fixed this issue, please close this Bugzilla report.
+
 Following the policy for such packages [2], your package will be orphaned if
-this bug remains in NEW state more than 8 weeks.
+this bug remains in NEW state more than 8 weeks (that's on {{orphanon}}).
 
 A week before the mass branching of Fedora {int(FEDORA)+1} according to the schedule [3],
 any packages not successfully rebuilt at least on Fedora {int(FEDORA)-1} will be
@@ -88,6 +89,9 @@ def needinfo(requestee):
 
 
 def send_reminder(bug, comment=TEMPLATE, set_needinfo=True):
+    created = date(*bug.creation_time.timetuple()[:3])
+    orphanon = created + timedelta(days=7*8)
+    comment = comment.format(orphanon=orphanon.isoformat())
     flags = [needinfo(bug.assigned_to)] if set_needinfo else []
     update = bzapi.build_update(comment=comment, flags=flags)
     try:
