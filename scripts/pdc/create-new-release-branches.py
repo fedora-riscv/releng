@@ -60,7 +60,7 @@ if __name__ == '__main__':
         # Skip the Rust packages
         # https://pagure.io/fesco/issue/2068
         if (package.startswith('rust-') and package not in {'rust-srpm-macros', 'rust-packaging'})
-             or package in {'zola', 'stratisd'}:
+             or package in {'zola', 'stratisd', 'ytop'}:
             continue
         active_components.add(
             '%s/%s' % (package_type, package))
