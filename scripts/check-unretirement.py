@@ -12,6 +12,7 @@
 import requests
 import argparse
 import sys
+import datetime as dt
 
 """
     Parsing:
@@ -89,6 +90,13 @@ def package_slas(url):
     print("\nSLAS--")
     for item in response[0]:
         print(str(item) + ":" + str(response[0][item]))
+        if str(item) == "eol":
+            eol = dt.datetime.strptime(str(response[0][item]), "%Y-%m-%d")
+            delta = dt.datetime.utcnow() - eol
+            if delta > dt.timedelta(days=56):
+                print("Package was retired more than 8 weeks ago. Need a new review")
+            else:
+                print("Package does not need a new review.")
     print("\n")
 
 
