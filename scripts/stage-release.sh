@@ -48,7 +48,7 @@ sudo -u ftpsync compose-partial-copy --arch=armhfp --arch=x86_64 --arch=src \
 
 sudo -u ftpsync compose-partial-copy --arch=aarch64 \
      $BASE/$SHORTRELEASEVER/$COMPOSEID/compose/$dir/ $DESTDIR/$RELPREFIX$RELEASEVER/$dir/ \
-     --variant Everything --variant Cloud --variant Container --variant Modular --variant Server --variant Silverblue \
+     --variant Everything --variant Cloud --variant Container --variant Modular --variant Server --variant Silverblue --variant Workstation \
      --link-dest=/pub/fedora/linux/development/$SHORTRELEASEVER/Everything/ --link-dest=$STAGEDIR/$STAGE/Everything/ --link-dest=$STAGEDIR/$STAGE/$dir/
 
 sudo -u ftpsync compose-partial-copy --arch=armhfp --arch=x86_64 --arch=src \
@@ -63,7 +63,7 @@ sudo -u ftpsync compose-partial-copy --arch=i386 --arch=ppc64le --arch=s390x \
 
 sudo -u ftpsync compose-partial-copy --arch=aarch64 \
      $BASE/$SHORTRELEASEVER/$COMPOSEID/compose/$dir /$ALTARCHDESTDIR/$RELPREFIX$RELEASEVER/$dir/ \
-     --variant Labs --variant Spins --variant Workstation \
+     --variant Labs --variant Spins \
      --link-dest=/pub/fedora/linux/development/$SHORTRELEASEVER/Everything/ --link-dest=$STAGEDIR/$STAGE/Everything/ --link-dest=$STAGEDIR/$STAGE/$dir/
 
 sudo -u ftpsync scripts/build_composeinfo $DESTDIR/$RELPREFIX$RELEASEVER/
