@@ -53,7 +53,7 @@ not appropriate [1]. If you are working on a fix, set the status to ASSIGNED to
 acknowledge this. If you have already fixed this issue, please close this Bugzilla report.
 
 Following the policy for such packages [2], your package will be orphaned if
-this bug remains in NEW state more than 8 weeks (that's on {{orphanon}}).
+this bug remains in NEW state more than 8 weeks (not sooner than {{orphanon}}).
 
 A week before the mass branching of Fedora {int(FEDORA)+1} according to the schedule [3],
 any packages not successfully rebuilt at least on Fedora {int(FEDORA)-1} will be
