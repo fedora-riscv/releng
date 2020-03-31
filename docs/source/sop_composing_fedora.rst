@@ -233,10 +233,318 @@ for QA and the larger Fedora community.
       Compose is done and available from https://kojipkgs.fedoraproject.org/compose/26/Fedora-26-20170328.0/compose/ it has been synced to http://dl.fedoraproject.org/pub/alt/stage/26_Alpha-1.4/ rpms have all be hardlinked to /pub/fedora/linux/development/26/
 
 Verification
-============
+^^^^^^^^^^^^
 
 The method for verifying a compose has completed is checking ``/mnt/koji/compose/[release_version]/[compose_dir]/STATUS``.
 Any status other than DOOMED is OK.
+
+Pre-Release Work
+================
+
+Pushing Updates to Stable
+-------------------------
+
+When the release is signed off on Thursday after the Go/No-Go meeting, push the freeze and blocker to stable updates
+
+Generally the updates are requested stable by QA. If they are not available, you can request them by following
+
+::
+
+   $ bodhi updates request <updateid> stable
+
+Once the updates are requested stable, please push them to stable by following the `bodhi push to stable sop`_
+
+koji tag changes
+----------------
+
+Once the updates are pushed stable, we need to clone the koji tag for beta release or lock the koji tag for final release.
+
+For Beta Release
+^^^^^^^^^^^^^^^^
+
+::
+
+   $ koji clone-tag --all --latest-only f31 f31-Beta
+   $ koji clone-tag --all --latest-only f31-modular f31-Beta-modular
+
+For Final Release
+^^^^^^^^^^^^^^^^^
+
+::
+
+   $ koji edit-tag --lock f31
+   $ koji edit-tag --lock f31-modular
+
+Bodhi Changes
+-------------
+
+Set the bodhi release to ``current``
+
+::
+
+   $ bodhi releases edit --name F31 --state current
+
+Changes for Final Release
+=========================
+
+Once Final is GO, we need to perform different changes as that of Beta release.
+
+Last Branched Compose
+---------------------
+
+Manually run a branched compose so that the GOLD content is same as the nightly compose.
+This also helps in updating the silverblue refs as that of the GOLD content.
+
+Update silverblue refs
+----------------------
+
+Please update the refs as per the following commands on `bodhi-backend01.phx2.fedoraproject.org`
+
+::
+
+   $ sudo ostree refs --create=fedora/31/x86_64/updates/silverblue  fedora/31/x86_64/silverblue
+   $ sudo ostree refs --create=fedora/31/aarch64/updates/silverblue fedora/31/aarch64/silverblue
+   $ sudo ostree refs --create=fedora/31/ppc64le/updates/silverblue fedora/31/ppc64le/silverblue
+
+   $ sudo ostree refs --delete fedora/31/x86_64/silverblue
+   $ sudo ostree refs --delete fedora/31/aarch64/silverblue
+   $ sudo ostree refs --delete fedora/31/ppc64le/silverblue
+
+   $ sudo ostree refs --alias --create=fedora/31/x86_64/silverblue  fedora/31/x86_64/updates/silverblue
+   $ sudo ostree refs --alias --create=fedora/31/aarch64/silverblue fedora/31/aarch64/updates/silverblue
+   $ sudo ostree refs --alias --create=fedora/31/ppc64le/silverblue fedora/31/ppc64le/updates/silverblue
+
+.. note::
+   Before pushing the updates to fxx-updates, run the last branched compose so that both branched and rc composes have the same content.
+   Once the branched compose is done, then update the silverblue refs as mentioned above.
+   If the order is changed, that will screw up the refs
+
+
+Disable Branched Compose
+------------------------
+
+Now that we have a final GOLD compose, we dont need nightly branched composes anymore.
+This is disabled in `releng role`_ in infra ansible repo and then running the playbook.
+
+::
+
+   $ sudo rbac-playbook groups/releng-compose.yml
+
+
+Lift RelEng freeze
+------------------
+
+Lift the RelEng Freeze so that the updates will be pushed to stable.
+This is done by editing `RelEngFrozen variable`_ in infra ansible repo and then run the bodhi playbook.
+
+::
+
+   $ sudo rbac-playbook groups/bodhi-backend.yml
+
+Other Changes
+-------------
+
+These changes include enabling nightly container and cloud composes, other variable changes in infra ansible repo,
+bodhi pungi config changes, updates sync changes and others.
+
+Run the appropriate playbooks after the following changes
+
+::
+
+   diff --git a/roles/releng/files/branched b/roles/releng/files/branched
+    index 966f5c3..1c0454f 100644
+    --- a/roles/releng/files/branched
+    +++ b/roles/releng/files/branched
+    @@ -1,3 +1,3 @@
+     # branched compose
+    -MAILTO=releng-cron@lists.fedoraproject.org
+    -15 7 * * * root TMPDIR=`mktemp -d /tmp/branched.XXXXXX` && cd $TMPDIR && git clone https://pagure.io/pungi-fedora.git && cd pungi-fedora && git checkout f31 && /usr/local/bin/lock-wrapper branched-compose "PYTHONMALLOC=debug LANG=en_US.UTF-8 ./nightly.sh" && sudo -u ftpsync /usr/local/bin/update-fullfiletimelist -l /pub/fedora-secondary/update-fullfiletimelist.lock -t /pub fedora fedora-secondary
+    +#MAILTO=releng-cron@lists.fedoraproject.org
+    +#15 7 * * * root TMPDIR=`mktemp -d /tmp/branched.XXXXXX` && cd $TMPDIR && git clone https://pagure.io/pungi-fedora.git && cd pungi-fedora && git checkout f31 && /usr/local/bin/lock-wrapper branched-compose "PYTHONMALLOC=debug LANG=en_US.UTF-8 ./nightly.sh" && sudo -u ftpsync /usr/local/bin/update-fullfiletimelist -l /pub/fedora-secondary/update-fullfiletimelist.lock -t /pub fedora fedora-secondary
+    diff --git a/roles/releng/files/cloud-updates b/roles/releng/files/cloud-updates
+    index a0ffbe8..287d57d 100644
+    --- a/roles/releng/files/cloud-updates
+    +++ b/roles/releng/files/cloud-updates
+    @@ -6,6 +6,6 @@ MAILTO=releng-cron@lists.fedoraproject.org
+     MAILTO=releng-cron@lists.fedoraproject.org
+     15 7 * * * root TMPDIR=`mktemp -d /tmp/CloudF29.XXXXXX` && pushd $TMPDIR && git clone -n https://pagure.io/pungi-fedora.git && cd pungi-fedora && git checkout f29 && LANG=en_US.UTF-8 ./cloud-nightly.sh RC-$(date "+\%Y\%m\%d").0 && popd && rm -rf $TMPDIR
+     
+    -#Fedora 28 Cloud nightly compose
+    -#MAILTO=releng-cron@lists.fedoraproject.org
+    -#15 8 * * * root TMPDIR=`mktemp -d /tmp/CloudF28.XXXXXX` && pushd $TMPDIR && git clone -n https://pagure.io/pungi-fedora.git && cd pungi-fedora && git checkout f28 && LANG=en_US.UTF-8 ./cloud-nightly.sh RC-$(date "+\%Y\%m\%d").0 && popd && rm -rf $TMPDIR
+    +#Fedora 31 Cloud nightly compose
+    +MAILTO=releng-cron@lists.fedoraproject.org
+    +15 8 * * * root TMPDIR=`mktemp -d /tmp/CloudF31.XXXXXX` && pushd $TMPDIR && git clone -n https://pagure.io/pungi-fedora.git && cd pungi-fedora && git checkout f31 && LANG=en_US.UTF-8 ./cloud-nightly.sh RC-$(date "+\%Y\%m\%d").0 && popd && rm -rf $TMPDIR
+    diff --git a/roles/releng/files/container-updates b/roles/releng/files/container-updates
+    index d763149..5446840 100644
+    --- a/roles/releng/files/container-updates
+    +++ b/roles/releng/files/container-updates
+    @@ -1,6 +1,6 @@
+    -#Fedora 28 Container Updates nightly compose
+    -#MAILTO=releng-cron@lists.fedoraproject.org
+    -#45 5 * * * root TMPDIR=`mktemp -d /tmp/containerF28.XXXXXX` && pushd $TMPDIR && git clone -n https://pagure.io/pungi-fedora.git && cd pungi-fedora && git checkout f28 && LANG=en_US.UTF-8 ./container-nightly.sh RC-$(date "+\%Y\%m\%d").0 && popd && rm -rf $TMPDIR
+    +#Fedora 31 Container Updates nightly compose
+    +MAILTO=releng-cron@lists.fedoraproject.org
+    +45 5 * * * root TMPDIR=`mktemp -d /tmp/containerF31.XXXXXX` && pushd $TMPDIR && git clone -n https://pagure.io/pungi-fedora.git && cd pungi-fedora && git checkout f31 && LANG=en_US.UTF-8 ./container-nightly.sh RC-$(date "+\%Y\%m\%d").0 && popd && rm -rf $TMPDIR
+     
+     # Fedora 30 Container Updates nightly compose
+     MAILTO=releng-cron@lists.fedoraproject.org
+    diff --git a/vars/all/00-FedoraCycleNumber.yaml b/vars/all/00-FedoraCycleNumber.yaml
+    index 22476b0..4bd0d46 100644
+    --- a/vars/all/00-FedoraCycleNumber.yaml
+    +++ b/vars/all/00-FedoraCycleNumber.yaml
+    @@ -1 +1 @@
+    -FedoraCycleNumber: 30
+    +FedoraCycleNumber: 31
+    diff --git a/vars/all/FedoraBranched.yaml b/vars/all/FedoraBranched.yaml
+    index 42ac534..0bbcc1d 100644
+    --- a/vars/all/FedoraBranched.yaml
+    +++ b/vars/all/FedoraBranched.yaml
+    @@ -1 +1 @@
+    -FedoraBranched: True 
+    +FedoraBranched: False 
+    diff --git a/vars/all/FedoraBranchedBodhi.yaml b/vars/all/FedoraBranchedBodhi.yaml
+    index 380f61d..76ba14d 100644
+    --- a/vars/all/FedoraBranchedBodhi.yaml
+    +++ b/vars/all/FedoraBranchedBodhi.yaml
+    @@ -1,2 +1,2 @@
+     #options are: prebeta, postbeta, current
+    -FedoraBranchedBodhi: postbeta 
+    +FedoraBranchedBodhi: current 
+    diff --git a/vars/all/FedoraPreviousPrevious.yaml b/vars/all/FedoraPreviousPrevious.yaml
+    index a8e3d3b..a061e04 100644
+    --- a/vars/all/FedoraPreviousPrevious.yaml
+    +++ b/vars/all/FedoraPreviousPrevious.yaml
+    @@ -1 +1 @@
+    -FedoraPreviousPrevious: False
+    +FedoraPreviousPrevious: True 
+    diff --git a/vars/all/Frozen.yaml b/vars/all/Frozen.yaml
+    index 97d3bc3..7578a88 100644
+    --- a/vars/all/Frozen.yaml
+    +++ b/vars/all/Frozen.yaml
+    @@ -1 +1 @@
+    -Frozen: True
+    +Frozen: False 
+    
+    
+    diff --git a/roles/bodhi2/backend/templates/pungi.rpm.conf.j2 b/roles/bodhi2/backend/templates/pungi.rpm.conf.j2
+    index 688bade..28b524a 100644
+    --- a/roles/bodhi2/backend/templates/pungi.rpm.conf.j2
+    +++ b/roles/bodhi2/backend/templates/pungi.rpm.conf.j2
+    @@ -179,8 +179,8 @@ ostree = {
+                         # In the case of testing, also inject the last stable updates
+                         "https://kojipkgs{{ env_suffix }}.fedoraproject.org/compose/updates/f[[ release.version_int ]]-updates/compose/Everything/$basearch/os/",
+                     [% endif %]
+    -                # For f31 the compose location is going to be under /compose/branched/
+    -                [% if release.version_int == 31 %]
+    +                # For F32 the compose location is going to be under /compose/branched/
+    +                [% if release.version_int == 32 %]
+                         "https://kojipkgs{{ env_suffix }}.fedoraproject.org/compose/branched/latest-Fedora-[[ release.version_int ]]/compose/Everything/$basearch/os/"
+                     [% else %]
+                         "https://kojipkgs{{ env_suffix }}.fedoraproject.org/compose/[[ release.version_int ]]/latest-Fedora-[[ release.version_int ]]/compose/Everything/$basearch/os/"
+    
+    diff --git a/roles/bodhi2/backend/templates/pungi.rpm.conf.j2 b/roles/bodhi2/backend/templates/pungi.rpm.conf.j2
+    index 28b524a..640ddf0 100644
+    --- a/roles/bodhi2/backend/templates/pungi.rpm.conf.j2
+    +++ b/roles/bodhi2/backend/templates/pungi.rpm.conf.j2
+    @@ -193,8 +193,8 @@ ostree = {
+                     "ostree_ref": "fedora/[[ release.version_int ]]/${basearch}/testing/silverblue",
+                 [% endif %]
+                 "tag_ref": False,
+    -            "arches": ["x86_64"],
+    -            "failable": ["x86_64"]
+    +            "arches": ["x86_64", "ppc64le", "aarch64" ],
+    +            "failable": ["x86_64", "ppc64le", "aarch64" ]
+             },
+         ]
+     }
+    
+    
+    diff --git a/roles/bodhi2/backend/files/new-updates-sync b/roles/bodhi2/backend/files/new-updates-sync
+    index d08c893..2d0fb4d 100755
+    --- a/roles/bodhi2/backend/files/new-updates-sync
+    +++ b/roles/bodhi2/backend/files/new-updates-sync
+    @@ -25,8 +25,9 @@ RELEASES = {'f31': {'topic': 'fedora',
+                         'modules': ['fedora', 'fedora-secondary'],
+                         'repos': {'updates': {
+                             'from': 'f31-updates',
+    -                        'ostrees': [{'ref': 'fedora/31/x86_64/updates/silverblue',
+    -                                     'dest': OSTREEDEST}],
+    +                        'ostrees': [{'ref': 'fedora/31/%(arch)s/updates/silverblue',
+    +                                     'dest': OSTREEDEST,
+    +                                     'arches': ['x86_64', 'ppc64le', 'aarch64']}],
+                             'to': [{'arches': ['x86_64', 'armhfp', 'aarch64', 'source'],
+                                     'dest': os.path.join(FEDORADEST, '31', 'Everything')},
+                                    {'arches': ['ppc64le', 's390x'],
+    @@ -34,8 +35,9 @@ RELEASES = {'f31': {'topic': 'fedora',
+                                   ]},
+                                   'updates-testing': {
+                             'from': 'f31-updates-testing',
+    -                        'ostrees': [{'ref': 'fedora/31/x86_64/testing/silverblue',
+    -                                     'dest': OSTREEDEST}],
+    +                        'ostrees': [{'ref': 'fedora/31/%(arch)s/testing/silverblue',
+    +                                     'dest': OSTREEDEST,
+    +                                     'arches': ['x86_64', 'ppc64le', 'aarch64']}],
+                             'to': [{'arches': ['x86_64', 'aarch64', 'armhfp', 'source'],
+                                     'dest': os.path.join(FEDORADEST, 'testing', '31', 'Everything')},
+                                    {'arches': ['ppc64le', 's390x'],
+    
+    
+    diff --git a/roles/pkgdb-proxy/files/pkgdb-gnome-software-collections.json b/roles/pkgdb-proxy/files/pkgdb-gnome-software-collections.json
+    index aac977e..9e0cbf2 100644
+    --- a/roles/pkgdb-proxy/files/pkgdb-gnome-software-collections.json
+    +++ b/roles/pkgdb-proxy/files/pkgdb-gnome-software-collections.json
+    @@ -12,14 +12,14 @@
+           "version": "devel"
+         },
+         {
+    -      "allow_retire": true,
+    +      "allow_retire": false,
+           "branchname": "f31",
+           "date_created": "2014-05-14 12:36:15",
+           "date_updated": "2018-08-14 17:07:23",
+           "dist_tag": ".fc31",
+           "koji_name": "f31",
+           "name": "Fedora",
+    -      "status": "Under Development",
+    +      "status": "Active",
+           "version": "31"
+         },
+         {
+
+Mirroring
+---------
+
+Run `stage-release.sh` script from `releng repo`_ in pagure on `bodhi-backend01.phx2.fedoraproject.org`, this will sign the checksums
+and will put the content on mirrors.
+
+For Beta
+^^^^^^^^
+
+::
+
+   $ sh scripts/stage-release.sh 32_Beta Fedora-32-20200312.0 32_Beta-1.2 fedora-32 1
+
+For Final
+^^^^^^^^^
+
+::
+
+   $ sh scripts/stage-release.sh 32 Fedora-32-20200415.0 32_RC-1.1 fedora-32 0
+
+.. note::
+   Make sure to grab the directory size usage numbers which is used to send an email to `mirror-admin@lists.fedoraproject.org` list.
+
+
+Sync the signed checksums to stage
+----------------------------------
+
+We need to sync the signed checksums to /pub/alt/stage/ by running the following command
+
+::
+
+   $ for dir in Everything Cloud CloudImages Docker Labs Server Spins Workstation WorkstationOstree metadata; do sudo -u ftpsync rsync -avhH /mnt/koji/compose/26/Fedora-26-20170328.0/compose/$dir/ /pub/alt/stage/26_Alpha-1.4/$dir/ --link-dest=/pub/fedora/linux/development/26/Everything/ --link-dest=/pub/alt/stage/26_Alpha-1.1/Everything/ --link-dest=/pub/alt/stage/26_Alpha-1.2/Everything/ --link-dest=/pub/alt/stage/26_Alpha-1.3/Everything --link-dest=/pub/alt/stage/26_Alpha-1.4/Everything; done
+
 
 Consider before Running
 =======================
@@ -245,4 +553,12 @@ operator to withstand network connection issues.
 
 .. _pungi-fedora repository:
     https://pagure.io/pungi-fedora
+.. _bodhi push to stable sop:
+   https://docs.pagure.org/releng/sop_pushing_updates.html#pushing-stable-updates-during-freeze
+.. _RelEngFrozen variable:
+   https://infrastructure.fedoraproject.org/cgit/ansible.git/tree/vars/all/RelEngFrozen.yaml
+.. _releng role:
+   https://infrastructure.fedoraproject.org/cgit/ansible.git/tree/roles/releng
+.. _releng repo:
+   https://pagure.io/releng
 
