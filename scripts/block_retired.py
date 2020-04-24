@@ -13,8 +13,8 @@ import requests
 
 
 log = logging.getLogger(__name__)
-RETIRING_BRANCHES = ["el6", "epel7", "f32", "master"]
-PROD_ONLY_BRANCHES = ["el6", "epel7", "f32", "master"]
+RETIRING_BRANCHES = ["el6", "epel7", "master"]
+PROD_ONLY_BRANCHES = ["el6", "epel7", "master"]
 
 PRODUCTION_PDC = "https://pdc.fedoraproject.org"
 STAGING_PDC = "https://pdc.stg.fedoraproject.org"
