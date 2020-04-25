@@ -96,9 +96,9 @@ Badges tasks
       `sysadmin-badges-members@fedoraproject.org` and
       `gitbadges-members@fedoraproject.org`.  Tell them that they need to update
       this badge and point them to these instructions.
-    * Clone the repo with `` $ git clone ssh://git@pagure.io/fedora-badges-assets.git``
+    * Clone the repo with `` $ git clone ssh://git@pagure.io/fedora-badges.git``
     * Edit `rules/you-can-pry-it-from-my-cold-undead-hands.yml` and add the EOL
-      release to the list in the trigger section on line 19.
+      release to the list in the trigger section on line 16.
     * Push that back to Pagure.
     * Push the rule change out live to our servers by logging into batcave and
       running the `manual/push-badges.yml` playbook.
@@ -173,7 +173,7 @@ Consider Before Running
 .. _End of Life Process:
     https://fedoraproject.org/wiki/BugZappers/HouseKeeping#End_of_Life_.28EOL.29
 .. _cold undead hands:
-    https://pagure.io/fedora-badges-assets/blob/master/f/rules/you-can-pry-it-from-my-cold-undead-hands.yml
+    https://pagure.io/fedora-badges/blob/master/f/rules/you-can-pry-it-from-my-cold-undead-hands.yml
 .. _File Taskotron ticket:
     https://pagure.io/taskotron/new_issue?title=Fedora%20EOL%20notification&content=Fedora%20NN%20is%20now%20EOL
 
