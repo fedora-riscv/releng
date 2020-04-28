@@ -82,5 +82,6 @@ Standard Operating Procedures
     sop_updating_comps
     sop_fedora_media_writer
     sop_find_module_info
+    sop_release_container_base_image
 
 .. _pull request: https://pagure.io/releng/pull-requests
