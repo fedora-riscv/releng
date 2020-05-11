@@ -25,6 +25,7 @@ TRACKERS = {
     "F32FTBFS": 1750908,
     "F33FTBFS": 1803234,
 }
+RAWHIDE = "33"
 
 
 def _bzdate_to_python(date):
@@ -282,9 +283,10 @@ def follow_policy(release):
         summary = f"F{release}FailsToInstall: {', '.join(pkgs)}"
         if len(summary) > 255:
             summary = f"F{release}FailsToInstall: Multiple packages built from {src}"
+        bz_version = release if release != RAWHIDE else "rawhide"
         create_fti_info = bz.build_createbug(
             product="Fedora",
-            version="rawhide",
+            version=bz_version,
             component=src,
             summary=summary,
             description=description,
