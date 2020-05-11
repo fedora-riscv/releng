@@ -185,7 +185,14 @@ def find_broken_packages(pool):
 
 
 @click.command()
-def follow_policy():
+@click.option(
+    "--release",
+    type=click.Choice(sorted(set(t[1:3] for t in TRACKERS.keys()))),
+    default="33",
+    show_default=True,
+    help="Fedora release",
+)
+def follow_policy(release):
     pool = solv.Pool()
     pool.setarch()
 
@@ -201,9 +208,9 @@ def follow_policy():
     ftbfs, fti = find_broken_packages(pool)
 
     bz = bugzilla.Bugzilla("https://bugzilla.redhat.com")
-    # ftbfsbug = bz.getbug("F33FTBFS")
+    # ftbfsbug = bz.getbug(f"F{release}FTBFS")
 
-    ftibug = bz.getbug("F33FailsToInstall")
+    ftibug = bz.getbug(f"F{release}FailsToInstall")
     fti_report = {}
     # TODO: report obsoleted packages
     for src, pkg_rules in fti.items():
@@ -229,7 +236,7 @@ def follow_policy():
         if problems:
             fti_report[src] = problems
 
-    ftibug = bz.getbug("F33FailsToInstall")
+    ftibug = bz.getbug(f"F{release}FailsToInstall")
     query_fti = bz.build_query(
         product="Fedora",
         include_fields=[
@@ -246,6 +253,7 @@ def follow_policy():
     current_ftis = {b.component: b for b in bz.query(query_fti) if b.status != "CLOSED"}
 
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(TEMPLATE_DIR))
+    env.globals["release"] = release
 
     fti_template = env.get_template("create-fti.j2")
 

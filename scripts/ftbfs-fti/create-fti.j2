@@ -1,6 +1,6 @@
 {% include "header.j2" %}
 
-Your package ({{ src }}) Fails To Install in Fedora 33:
+Your package ({{ src }}) Fails To Install in Fedora {{ release }}:
 
 {% for pkg, problems in pkg_problems.items() -%}
 can't install {{ pkg }}:
