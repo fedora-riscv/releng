@@ -13,6 +13,17 @@ import solv
 
 TEMPLATE_DIR = os.path.dirname(os.path.realpath(__file__))
 
+TRACKERS = {
+    "F30FailsToInstall": 1700323,
+    "F31FailsToInstall": 1700324,
+    "F32FailsToInstall": 1750909,
+    "F33FailsToInstall": 1803235,
+    "F30FTBFS": 1674516,
+    "F31FTBFS": 1700317,
+    "F32FTBFS": 1750908,
+    "F33FTBFS": 1803234,
+}
+
 
 def _bzdate_to_python(date):
     return datetime.datetime.strptime(str(date), "%Y%m%dT%H:%M:%S")
@@ -137,6 +148,7 @@ def follow_policy():
             "creation_time",
             "assigned_to",
             "flags",
+            "blocks",
         ],
     )
     query_fti["blocks"] = ftibug.id
@@ -168,13 +180,22 @@ def follow_policy():
 
     fixed_ftis = {src: b for src, b in current_ftis.items() if src not in fti_report}
     if fixed_ftis:
-        close_fti_update = bz.build_update(
-            comment=env.get_template("close-fti.j2").render(),
-            status="CLOSED",
-            resolution="RAWHIDE",
+        comment = env.get_template("close-fti.j2").render()
+        close = bz.build_update(comment=comment, status="CLOSED", resolution="RAWHIDE")
+        unblock = bz.build_update(comment=comment, blocks_remove=ftibug.id)
+        to_close = [
+            b.id
+            for b in fixed_ftis.values()
+            if not (set(b.blocks) - {ftibug.id}) & set(TRACKERS.values())
+        ]
+        to_unblock = [b.id for b in fixed_ftis.values() if b.id not in to_close]
+        print(f"Closing FTI bugs for fixed components: {to_close}", file=sys.stderr)
+        bz.update_bugs(to_close, close)
+        print(
+            f"Unblocking FTI tracker for fixed components: {to_unblock}",
+            file=sys.stderr,
         )
-        print(f"Closing FTI bugs for fixed components: {', '.join(fixed_ftis.keys())}")
-        bz.update_bugs([b.id for b in fixed_ftis.values()], close_fti_update)
+        bz.update_bugs(to_unblock, unblock)
         current_ftis = {
             src: b for src, b in current_ftis.items() if src not in fixed_ftis
         }
