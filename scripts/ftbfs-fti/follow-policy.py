@@ -256,11 +256,7 @@ def follow_policy(release):
         ],
     )
     query_fti["blocks"] = ftibug.id
-    current_ftis = {
-        b.component: b
-        for b in bz.query(query_fti)
-        if b.status != "CLOSED"
-    }
+    current_ftis = {b.component: b for b in bz.query(query_fti) if b.status != "CLOSED"}
 
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(TEMPLATE_DIR))
     env.globals["release"] = release
@@ -318,7 +314,9 @@ def follow_policy(release):
             pass
     if fixed_ftis:
         comment = env.get_template("close-fti.j2").render()
-        close = bz.build_update(comment=comment, status="CLOSED", resolution="WORKSFORME")
+        close = bz.build_update(
+            comment=comment, status="CLOSED", resolution="WORKSFORME"
+        )
         unblock = bz.build_update(comment=comment, blocks_remove=ftibug.id)
         to_close = [
             b.id
@@ -326,13 +324,15 @@ def follow_policy(release):
             if not (set(b.blocks) - {ftibug.id}) & set(TRACKERS.values())
         ]
         to_unblock = [b.id for b in fixed_ftis.values() if b.id not in to_close]
-        print(f"Closing FTI bugs for fixed components: {to_close}", file=sys.stderr)
-        bz.update_bugs(to_close, close)
-        print(
-            f"Unblocking FTI tracker for fixed components: {to_unblock}",
-            file=sys.stderr,
-        )
-        bz.update_bugs(to_unblock, unblock)
+        if to_close:
+            print(f"Closing FTI bugs for fixed components: {to_close}", file=sys.stderr)
+            bz.update_bugs(to_close, close)
+        if to_unblock:
+            print(
+                f"Unblocking FTI tracker for fixed components: {to_unblock}",
+                file=sys.stderr,
+            )
+            bz.update_bugs(to_unblock, unblock)
         current_ftis = {
             src: b for src, b in current_ftis.items() if src not in fixed_ftis
         }
