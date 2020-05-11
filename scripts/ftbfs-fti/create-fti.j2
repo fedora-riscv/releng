@@ -1,0 +1,12 @@
+{% include "header.j2" %}
+
+Your package ({{ src }}) Fails To Install in Fedora 33:
+
+{% for pkg, problems in pkg_problems.items() -%}
+can't install {{ pkg }}:
+  {% for problem in problems -%}
+    - {{ problem }}
+  {% endfor %}
+{% endfor -%}
+
+{% include "create-footer.j2" %}
