@@ -106,7 +106,7 @@ This is the first reminder (step 3 from https://docs.fedoraproject.org/en-US/fes
 This is the second reminder (step 4 from https://docs.fedoraproject.org/en-US/fesco/Fails_to_build_from_source_Fails_to_install/#_package_removal_for_long_standing_ftbfs_and_fti_bugs).""",
                     flags=[flag],
                 )
-                # TODO: Implement
+                return
         if NOW - needinfo_after_four_weeks >= datetime.timedelta(weeks=4):
             print("Opening releng ticket")
             # TODO: Implement
