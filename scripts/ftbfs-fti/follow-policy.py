@@ -258,11 +258,14 @@ def follow_policy():
             continue
 
         description = fti_template.render(src=src, pkg_problems=pkgs)
+        summary = f"F{release}FailsToInstall: {', '.join(pkgs)}"
+        if len(summary) > 255:
+            summary = f"F{release}FailsToInstall: Multiple packages built from {src}"
         create_fti_info = bz.build_createbug(
             product="Fedora",
             version="rawhide",
             component=src,
-            summary=f"FTI: {src}: {', '.join(pkgs)}",
+            summary=summary,
             description=description,
             blocks=ftibug.id,
         )
