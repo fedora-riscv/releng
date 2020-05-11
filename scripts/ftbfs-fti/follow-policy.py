@@ -79,6 +79,14 @@ This is the first reminder (step 3 from https://docs.fedoraproject.org/en-US/fes
                 if _bzdate_to_python(n["when"]) - needinfo_after_week
                 >= datetime.timedelta(weeks=3)
             )
+            if NOW - needinfo_after_four_weeks >= datetime.timedelta(weeks=4):
+                print("Opening releng ticket")
+                # TODO: Implement
+            else:
+                print(
+                    f"No needinfo older than 4 weeks starting from second needinfo ({needinfo_after_four_weeks})",
+                    file=sys.stderr,
+                )
         except StopIteration:
             print(
                 f"No needinfo older than 3 weeks starting from first needinfo ({needinfo_after_week})",
@@ -106,15 +114,6 @@ This is the first reminder (step 3 from https://docs.fedoraproject.org/en-US/fes
 This is the second reminder (step 4 from https://docs.fedoraproject.org/en-US/fesco/Fails_to_build_from_source_Fails_to_install/#_package_removal_for_long_standing_ftbfs_and_fti_bugs).""",
                     flags=[flag],
                 )
-                return
-        if NOW - needinfo_after_four_weeks >= datetime.timedelta(weeks=4):
-            print("Opening releng ticket")
-            # TODO: Implement
-        else:
-            print(
-                f"No needinfo older than 4 weeks starting from second needinfo ({needinfo_after_four_weeks})",
-                file=sys.stderr,
-            )
 
     if bzupdate is not None:
         bz.update_bugs([bug.id], bzupdate)
