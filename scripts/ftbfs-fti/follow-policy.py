@@ -9,6 +9,7 @@ import sys
 import bugzilla
 import click
 import jinja2
+import requests
 import solv
 
 TEMPLATE_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -236,6 +237,10 @@ def follow_policy(release):
         if problems:
             fti_report[src] = problems
 
+    pkg_owners = requests.get(
+        "https://src.fedoraproject.org/extras/pagure_poc.json"
+    ).json()
+
     ftibug = bz.getbug(f"F{release}FailsToInstall")
     query_fti = bz.build_query(
         product="Fedora",
@@ -250,7 +255,11 @@ def follow_policy(release):
         ],
     )
     query_fti["blocks"] = ftibug.id
-    current_ftis = {b.component: b for b in bz.query(query_fti) if b.status != "CLOSED"}
+    current_ftis = {
+        b.component: b
+        for b in bz.query(query_fti)
+        if b.status != "CLOSED"
+    }
 
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(TEMPLATE_DIR))
     env.globals["release"] = release
@@ -263,6 +272,10 @@ def follow_policy(release):
                 f"Skipping {src} because bug already exists: {current_ftis[src].id}",
                 file=sys.stderr,
             )
+            continue
+
+        if pkg_owners["rpms"][src]["fedora"] == "orphan":
+            # Skip reporting bugs for orphaned packages
             continue
 
         description = fti_template.render(src=src, pkg_problems=pkgs)
