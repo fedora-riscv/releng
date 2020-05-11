@@ -250,7 +250,7 @@ def follow_policy(release):
         ],
     )
     query_fti["blocks"] = ftibug.id
-    current_ftis = {b.component: b for b in bz.query(query_fti) if b.status not in {"CLOSED", "ON_QA"}}
+    current_ftis = {b.component: b for b in bz.query(query_fti) if b.status != "CLOSED"}
 
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(TEMPLATE_DIR))
     env.globals["release"] = release
@@ -281,6 +281,26 @@ def follow_policy(release):
         bz.createbug(create_fti_info)
 
     fixed_ftis = {src: b for src, b in current_ftis.items() if src not in fti_report}
+    # Ignore bugs which have pending updates in Bodhi
+    for src, b in list(fixed_ftis.items()):
+        if b.status not in {"MODIFIED", "ON_QA"}:
+            continue
+        print(
+            f"Checking {b.id} if it was submitted as an update to appropriate release",
+            file=sys.stderr,
+        )
+        comments = b.getcomments()
+        try:
+            next(
+                c
+                for c in comments
+                if c["creator"] == "updates@fedoraproject.org"
+                and f"Fedora {release}" in c["text"]
+            )
+            print(f"Bug for {src} ({b.id}) has a pending update, ignoring")
+            del fixed_ftis[src]
+        except StopIteration:
+            pass
     if fixed_ftis:
         comment = env.get_template("close-fti.j2").render()
         close = bz.build_update(comment=comment, status="CLOSED", resolution="RAWHIDE")
