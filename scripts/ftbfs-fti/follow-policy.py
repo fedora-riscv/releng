@@ -94,20 +94,6 @@ This is the first reminder (step 3 from https://docs.fedoraproject.org/en-US/fes
             )
             if NOW - needinfo_after_week >= datetime.timedelta(weeks=3):
                 print("Asking for another needinfo")
-                # RHBZ can have multiple needinfo flags, but python-bugzilla does not like it much
-                # https://github.com/python-bugzilla/python-bugzilla/issues/118
-                flags = [f for f in bug.flags if f["name"] == "needinfo"]
-                if flags:
-                    # If there are any needinfos, we will drop all of them and then create a new one
-                    bz.update_bugs(
-                        [bug.id],
-                        bz.build_update(
-                            flags=[
-                                {"name": "needinfo", "id": f["id"], "status": "X"}
-                                for f in flags
-                            ]
-                        ),
-                    )
                 bzupdate = bz.build_update(
                     comment="""Hello,
 
@@ -116,7 +102,33 @@ This is the second reminder (step 4 from https://docs.fedoraproject.org/en-US/fe
                 )
 
     if bzupdate is not None:
-        bz.update_bugs([bug.id], bzupdate)
+        result = bz.update_bugs([bug.id], bzupdate)
+        if "flags" in bzupdate and not result["bugs"][0]["changes"]:
+            # FIXME: Probably bug(s) in bugzilla and should be reported there
+            # 1. Accounts which change email do not force needinfo change
+            # 2. RHBZ can have multiple flags of the same type, but python-bugzilla does not like it much
+            #    https://github.com/python-bugzilla/python-bugzilla/issues/118
+            flags = bzupdate["flags"]
+            flags_to_unset = [
+                f for f in bug.flags if f["name"] in set(f["name"] for f in flags)
+            ]
+            flags = [f for f in bug.flags if f["name"] == "needinfo"]
+            if not flags_to_unset:
+                raise AssertionError(
+                    "Flags update did not happen, neither there are flags to remove"
+                )
+                # If there are any needinfos, we will drop all of them and then create a new one
+            bz.update_bugs(
+                [bug.id],
+                bz.build_update(
+                    flags=[
+                        {"name": "needinfo", "id": f["id"], "status": "X"}
+                        for f in flags
+                    ]
+                ),
+            )
+            # Retry setting a flag
+            bz.update_bugs([bug.id], bz.build_update(flags=bzupdate["flags"]))
 
 
 def find_broken_packages(pool):
