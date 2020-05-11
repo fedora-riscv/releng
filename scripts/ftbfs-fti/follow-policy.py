@@ -210,7 +210,10 @@ def follow_policy():
         creation_time = _bzdate_to_python(b.creation_time)
         diff = now - creation_time
         if diff < datetime.timedelta(weeks=1):
-            print("Skipping because week did not pass yet", file=sys.stderr)
+            print(
+                f"Skipping because week did not pass yet since creation time ({creation_time})",
+                file=sys.stderr,
+            )
             continue
 
         # Only reliable way to get whether needinfos were set is go through history
@@ -239,7 +242,10 @@ This is the first reminder (step 3 from https://docs.fedoraproject.org/en-US/fes
                     if now - _bzdate_to_python(n["when"]) >= datetime.timedelta(weeks=1)
                 )
             except StopIteration:
-                print("No needinfo older than 1 week", file=sys.stderr)
+                print(
+                    f"No needinfo older than 1 week (oldest is from {_bzdate_to_python(needinfos[0]['when'])})",
+                    file=sys.stderr,
+                )
                 continue
             try:
                 needinfo_after_four_weeks = next(
