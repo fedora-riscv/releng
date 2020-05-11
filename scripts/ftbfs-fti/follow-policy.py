@@ -16,11 +16,9 @@ TEMPLATE_DIR = os.path.dirname(os.path.realpath(__file__))
 
 NOW = datetime.datetime.now()
 TRACKERS = {
-    "F30FailsToInstall": 1700323,
     "F31FailsToInstall": 1700324,
     "F32FailsToInstall": 1750909,
     "F33FailsToInstall": 1803235,
-    "F30FTBFS": 1674516,
     "F31FTBFS": 1700317,
     "F32FTBFS": 1750908,
     "F33FTBFS": 1803234,
