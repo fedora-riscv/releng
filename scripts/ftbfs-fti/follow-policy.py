@@ -316,7 +316,7 @@ def follow_policy(release):
             pass
     if fixed_ftis:
         comment = env.get_template("close-fti.j2").render()
-        close = bz.build_update(comment=comment, status="CLOSED", resolution="RAWHIDE")
+        close = bz.build_update(comment=comment, status="CLOSED", resolution="WORKSFORME")
         unblock = bz.build_update(comment=comment, blocks_remove=ftibug.id)
         to_close = [
             b.id
