@@ -36,7 +36,7 @@ def handle_orphaning(bug):
     diff = NOW - creation_time
     if diff < datetime.timedelta(weeks=1):
         print(
-            f"Skipping because week did not pass yet since creation time ({creation_time})",
+            f"→ Week did not pass since creation time ({creation_time}), skipping…",
             file=sys.stderr,
         )
         return
@@ -52,7 +52,7 @@ def handle_orphaning(bug):
     bzupdate = None
     flag = {"name": "needinfo", "status": "?", "requestee": bug.assigned_to}
     if not needinfos:
-        print("Asking for a first needinfo")
+        print("Asking for the first needinfo")
         bzupdate = bz.build_update(
             comment="""Hello,
 
@@ -68,7 +68,7 @@ This is the first reminder (step 3 from https://docs.fedoraproject.org/en-US/fes
             )
         except StopIteration:
             print(
-                f"No needinfo older than 1 week (oldest is from {_bzdate_to_python(needinfos[0]['when'])})",
+                f"→ Week did not pass since first needinfo ({_bzdate_to_python(needinfos[0]['when'])}), skipping…",
                 file=sys.stderr,
             )
             return
@@ -84,12 +84,12 @@ This is the first reminder (step 3 from https://docs.fedoraproject.org/en-US/fes
                 # TODO: Implement
             else:
                 print(
-                    f"No needinfo older than 4 weeks starting from second needinfo ({needinfo_after_four_weeks})",
+                    f"→ 4 weeks did not pass since second needinfo ({needinfo_after_four_weeks}), skipping…",
                     file=sys.stderr,
                 )
         except StopIteration:
             print(
-                f"No needinfo older than 3 weeks starting from first needinfo ({needinfo_after_week})",
+                f"→ 3 weeks did not pass since first needinfo ({needinfo_after_week}), skipping…",
                 file=sys.stderr,
             )
             if NOW - needinfo_after_week >= datetime.timedelta(weeks=3):
