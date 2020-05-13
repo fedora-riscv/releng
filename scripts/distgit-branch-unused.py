@@ -49,8 +49,12 @@ def list_builds(package, opts):
     by_hash = {find_hash(b):b for b in builds}
     return by_hash
 
-def containing_branches(repo, commit, ignore_branch=None):
-    containing = repo.branches.with_commit(commit)
+def containing_branches(repo, commit, *, local, ignore_branch=None):
+    if local:
+        containing = repo.branches.local.with_commit(commit)
+    else:
+        containing = repo.branches.remote.with_commit(commit)
+
     for b in containing:
         branch = repo.branches[b]
         if branch != ignore_branch:
@@ -71,9 +75,14 @@ def do_opts():
 
 def branch_is_reachable(opts):
     repo = pygit2.Repository(opts.repository)
-    branch = repo.branches[opts.branch]
+    try:
+        branch = repo.branches.local[opts.branch]
+        local = True
+    except KeyError:
+        branch = repo.branches.remote[opts.branch]
+        local = False
 
-    other = list(containing_branches(repo, branch.target, branch))
+    other = list(containing_branches(repo, branch.target, local=local, ignore_branch=branch))
     if other:
         names = ', '.join(o.name for o in other)
         print(f'Branch merged into {names}. Safe to delete.')
@@ -85,7 +94,7 @@ def branch_is_reachable(opts):
     for n, commit in enumerate(repo.walk(branch.target, pygit2.GIT_SORT_TOPOLOGICAL)):
         subj = commit.message.splitlines()[0][:60]
         print(f'{n}: {commit.hex[:7]} {subj}')
-        other = list(containing_branches(repo, commit, branch))
+        other = list(containing_branches(repo, commit, local=local, ignore_branch=branch))
         if other:
             names = ', '.join(o.name for o in other)
             print(f'Commit {commit.hex} referenced from {names}. Stopping iteration.')
