@@ -60,6 +60,27 @@ def containing_branches(repo, commit, *, local, ignore_branch=None):
         if branch != ignore_branch:
             yield branch
 
+def name_in_spec_file(commit, package):
+    try:
+        spec = (commit.tree / f'{package}.spec').data
+    except KeyError:
+        print(f"Commit {commit.hex} doesn't have '{package}.spec', assuming package is unbuildable.")
+        return None
+
+    # We don't try to decode the whole spec file here, to reduce the chances of trouble.
+    # Just any interesting lines.
+    for line in spec.splitlines():
+        if not line.startswith(b'Name:'):
+            continue
+        try:
+            name = line[5:].decode().strip()
+        except UnicodeDecodeError:
+            print(f"Something is wrong: commit {commit.hex} has busted encoding'.")
+            raise
+
+        # Note that this does not do macro resolution. No need to support crazy things.
+        return name
+
 def do_opts():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawTextHelpFormatter)
@@ -100,10 +121,25 @@ def branch_is_reachable(opts):
             print(f'Commit {commit.hex} referenced from {names}. Stopping iteration.')
             break
 
+        # Figure out the name used in the spec file in that commit.
+        # This is for the following case:
+        # * Repo 'foo' exists and is active
+        # * Repo 'foo2' (like a compat version of foo) exists and is active
+        # * People have 'Name: foo' in 'foo2.spec' and make a build
+        # * Koji will record this package as 'foo', even though it was built from 'foo2' repo
+        try:
+            real_name = name_in_spec_file(commit, opts.package)
+        except UnicodeDecodeError:
+            return 1
+        if real_name is not None and real_name != opts.package:
+            print(f"Sorry, {commit.hex} has Name:{real_name}, refusing to continue.")
+            return 1
+
         built = builds.get(commit.hex, None)
         if built:
             print(f"Sorry, {commit.hex} built as {built['nvr']}.")
-            print(f"See https://koji.fedoraproject.org/koji/taskinfo?taskID={built['task_id']}.")
+            koji_link = f"https://koji.fedoraproject.org/koji/taskinfo?taskID={built['task_id']}"
+            print(f"See {koji_link}.")
             return 1
 
     print('No builds found, seems OK to delete.')
