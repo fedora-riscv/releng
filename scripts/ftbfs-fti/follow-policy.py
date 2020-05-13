@@ -334,13 +334,10 @@ def follow_policy(release):
         ]
         to_unblock = [b.id for b in fixed_ftis.values() if b.id not in to_close]
         if to_close:
-            print(f"Closing FTI bugs for fixed components: {to_close}", file=sys.stderr)
+            print(f"Closing FTI bugs for fixed components: {to_close}")
             bz.update_bugs(to_close, close)
         if to_unblock:
-            print(
-                f"Unblocking FTI tracker for fixed components: {to_unblock}",
-                file=sys.stderr,
-            )
+            print(f"Unblocking FTI tracker for fixed components: {to_unblock}")
             bz.update_bugs(to_unblock, unblock)
         current_ftis = {
             src: b for src, b in current_ftis.items() if src not in fixed_ftis
