@@ -87,9 +87,16 @@ def list_builds(package, opts):
                 build['source'] = msession.getTaskInfo(build['task_id'], request=True)
     for build in builds:
         if isinstance(build['source'], koji.VirtualCall):
-            build['source'] = build['source'].result['request'][0]
+            r = build['source'].result
+            if r is None:
+                # This seems to happen for very old builds, e.g. buildbot-0.7.5-1.fc7.
+                build['source'] = None
+                nvr, time = build['nvr'], build['creation_time']
+                print(f'Warning: build {nvr} from {time} has no source, ignoring.')
+            else:
+                build['source'] = r['request'][0]
 
-    by_hash = {find_hash(b):b for b in builds}
+    by_hash = {find_hash(b):b for b in builds if b['source']}
     return by_hash
 
 def containing_branches(repo, commit, *, local, ignore_branch=None):
