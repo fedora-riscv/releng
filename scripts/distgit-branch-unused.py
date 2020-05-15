@@ -24,16 +24,59 @@ commits.
 
 import argparse
 import pathlib
+import re
 import pygit2
+import requests
 import koji as _koji
+
+BODHI_RELEASES = 'https://bodhi.fedoraproject.org/releases/?rows_per_page=1000'
+NORMAL_BRANCHES = r'^(f\d{1,2}|el\d|epel\d|epel1\d)$'
+
+_KOJI_SESSION = None
+def koji_session(opts):
+    global _KOJI_SESSION
+    if not _KOJI_SESSION:
+        koji = _koji.get_profile_module(opts.koji_profile)
+        session_opts = koji.grab_session_options(koji.config)
+        session = koji.ClientSession(koji.config.server, session_opts)
+        _KOJI_SESSION = (session, koji)
+    return _KOJI_SESSION
+
+def koji_builds_exist(tag, package, opts):
+    session, _ = koji_session(opts)
+
+    print(f'Checking for {package} in tag {tag}...', end=' ')
+    tagged = session.listTagged(tag, latest=True, inherit=False, package=package)
+    print(tagged[0]['nvr'] if tagged else '(no)')
+    return bool(tagged)
+
+def bodhi_builds_exist(branch, package, opts):
+    releases = requests.get(BODHI_RELEASES).json()['releases']
+
+    for entry in releases:
+        if entry['branch'] == branch:
+            tags = [v for k,v in entry.items() if k.endswith('_tag') and v]
+            print(f'Found branch {branch} in bodhi with tags:', ', '.join(tags))
+            for tag in tags:
+                if koji_builds_exist(tag, package, opts):
+                    return True
+
+            print(f'No builds found in koji for branch {branch}')
+            return False
+
+    print(f'Branch {branch} not found in bodhi, checking if branch matches pattern...')
+    m = re.match(NORMAL_BRANCHES, branch)
+    if m:
+        print('...it does, do not delete')
+        return True
+    print('...no match, seems OK to remove')
+    return False
 
 def find_hash(build):
     return build['source'].rsplit('#', 1)[1]
 
 def list_builds(package, opts):
-    koji = _koji.get_profile_module(opts.koji_profile)
-    session_opts = koji.grab_session_options(koji.config)
-    session = koji.ClientSession(koji.config.server, session_opts)
+    session, koji = koji_session(opts)
 
     pkg = session.getPackageID(package, strict=True)
     builds = session.listBuilds(packageID=pkg, state=koji.BUILD_STATES['COMPLETE'])
@@ -98,10 +141,21 @@ def branch_is_reachable(opts):
     repo = pygit2.Repository(opts.repository)
     try:
         branch = repo.branches.local[opts.branch]
+        branch_name = branch.branch_name
         local = True
     except KeyError:
         branch = repo.branches.remote[opts.branch]
+        l = len(branch.remote_name)
+        branch_name = branch.branch_name[l+1:]
         local = False
+
+    if branch_name == 'master':
+        print("Branch 'master' cannot be deleted.")
+        return 1
+
+    if bodhi_builds_exist(branch_name, opts.package, opts):
+        print('Branch was used to build packages, cannot delete.')
+        return 1
 
     other = list(containing_branches(repo, branch.target, local=local, ignore_branch=branch))
     if other:
