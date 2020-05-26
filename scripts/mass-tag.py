@@ -31,7 +31,7 @@ koji_module = koji.get_profile_module("fedora")
 kojisession = koji_module.ClientSession(koji_module.config.server)
 
 # Log into koji
-kojisession.krb_login()
+kojisession.gssapi_login()
 
 # Generate a list of builds to iterate over, sorted by package name
 builds = sorted(kojisession.listTagged(holdingtag, latest=True),

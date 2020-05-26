@@ -59,7 +59,7 @@ def _rpmvercmp(e1, v1, r1, e2, v2, r2):
 
 koji_module = koji.get_profile_module(KOJIHUB)
 kojisession = koji_module.ClientSession(koji_module.config.server)
-kojisession.krb_login()
+kojisession.gssapi_login()
 
 if args.package == []:
     latest_builds = sorted(kojisession.listTagged(args.tag, latest=True),

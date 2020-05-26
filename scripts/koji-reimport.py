@@ -34,7 +34,7 @@ primarykoji = koji.get_profile_module("fedora")
 secondarykoji = koji.get_profile_module(sec_profile)
 primary = primarykoji.ClientSession(primarykoji.config.server)
 secondary = secondarykoji.ClientSession(secondarykoji.config.server)
-secondary.krb_login()
+secondary.gssapi_login()
 
 # do the thing: 
 

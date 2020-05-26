@@ -27,7 +27,7 @@ koji_module = koji.get_profile_module(koji_profile)
 kojisession = koji_module.ClientSession(koji_module.config.server)
 
 # Log into koji
-kojisession.krb_login()
+kojisession.gssapi_login()
 
 # Get all builds tagged into the tag w/o inherited builds
 builds = kojisession.listTagged(tag, latest=True)

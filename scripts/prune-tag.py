@@ -58,7 +58,7 @@ tag = extras[0]
 logging.info('Setting up koji session')
 koji_module = koji.get_profile_module(KOJIHUB)
 kojisession = koji_module.ClientSession(koji_module.config.server)
-if not kojisession.krb_login():
+if not kojisession.gssapi_login():
     logging.error('Unable to log into koji')
     sys.exit(1)
 

@@ -137,7 +137,7 @@ local_koji_module = koji.get_profile_module("arm")
 localkojisession = local_koji_module.ClientSession(local_koji_module.config.server)
 remote_koji_module = koji.get_profile_module("koji")
 remotekojisession = remote_koji_module.ClientSession(remote_koji_module.config.server)
-localkojisession.krb_login()
+localkojisession.gssapi_login()
 
 tag = 'f18-rebuild'
 

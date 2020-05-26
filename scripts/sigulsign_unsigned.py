@@ -112,7 +112,7 @@ class KojiHelper(object):
             self.kojihub = "koji"
         self.koji_module = koji.get_profile_module(self.kojihub)
         self.kojisession = self.koji_module.ClientSession(self.koji_module.config.server)
-        self.kojisession.krb_login()
+        self.kojisession.gssapi_login()
 
     def listTagged(self, tag, inherit=False):
         """ Return list of SRPM NVRs for a tag

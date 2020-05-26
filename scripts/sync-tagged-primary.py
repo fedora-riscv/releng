@@ -73,9 +73,9 @@ if os.path.isfile(CLIENTCERT):
     seckojisession.ssl_login(CLIENTCERT, CLIENTCA, SERVERCA)
 else:
     if args.keytab and args.principal:
-        seckojisession.krb_login(principal=args.principal, keytab=args.keytab)
+        seckojisession.gssapi_login(principal=args.principal, keytab=args.keytab)
     else:
-        seckojisession.krb_login()
+        seckojisession.gssapi_login()
 
 for tag in args.tag:
     print("=== Working on tag: %s ====" % tag)

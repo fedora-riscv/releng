@@ -156,9 +156,9 @@ if os.path.isfile(CLIENTCERT):
     localkojisession.ssl_login(CLIENTCERT, CLIENTCA, SERVERCA)
 else:
     if args.keytab and args.principal:
-        localkojisession.krb_login(principal=args.principal, keytab=args.keytab)
+        localkojisession.gssapi_login(principal=args.principal, keytab=args.keytab)
     else:
-        localkojisession.krb_login()
+        localkojisession.gssapi_login()
 
 for build in args.build:
     buildinfo = remotekojisession.getBuild(build)

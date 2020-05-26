@@ -93,7 +93,7 @@ if testonly:
 ks_config = ConfigParser.ConfigParser()
 ks_config.read(shadowconfig)
 local = koji.ClientSession(ks_config.get("main", "server"), {'krb_rdns': False})
-local.krb_login()
+local.gssapi_login()
 
 # set up the queues
 buildqueue = deque()

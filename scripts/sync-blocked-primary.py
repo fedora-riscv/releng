@@ -48,7 +48,7 @@ for arch in arches:
     # Create a koji session
     sec_koji_module = koji.get_profile_module(args.arch)
     seckojisession = sec_koji_module.ClientSession(sec_koji_module.config.server)
-    seckojisession.krb_login()
+    seckojisession.gssapi_login()
 
     for tag in tags:
         print("=== Working on tag: %s" % tag)
