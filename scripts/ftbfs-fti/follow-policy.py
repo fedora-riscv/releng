@@ -30,19 +30,29 @@ def _bzdate_to_python(date):
     return datetime.datetime.strptime(str(date), "%Y%m%dT%H:%M:%S")
 
 
-def handle_orphaning(bug):
+def handle_orphaning(bug, tracker):
     bz = bug.bugzilla
-    creation_time = _bzdate_to_python(bug.creation_time)
-    diff = NOW - creation_time
+
+    history = bug.get_history_raw()["bugs"][0]["history"]
+
+    start_time = _bzdate_to_python(
+        next(
+            u["when"]
+            for u in history
+            for c in u["changes"]
+            if c["field_name"] == "blocks"
+            and str(tracker.id) in {b.strip() for b in c["added"].split(",")}
+        )
+    )
+    diff = NOW - start_time
     if diff < datetime.timedelta(weeks=1):
         print(
-            f"→ Week did not pass since creation time ({creation_time}), skipping…",
+            f"→ Week did not pass since bug started to block tracker ({start_time}), skipping…",
             file=sys.stderr,
         )
         return
 
     # Only reliable way to get whether needinfos were set is go through history
-    history = bug.get_history_raw()["bugs"][0]["history"]
     needinfos = [
         u
         for u in history
@@ -240,7 +250,11 @@ def follow_policy(release):
                     # Only interested in missing providers of a package itself
                     continue
                 # Skip hacky multilib packages
-                if "(x86-32)" in str(info["dep"]):
+                if (
+                    "(x86-32)" in str(info["dep"])
+                    or "dssi-vst-wine" in str(info["dep"])
+                    or "lmms-vst" in str(info["dep"])
+                ):
                     continue
                 problems[pkg].append(info["str"])
 
@@ -254,15 +268,7 @@ def follow_policy(release):
     ftibug = bz.getbug(f"F{release}FailsToInstall")
     query_fti = bz.build_query(
         product="Fedora",
-        include_fields=[
-            "id",
-            "status",
-            "component",
-            "creation_time",
-            "assigned_to",
-            "flags",
-            "blocks",
-        ],
+        include_fields=["id", "status", "component", "assigned_to", "flags", "blocks"],
     )
     query_fti["blocks"] = ftibug.id
     current_ftis = {b.component: b for b in bz.query(query_fti) if b.status != "CLOSED"}
@@ -349,7 +355,7 @@ def follow_policy(release):
     current_ftis = {src: b for src, b in current_ftis.items() if b.status == "NEW"}
     for src, b in current_ftis.items():
         print(f"Checking {b.id} ({src})…")
-        handle_orphaning(b)
+        handle_orphaning(b, ftibug)
 
 
 if __name__ == "__main__":
