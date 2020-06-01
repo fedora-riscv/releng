@@ -333,6 +333,7 @@ def follow_policy(release):
             comment=comment, status="CLOSED", resolution="WORKSFORME"
         )
         unblock = bz.build_update(comment=comment, blocks_remove=ftibug.id)
+        unblock["minor_update"] = True
         to_close = [
             b.id
             for b in fixed_ftis.values()
