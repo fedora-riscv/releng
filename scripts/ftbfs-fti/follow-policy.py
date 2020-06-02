@@ -69,7 +69,9 @@ def handle_orphaning(bug, tracker):
         bzupdate = bz.build_update(
             comment="""Hello,
 
-This is the first reminder (step 3 from https://docs.fedoraproject.org/en-US/fesco/Fails_to_build_from_source_Fails_to_install/#_package_removal_for_long_standing_ftbfs_and_fti_bugs).""",
+This is the first reminder (step 3 from https://docs.fedoraproject.org/en-US/fesco/Fails_to_build_from_source_Fails_to_install/#_package_removal_for_long_standing_ftbfs_and_fti_bugs).
+
+If you know about this problem and are planning on fixing it, please acknowledge so by setting the bug status to ASSIGNED. If you don't have time to maintain this package, consider orphaning it, so maintainers of dependent packages realize the problem.""",
             flags=[flag],
         )
     else:
@@ -107,7 +109,9 @@ This is the first reminder (step 3 from https://docs.fedoraproject.org/en-US/fes
                 bzupdate = bz.build_update(
                     comment="""Hello,
 
-This is the second reminder (step 4 from https://docs.fedoraproject.org/en-US/fesco/Fails_to_build_from_source_Fails_to_install/#_package_removal_for_long_standing_ftbfs_and_fti_bugs).""",
+This is the second reminder (step 4 from https://docs.fedoraproject.org/en-US/fesco/Fails_to_build_from_source_Fails_to_install/#_package_removal_for_long_standing_ftbfs_and_fti_bugs).
+
+If you know about this problem and are planning on fixing it, please acknowledge so by setting the bug status to ASSIGNED. If you don't have time to maintain this package, consider orphaning it, so maintainers of dependent packages realize the problem.""",
                     flags=[flag],
                 )
             else:
