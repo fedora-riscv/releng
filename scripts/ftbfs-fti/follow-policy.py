@@ -100,11 +100,8 @@ This is the first reminder (step 3 from https://docs.fedoraproject.org/en-US/fes
                     f"→ 4 weeks did not pass since second needinfo ({needinfo_after_four_weeks}), skipping…",
                     file=sys.stderr,
                 )
+                return
         except StopIteration:
-            print(
-                f"→ 3 weeks did not pass since first needinfo ({needinfo_after_week}), skipping…",
-                file=sys.stderr,
-            )
             if NOW - needinfo_after_week >= datetime.timedelta(weeks=3):
                 print("Asking for another needinfo")
                 bzupdate = bz.build_update(
@@ -113,6 +110,12 @@ This is the first reminder (step 3 from https://docs.fedoraproject.org/en-US/fes
 This is the second reminder (step 4 from https://docs.fedoraproject.org/en-US/fesco/Fails_to_build_from_source_Fails_to_install/#_package_removal_for_long_standing_ftbfs_and_fti_bugs).""",
                     flags=[flag],
                 )
+            else:
+                print(
+                    f"→ 3 weeks did not pass since first needinfo ({needinfo_after_week}), skipping…",
+                    file=sys.stderr,
+                )
+                return
 
     if bzupdate is not None:
         result = bz.update_bugs([bug.id], bzupdate)
