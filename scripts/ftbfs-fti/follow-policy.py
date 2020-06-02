@@ -35,15 +35,18 @@ def handle_orphaning(bug, tracker):
 
     history = bug.get_history_raw()["bugs"][0]["history"]
 
-    start_time = _bzdate_to_python(
-        next(
-            u["when"]
-            for u in history
-            for c in u["changes"]
-            if c["field_name"] == "blocks"
-            and str(tracker.id) in {b.strip() for b in c["added"].split(",")}
+    try:
+        start_time = _bzdate_to_python(
+            next(
+                u["when"]
+                for u in history
+                for c in u["changes"]
+                if c["field_name"] == "blocks"
+                and str(tracker.id) in {b.strip() for b in c["added"].split(",")}
+            )
         )
-    )
+    except StopIteration:
+        start_time = _bzdate_to_python(bug.creation_time)
     diff = NOW - start_time
     if diff < datetime.timedelta(weeks=1):
         print(
@@ -268,7 +271,15 @@ def follow_policy(release):
     ftibug = bz.getbug(f"F{release}FailsToInstall")
     query_fti = bz.build_query(
         product="Fedora",
-        include_fields=["id", "status", "component", "assigned_to", "flags", "blocks"],
+        include_fields=[
+            "id",
+            "status",
+            "component",
+            "assigned_to",
+            "flags",
+            "blocks",
+            "creation_time",
+        ],
     )
     query_fti["blocks"] = ftibug.id
     current_ftis = {b.component: b for b in bz.query(query_fti) if b.status != "CLOSED"}
