@@ -14,7 +14,7 @@ import solv
 
 TEMPLATE_DIR = os.path.dirname(os.path.realpath(__file__))
 
-NOW = datetime.datetime.now()
+NOW = datetime.datetime.now(datetime.timezone.utc)
 TRACKERS = {
     "F31FailsToInstall": 1700324,
     "F32FailsToInstall": 1750909,
@@ -27,7 +27,7 @@ RAWHIDE = "33"
 
 
 def _bzdate_to_python(date):
-    return datetime.datetime.strptime(str(date), "%Y%m%dT%H:%M:%S")
+    return datetime.datetime.strptime(str(date), "%Y%m%dT%H:%M:%S").replace(tzinfo=datetime.timezone.utc)
 
 
 def handle_orphaning(bug, tracker):
