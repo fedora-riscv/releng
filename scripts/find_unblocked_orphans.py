@@ -11,7 +11,7 @@
 #     Jesse Keating <jkeating@redhat.com>
 #     Till Maas <opensource@till.name>
 
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from functools import lru_cache
 from queue import Queue
 from threading import Thread
@@ -223,7 +223,12 @@ def setup_dnf(repo=RAWHIDE_RELEASE["repo"],
 @cache.cache_on_arguments()
 def orphan_packages(namespace='rpms'):
     pkgs, pages = get_pagure_orphans(namespace)
+    eprint(f"({pages} pages)", end=" ")
     for page in range(2, pages + 1):
+        if page % 10:
+            eprint(".", end="")
+        else:
+            eprint(page, end="")
         new_pkgs, _ = get_pagure_orphans(namespace, page)
         pkgs.update(new_pkgs)
     return pkgs
@@ -421,7 +426,9 @@ class DepChecker:
 
         # dict for all dependent packages for each to-be-removed package
         dep_map = OrderedDict()
+        self.dep_chain = defaultdict(set)
         for name in sorted(packages):
+            self.dep_chain[name] = set()  # explicitly initialize the set for the orphaned
             eprint(f"Getting packages depending on: {name}")
             ignore = rpm_pkg_names
             dep_map[name] = OrderedDict()
@@ -453,6 +460,8 @@ class DepChecker:
                                 srpm_name,
                                 OrderedDict()
                             ).setdefault(pkg, set()).add(dep)
+                        for new_srpm_name in new_srpm_names:
+                            self.dep_chain[new_srpm_name].add(check_next)
 
                     for srpm_name in new_srpm_names:
                         self.pagureinfo_queue.put(srpm_name)
@@ -708,7 +717,7 @@ def main():
     parser.add_argument("--repo", default=None,
                         help="Repo URL to use for depcheck")
     parser.add_argument("--json", default=None,
-                        help="Export status_change info about orphaned "
+                        help="Export info about orphaned "
                              "packages to a specified JSON file")
     parser.add_argument("--no-skip-blocked", default=True,
                         dest="skipblocked", action="store_false",
@@ -761,12 +770,14 @@ def main():
     print(text)
 
     if args.json is not None:
-        eprint(f'Saving {args.json} with status chnage times')
+        eprint(f'Saving {args.json} with machine readable info')
         sc = {pkg: depchecker.pagure_dict[pkg].status_change.isoformat()
               for pkg in orphans if pkg in depchecker.pagure_dict}
+        ap = {pkg: sorted(reasons) for pkg, reasons in depchecker.dep_chain.items()}
+        json_data = {'status_change': sc, 'affected_packages': ap}
         try:
             with open(args.json, 'w') as f:
-                json.dump(sc, f, indent=4, sort_keys=True)
+                json.dump(json_data, f, indent=4, sort_keys=True)
         except OSError as e:
             eprint(f'Cannot save {args.json}:', end=' ')
             eprint(f'{type(e).__name__}: e')
