@@ -242,7 +242,7 @@ each upstream for recommended contributions workflow.
   combinations.
 * `sigul <https://pagure.io/sigul>`_ -
   An automated gpg signing system
-* `mock <https://fedoraproject.org/wiki/Mock>`_ -
+* `mock <https://github.com/rpm-software-management/mock/wiki>`_ -
   a tool for building packages in prestine buildroots
 * `fedmsg <http://www.fedmsg.com/en/latest/>`_ -
   Fedora Infrastructure Message Bus
