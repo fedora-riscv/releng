@@ -27,7 +27,9 @@ RAWHIDE = "33"
 
 
 def _bzdate_to_python(date):
-    return datetime.datetime.strptime(str(date), "%Y%m%dT%H:%M:%S").replace(tzinfo=datetime.timezone.utc)
+    return datetime.datetime.strptime(str(date), "%Y%m%dT%H:%M:%S").replace(
+        tzinfo=datetime.timezone.utc
+    )
 
 
 def handle_orphaning(bug, tracker):
@@ -372,8 +374,37 @@ def follow_policy(release):
     else:
         print("No FTI bugs to close, everything is still broken", file=sys.stderr)
 
+    # Update bugs for orphaned packages
+    orphaned = {
+        src: b
+        for src, b in current_ftis.items()
+        if b.assigned_to == "extras-orphan@fedoraproject.org"
+    }
+    for src, b in orphaned.items():
+        comments = b.getcomments()
+        update = False
+        try:
+            next(c for c in comments if "This package has been orphaned." in c["text"])
+            continue
+        except StopIteration:
+            pass
+
+        bz.update_bugs(
+            [b.id],
+            bz.build_update(
+                comment=f"""This package has been orphaned.
+
+You can pick it up at https://src.fedoraproject.org/rpms/{src} by clicking button "Take". If nobody picks it up, it will be retired and removed from a distribution.""",
+                status="NEW",
+            ),
+        )
+
     # Now we care only about bugs in NEW state
-    current_ftis = {src: b for src, b in current_ftis.items() if b.status == "NEW"}
+    current_ftis = {
+        src: b
+        for src, b in current_ftis.items()
+        if b.status == "NEW" and src not in orphaned
+    }
     for src, b in current_ftis.items():
         print(f"Checking {b.id} ({src})…")
         handle_orphaning(b, ftibug)
