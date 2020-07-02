@@ -23,7 +23,7 @@
 #           send_fedora_message "${fedmsg_json_start}" f24 start
 
 # This uses the new fedora-messaging bus:
-LOGGER=./fedora-messaging-logger
+LOGGER=releng/scripts/fedora-messaging-logger
 
 function send_fedora_message()
 {
