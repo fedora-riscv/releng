@@ -19,18 +19,14 @@ Windows
 #. Get a windows code signing key from any certification authority that is
    trusted by windows.
 
-#. Convert the .pem formatted certificate to .pvk format:
+
+#. Convert the .p7b formatted certificate to .pxf format:
+
 
    ::
+        $ openssl pkcs7 -print_certs -in certificate.p7b -out certificate.cer
+        $ openssl pkcs12 -export -in certificate.cer -inkey authenticode.key -out authenticode.pfx -certfile CACert.cer;
 
-        $ openssl rsa -in key.pem -outform PVK -pvk-strong -out authenticode.pvk
-
-
-#. Convert the key file to .pfx format:
-
-   ::
-
-        $ openssl pkcs12 -export -out authenticode.pfx -inkey authenticode.key -in key.pem
 
 #. Clone the Fedora Media Writer git repo:
 
