@@ -34,7 +34,7 @@ function send_fedora_message()
     echo ${jsoninput} | $LOGGER \
         --cert-prefix ${FEDMSG_CERTPREFIX} \
         --modname ${FEDMSG_MODNAME} \
-        --topic "${dist}.${topic}" \
+        --topic ".${dist}.${topic}" \
         --json-input
 }
 
