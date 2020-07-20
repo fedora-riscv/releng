@@ -251,7 +251,7 @@ def follow_policy(release):
         for pkg, rules in pkg_rules.items():
             if re.search(r"^rust-.*-devel$", pkg):
                 continue
-            if pkg.startswith("dummy-test-packagep"):
+            if pkg.startswith("dummy-test-package"):
                 continue
 
             # All direct problems will be in the first rule
