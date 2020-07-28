@@ -174,7 +174,7 @@ for pkg in pkgs:
         continue
 
     # build
-    build = [koji_bin, 'build', '--nowait', '--background', massrebuild['target'], url]
+    build = [koji_bin, 'build', '--nowait', '--background', '--fail-fast', massrebuild['target'], url]
     print('Building %s' % name)
     runme(build, 'build', name, enviro, 
           cwd=os.path.join(workdir, name))
