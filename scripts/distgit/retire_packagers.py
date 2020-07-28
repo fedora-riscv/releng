@@ -195,14 +195,14 @@ def remove_access(namespace, name, username, usertype):
     session = retry_session()
 
     # Remove ACL on the package
-    url = f"{base_url}/{namespace}/{name}/git/modifyacls"
+    url = f"{base_url}/api/0/{namespace}/{name}/git/modifyacls"
     headers = {"Authorization": f"token {pagure_token}"}
     data = {
         "user_type": usertype,
         "name": username,
     }
 
-    req = session.patch(url, data=data, headers=headers)
+    req = session.post(url, data=data, headers=headers)
     if not req.ok:
         print("**** REQUEST FAILED")
         print("  - Remove ACL")
