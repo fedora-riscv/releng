@@ -273,21 +273,25 @@ def main(args):
     # the previous source of info while quicker to query will not include
     # the packages that the packagers have access to but set their watch status
     # to "unwatch".
-    for username in sorted(usernames):
-        _log.debug("Loading info from dist-git's %s's page", username)
-        url = f"{dist_git_base}/api/0/user/{username}?per_page=50"
-        while url:
-            req = session.get(url)
-            data = req.json()
-            for repo in data["repos"]:
-                maintainers = set(repo["user"]["name"])
-                for acl in repo["access_users"]:
-                    maintainers.update(set(repo["access_users"][acl]))
-                if username in maintainers:
-                    namespace = repo["namespace"]
-                    package = repo["name"]
-                    packages_per_user[username].add(f"{namespace}/{package}")
-            url = data["repos_pagination"]["next"]
+    # However, we only need to run this if we want to know about packages someone
+    # maintains (ie: we can bypass this section if ``--watch`` is passed to the
+    # CLI).
+    if args.report in ["all", "maintain"]:
+        for username in sorted(usernames):
+            _log.debug("Loading info from dist-git's %s's page", username)
+            url = f"{dist_git_base}/api/0/user/{username}?per_page=50"
+            while url:
+                req = session.get(url)
+                data = req.json()
+                for repo in data["repos"]:
+                    maintainers = set(repo["user"]["name"])
+                    for acl in repo["access_users"]:
+                        maintainers.update(set(repo["access_users"][acl]))
+                    if username in maintainers:
+                        namespace = repo["namespace"]
+                        package = repo["name"]
+                        packages_per_user[username].add(f"{namespace}/{package}")
+                url = data["repos_pagination"]["next"]
 
     for username in sorted(usernames):
         _log.debug("Processing user: %s", username)
