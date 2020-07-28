@@ -253,19 +253,41 @@ def main(args):
         _log.debug("Loading usernames for the CLI arguments")
         usernames = args.usernames
 
+    # We load the info from the pagure_bz file which will tell us everything
+    # that would be synced to bugzilla (POC and CC)
     _log.debug("Loading info from dist-git's pagure_bz.json file")
     session = retry_session()
     req = session.get(f"{dist_git_base}/extras/pagure_bz.json")
     pagure_bz = req.json()
     session.close()
 
-    packages_per_user = collections.defaultdict(list)
+    packages_per_user = collections.defaultdict(set)
     for namespace in pagure_bz:
         for package in pagure_bz[namespace]:
             _log.debug("Processing %s/%s", namespace, package)
             for user in pagure_bz[namespace][package]:
                 if user in usernames:
-                    packages_per_user[user].append(f"{namespace}/{package}")
+                    packages_per_user[user].add(f"{namespace}/{package}")
+
+    # On the top of this, we'll also query the list from dist-git directly as
+    # the previous source of info while quicker to query will not include
+    # the packages that the packagers have access to but set their watch status
+    # to "unwatch".
+    for username in sorted(usernames):
+        _log.debug("Loading info from dist-git's %s's page", username)
+        url = f"{dist_git_base}/api/0/user/{username}?per_page=50"
+        while url:
+            req = session.get(url)
+            data = req.json()
+            for repo in data["repos"]:
+                maintainers = set(repo["user"]["name"])
+                for acl in repo["access_users"]:
+                    maintainers.update(set(repo["access_users"][acl]))
+                if username in maintainers:
+                    namespace = repo["namespace"]
+                    package = repo["name"]
+                    packages_per_user[username].add(f"{namespace}/{package}")
+            url = data["repos_pagination"]["next"]
 
     for username in sorted(usernames):
         _log.debug("Processing user: %s", username)
