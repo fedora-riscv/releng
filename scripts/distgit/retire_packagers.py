@@ -138,6 +138,18 @@ def user_access(session, username, namespace_name):
     return level
 
 
+def get_bugzilla_overrides(username, namespace, name):
+    """ Returns whether the specified username is set in the bugzilla overrides
+    of the specified package.. """
+    _log.debug(
+        "Checking for bugzilla overrides on %s/%s for %s", namespace, name, username
+    )
+    base_url = dist_git_base.rstrip("/")
+    session = retry_session()
+    req = session.get(f"{dist_git_base}/_dg/bzoverrides/{namespace}/{name}")
+    return req.json()
+
+
 def unwatch_package(namespace, name, username):
     """ Reset the watch status of the given user on the specified project. """
     _log.debug("Going to reset watch status of %s on %s/%s", username, namespace, name)
@@ -216,6 +228,33 @@ def remove_access(namespace, name, username, usertype):
     if usertype == "user":
         # Reset the watching status
         unwatch_package(namespace, name, username)
+
+
+def reset_bugzilla_overrides(username, namespace, name, overrides):
+    """ Reset the the bugzilla overrides of the specified package so that the
+    specified user no longer has one. """
+    _log.debug(
+        "Resetting bugzilla overrides on %s/%s for %s", namespace, name, username
+    )
+    base_url = dist_git_base.rstrip("/")
+    url = f"{base_url}/_dg/bzoverrides/{namespace}/{name}"
+    headers = {"Authorization": f"token {pagure_token}"}
+
+    for key in overrides:
+        if overrides[key] == username:
+            overrides[key] = None
+
+    session = retry_session()
+    req = session.post(url, headers=headers, data=overrides)
+    if not req.ok:
+        print("**** REQUEST FAILED")
+        print("  - Remove bugzilla overrides")
+        print(req.url)
+        print(data)
+        print(req.text)
+    else:
+        print(f"  {username} has no longer a bugzilla overrides on {namespace}/{name}")
+    session.close()
 
 
 def main(args):
@@ -297,11 +336,11 @@ def main(args):
         _log.debug("Processing user: %s", username)
         for pkg in sorted(packages_per_user[username]):
             level = user_access(session, username, pkg)
+            namespace, name = pkg.split("/", 1)
             if level:
                 if args.report in ["all", "maintain"]:
-                    print(f"{username} is {level} of {pkg}")
+                    print(f"{username} is {level} of {namespace}/{name}")
                     if args.retire:
-                        namespace, name = pkg.split("/", 1)
                         if level == "main admin":
                             orphan_package(namespace, name, username)
                         elif level == "maintainer":
@@ -309,10 +348,16 @@ def main(args):
 
             else:
                 if args.report in ["all", "watch"]:
-                    print(f"{username} is watching {pkg}")
+                    print(f"{username} is watching {namespace}/{name}")
                     if args.retire:
-                        namespace, name = pkg.split("/", 1)
                         unwatch_package(namespace, name, username)
+
+            overrides = get_bugzilla_overrides(username, namespace, name)
+            if username in overrides.values():
+                print(f"{username} has a bugzilla override on {namespace}/{name}")
+                if args.retire:
+                    reset_bugzilla_overrides(username, namespace, name, overrides)
+
         print()
 
 
