@@ -270,9 +270,22 @@ def main(args):
         pagure_token = args.pagure_token
 
     if not pagure_token and args.retire:
+        _log.debug(
+            "Trying to retrieve pagure_api_token from the fedscm configuration file"
+        )
+        try:
+            import fedscm_admin.config
+            from fedscm_admin import CONFIG
+
+            api_token = fedscm_admin.config.get_config_item(CONFIG, "pagure_api_token")
+        except:
+            pass
+
+    if not pagure_token and args.retire:
         print(
             "No pagure token set in the CLI argument or via the PAGURE_TOKEN "
-            "environment variable. Going to ignore --retire"
+            "environment variable or found in the fedscm configuration file. "
+            "Going to ignore --retire"
         )
         args.retire = False
 
