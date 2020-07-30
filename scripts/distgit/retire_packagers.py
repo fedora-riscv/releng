@@ -296,7 +296,9 @@ def main(args):
             _log.info("No such file found: %s", args.users_file)
         try:
             with open(args.users_file) as stream:
-                usernames = [l.strip() for l in stream.readlines()]
+                usernames = [
+                    l.strip() for l in stream.readlines() if l.strip()
+                ]
         except Exception as err:
             _log.debug(
                 "Failed to load/read the file: %s, error is: %s", args.users_file, err
