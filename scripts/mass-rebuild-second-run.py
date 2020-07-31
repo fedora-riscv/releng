@@ -90,7 +90,7 @@ for pkg in pkgs:
 
     # Query to see if a build has already been attempted
     # this version requires newer koji:
-    builds = kojisession.listBuilds(id, createdAfter=massrebuild['epoch'])
+    builds = kojisession.listBuilds(id, completeAfter=massrebuild['epoch'])
     newbuild = False
     # Check the builds to make sure they were for the target we care about
     for build in builds:
