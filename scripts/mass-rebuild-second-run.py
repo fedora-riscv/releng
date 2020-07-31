@@ -88,9 +88,9 @@ for pkg in pkgs:
         print('Skipping %s, package is explicitely skipped')
         continue
 
-    # Query to see if a build has already been attempted
-    # this version requires newer koji:
-    builds = kojisession.listBuilds(id, completeAfter=massrebuild['epoch'])
+    # Query to see if a build has already successfully completed
+    # state = 1 is successfully completed builds
+    builds = kojisession.listBuilds(id, completeAfter=massrebuild['epoch'], state=1)
     newbuild = False
     # Check the builds to make sure they were for the target we care about
     for build in builds:
