@@ -21,10 +21,10 @@ The FTBFS bugs are filed in bugzilla.
 
 #. Create a bugzilla bug for FTBFS, use the `previous FTBFS bugzilla bug example`_ if its not created
 
-#. Install `python_bugzilla` on your local machine if its not installed
+#. Install `python-bugzilla-cli` on your local machine if its not installed
     ::
 
-        $ sudo dnf install python-buzilla
+        $ sudo dnf install python-bugzilla-cli
 
 #. Update the `massrebuildsinfo.py`
     * epoch
