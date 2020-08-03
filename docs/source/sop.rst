@@ -60,7 +60,9 @@ Standard Operating Procedures
     sop_package_announce_update
     sop_mass_branching
     sop_bodhi_activation
-    sop_mass_rebuild
+    sop_mass_rebuild_packages
+    sop_mass_rebuild_modules
+    sop_file_ftbfs
     sop_multi_boot_media
     sop_package_blocking
     sop_package_unblocking
