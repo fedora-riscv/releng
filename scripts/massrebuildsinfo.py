@@ -28,7 +28,7 @@ MASSREBUILDS = {
         {
             "buildtag": 'f33-rebuild',  # tag to build from
             "epoch": '2020-07-27 10:00:00.000000',  # rebuild anything not built after this date
-            "module_mass_rebuild_epoch": '2020-07-27T03:30:00Z',
+            "module_mass_rebuild_epoch": '2020-07-27T10:00:00Z',
             # rebuild anything not built after this date for modules
             "module_mass_branching_epoch": '2020-02-11T23:30:00Z',
             # rebuild anything not built after this date for modules
