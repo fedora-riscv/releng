@@ -3,8 +3,8 @@ set -e
 set -u
 set -o pipefail
 
-tracker=${1:-1750908}
-dist=${1:-fc32}
+tracker=${1:-1803234}
+dist=${1:-fc33}
 
 
 for line in $(bugzilla query --blocked $tracker --status NEW --outputformat "%{id}@%{component}@%{creation_time}"); do
@@ -12,6 +12,7 @@ for line in $(bugzilla query --blocked $tracker --status NEW --outputformat "%{i
   bug=${line[0]}
   line=( ${line[1]/@/ } )
   component=${line[0]}
+  echo $component >&2
   creation_time=${line[1]}
   builds=$(koji list-builds --package $component --after "$creation_time" --state=COMPLETE --quiet) || continue
   # XXX any better way to filter builds by release?
