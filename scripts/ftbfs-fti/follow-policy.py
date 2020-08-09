@@ -378,9 +378,10 @@ def follow_policy(release):
     orphaned = {
         src: b
         for src, b in current_ftis.items()
-        if b.assigned_to == "extras-orphan@fedoraproject.org"
+        if pkg_owners["rpms"][src]["fedora"] == "orphan"
     }
     for src, b in orphaned.items():
+        click.echo(f"Checking if need to send notice to the orphaned package: {src} ({b.id})", err=True)
         comments = b.getcomments()
         update = False
         try:
