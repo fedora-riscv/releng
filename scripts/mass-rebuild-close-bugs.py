@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 
 import argparse
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 import queue
 import threading
@@ -15,7 +15,7 @@ from massrebuildsinfo import MASSREBUILDS
 LOGGER = logging.getLogger(__name__)
 
 def koji2datetime(d):
-    return datetime.strptime(d, "%Y-%m-%d %H:%M:%S.%f")
+    return datetime.fromisoformat(d)
 
 def bug2str(bug):
     return f"{bug.id} ({bug.summary})"
@@ -90,7 +90,7 @@ def main():
         args.threads = multiprocessing.cpu_count()
 
     massrebuild = rebuilds_info[args.release]
-    rebuild_time = koji2datetime(massrebuild["epoch"])
+    rebuild_time = koji2datetime(massrebuild["epoch"]).replace(tzinfo=timezone.utc)
 
     bz = bugzilla.Bugzilla("https://bugzilla.redhat.com")
     ks = koji.ClientSession("https://koji.fedoraproject.org/kojihub")
