@@ -111,3 +111,7 @@ koji add-pkg --owner=releng "f${modular_release}" $pkgs
 
 "${KOJICLI}" remove-tag-inheritance rawhide "f${old_release}"
 "${KOJICLI}" add-tag-inheritance rawhide "f${release}"
+
+# Untag rust-* packages from the branched tag
+# https://pagure.io/releng/issue/9256
+"${KOJICLI}" list-pkgs --tag "f${old_release}" --noinherit | grep '^rust-' | grep -Pv '(rust-packaging|rust-srpm-macros)' | awk '{print $1}' | xargs -n16 -P4 "${KOJICLI}" untag-build "f${old_release}" --all -v
