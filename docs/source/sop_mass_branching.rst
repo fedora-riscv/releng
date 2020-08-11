@@ -657,51 +657,76 @@ Changes to master branch of fedora-repos package:
 ::
 
     diff --git a/archmap b/archmap
-    index b602401..cfd6fb7 100644
+    index cfd6fb7..3a83fff 100644
     --- a/archmap
     +++ b/archmap
-    @@ -68,3 +68,5 @@ fedora-iot-2019: i386 x86_64 armhfp aarch64 ppc64le s390x
-     fedora-31-primary: i386 x86_64 armhfp aarch64 ppc64le s390x
-     
+    @@ -70,3 +70,5 @@ fedora-31-primary: i386 x86_64 armhfp aarch64 ppc64le s390x
      fedora-32-primary: i386 x86_64 armhfp aarch64 ppc64le s390x
+     
+     fedora-33-primary: i386 x86_64 armhfp aarch64 ppc64le s390x
     +
-    +fedora-33-primary: i386 x86_64 armhfp aarch64 ppc64le s390x
+    +fedora-34-primary: i386 x86_64 armhfp aarch64 ppc64le s390x
     diff --git a/fedora-repos.spec b/fedora-repos.spec
-    index bf3f993..0763f8e 100644
+    index 6ddc5bc..dfa70c7 100644
     --- a/fedora-repos.spec
     +++ b/fedora-repos.spec
     @@ -1,7 +1,7 @@
      Summary:        Fedora package repositories
      Name:           fedora-repos
-    -Version:        32
-    -Release:        0.4%{?_module_build:%{?dist}}
-    +Version:        33
+    -Version:        33
+    -Release:        0.9%{?_module_build:%{?dist}}
+    +Version:        34
     +Release:        0.1%{?_module_build:%{?dist}}
      License:        MIT
      URL:            https://fedoraproject.org/
      
-    @@ -168,6 +168,9 @@ install -m 644 %{_sourcedir}/fedora.conf $RPM_BUILD_ROOT/etc/ostree/remotes.d/
-     /etc/ostree/remotes.d/fedora.conf
+    @@ -206,6 +206,9 @@ install -m 644 %{_sourcedir}/fedora-compose.conf $RPM_BUILD_ROOT/etc/ostree/remo
+     
      
      %changelog
-    +* Tue Feb 11 2020 Mohan Boddu <mboddu@bhujji.com> - 33-0.1
-    +- Setup for rawhide being F33
+    +* Mon Aug 10 2020 Tomas Hrcka <thrcka@redhat.com> - 34-0.1
+    +- Setup for rawhide being F34
     +
-     * Tue Feb 11 2020 Mohan Boddu <mboddu@bhujji.com> - 32-0.4
-     - Remove baseurl download.fp.o (puiterwijk)
-     - Enabling dnf countme
+     * Thu Aug 06 2020 Mohan Boddu <mboddu@bhujji.com> - 33-0.9
+     - Adding F34 key
 
 Changes to branched branch of fedora-repos package:
 
 ::
 
+    diff --git a/fedora-eln-modular.repo b/fedora-eln-modular.repo
+    index 5c1165a..719e1e1 100644
+    --- a/fedora-eln-modular.repo
+    +++ b/fedora-eln-modular.repo
+    @@ -23,7 +23,7 @@
+     name=Fedora - Modular ELN - Developmental modular packages for the next Enterprise Linux release
+     baseurl=https://odcs.fedoraproject.org/composes/production/latest-Fedora-ELN/compose/Modular/$basearch/os/
+     #metalink=https://mirrors.fedoraproject.org/metalink?repo=eln-modular&arch=$basearch
+    -enabled=1
+    +enabled=0
+     countme=1
+     metadata_expire=6h
+     repo_gpgcheck=0
+    diff --git a/fedora-eln.repo b/fedora-eln.repo
+    index 1b02c9b..78f9bfb 100644
+    --- a/fedora-eln.repo
+    +++ b/fedora-eln.repo
+    @@ -23,7 +23,7 @@
+     name=Fedora - ELN - Developmental modular packages for the next Enterprise Linux release
+     baseurl=https://odcs.fedoraproject.org/composes/production/latest-Fedora-ELN/compose/Everything/$basearch/os/
+     #metalink=https://mirrors.fedoraproject.org/metalink?repo=eln&arch=$basearch
+    -enabled=1
+    +enabled=0
+     countme=1
+     metadata_expire=6h
+     repo_gpgcheck=0
     diff --git a/fedora-modular.repo b/fedora-modular.repo
-    index e7c436e..8bccd7b 100644
+    index 5aa9c26..1ecdf6f 100644
     --- a/fedora-modular.repo
     +++ b/fedora-modular.repo
-    @@ -1,7 +1,7 @@
-     [fedora-modular]
+    @@ -2,7 +2,7 @@
      name=Fedora Modular $releasever - $basearch
+     #baseurl=http://download.example/pub/fedora/linux/releases/$releasever/Modular/$basearch/os/
      metalink=https://mirrors.fedoraproject.org/metalink?repo=fedora-modular-$releasever&arch=$basearch
     -enabled=0
     +enabled=1
@@ -709,12 +734,12 @@ Changes to branched branch of fedora-repos package:
      #metadata_expire=7d
      repo_gpgcheck=0
     diff --git a/fedora-rawhide-modular.repo b/fedora-rawhide-modular.repo
-    index 25548ac..9242e07 100644
+    index 5646313..68fd3ae 100644
     --- a/fedora-rawhide-modular.repo
     +++ b/fedora-rawhide-modular.repo
-    @@ -22,7 +22,7 @@
-     [rawhide-modular]
+    @@ -23,7 +23,7 @@
      name=Fedora - Modular Rawhide - Developmental packages for the next Fedora release
+     #baseurl=http://download.example/pub/fedora/linux/development/rawhide/Modular/$basearch/os/
      metalink=https://mirrors.fedoraproject.org/metalink?repo=rawhide-modular&arch=$basearch
     -enabled=1
     +enabled=0
@@ -722,12 +747,12 @@ Changes to branched branch of fedora-repos package:
      metadata_expire=6h
      repo_gpgcheck=0
     diff --git a/fedora-rawhide.repo b/fedora-rawhide.repo
-    index 7fb162c..cb76183 100644
+    index 2e649e6..5bed85b 100644
     --- a/fedora-rawhide.repo
     +++ b/fedora-rawhide.repo
-    @@ -22,7 +22,7 @@
-     [rawhide]
+    @@ -23,7 +23,7 @@
      name=Fedora - Rawhide - Developmental packages for the next Fedora release
+     #baseurl=http://download.example/pub/fedora/linux/development/rawhide//Everything/$basearch/os/
      metalink=https://mirrors.fedoraproject.org/metalink?repo=rawhide&arch=$basearch
     -enabled=1
     +enabled=0
@@ -735,38 +760,46 @@ Changes to branched branch of fedora-repos package:
      metadata_expire=6h
      repo_gpgcheck=0
     diff --git a/fedora-repos.spec b/fedora-repos.spec
-    index 0763f8e..b719b9f 100644
+    index dfa70c7..e22f438 100644
     --- a/fedora-repos.spec
     +++ b/fedora-repos.spec
-    @@ -1,7 +1,7 @@
+    @@ -1,14 +1,13 @@
      Summary:        Fedora package repositories
      Name:           fedora-repos
-    -Version:        33
+    -Version:        34
     -Release:        0.1%{?_module_build:%{?dist}}
-    +Version:        32
-    +Release:        0.5%{?_module_build:%{?dist}}
+    +Version:        33
+    +Release:        0.10%{?_module_build:%{?dist}}
      License:        MIT
      URL:            https://fedoraproject.org/
      
-    @@ -168,8 +168,9 @@ install -m 644 %{_sourcedir}/fedora.conf $RPM_BUILD_ROOT/etc/ostree/remotes.d/
-     /etc/ostree/remotes.d/fedora.conf
+     Provides:       fedora-repos(%{version}) = %{release}
+     Requires:       system-release(%{version})
+     Obsoletes:      fedora-repos < 33-0.7
+    -Requires:       fedora-repos-rawhide = %{version}-%{release}
+     Requires:       fedora-gpg-keys >= %{version}-%{release}
+     BuildArch:      noarch
+     
+    @@ -206,8 +205,10 @@ install -m 644 %{_sourcedir}/fedora-compose.conf $RPM_BUILD_ROOT/etc/ostree/remo
+     
      
      %changelog
-    -* Tue Feb 11 2020 Mohan Boddu <mboddu@bhujji.com> - 33-0.1
-    -- Setup for rawhide being F33
-    +* Tue Feb 11 2020 Mohan Boddu <mboddu@bhujji.com> - 32-0.5
-    +- Disable rawhide repos
-    +- Enable fedora, updates, updates-testing repos
+    -* Mon Aug 10 2020 Tomas Hrcka <thrcka@redhat.com> - 34-0.1
+    -- Setup for rawhide being F34
+    +
+    +* Mon Aug 10 2020 Tomas Hrcka <thrcka@redhat.com> - 33-0.10
+    +- Disable rawhide, eln repos            
+    +- Enable fedora, updates, updates-testing repos            
      
-     * Tue Feb 11 2020 Mohan Boddu <mboddu@bhujji.com> - 32-0.4
-     - Remove baseurl download.fp.o (puiterwijk)
+     * Thu Aug 06 2020 Mohan Boddu <mboddu@bhujji.com> - 33-0.9
+     - Adding F34 key
     diff --git a/fedora-updates-modular.repo b/fedora-updates-modular.repo
-    index b73258f..0b3767c 100644
+    index 37e4b71..bcfc886 100644
     --- a/fedora-updates-modular.repo
     +++ b/fedora-updates-modular.repo
-    @@ -1,7 +1,7 @@
-     [updates-modular]
+    @@ -2,7 +2,7 @@
      name=Fedora Modular $releasever - $basearch - Updates
+     #baseurl=http://download.example/pub/fedora/linux/updates/$releasever/Modular/$basearch/
      metalink=https://mirrors.fedoraproject.org/metalink?repo=updates-released-modular-f$releasever&arch=$basearch
     -enabled=0
     +enabled=1
@@ -774,12 +807,12 @@ Changes to branched branch of fedora-repos package:
      repo_gpgcheck=0
      type=rpm
     diff --git a/fedora-updates-testing-modular.repo b/fedora-updates-testing-modular.repo
-    index 9dcedbb..026b010 100644
+    index 5cd78af..6e39b26 100644
     --- a/fedora-updates-testing-modular.repo
     +++ b/fedora-updates-testing-modular.repo
-    @@ -1,7 +1,7 @@
-     [updates-testing-modular]
+    @@ -2,7 +2,7 @@
      name=Fedora Modular $releasever - $basearch - Test Updates
+     #baseurl=http://download.example/pub/fedora/linux/updates/testing/$releasever/Modular/$basearch/
      metalink=https://mirrors.fedoraproject.org/metalink?repo=updates-testing-modular-f$releasever&arch=$basearch
     -enabled=0
     +enabled=1
@@ -787,12 +820,12 @@ Changes to branched branch of fedora-repos package:
      repo_gpgcheck=0
      type=rpm
     diff --git a/fedora-updates-testing.repo b/fedora-updates-testing.repo
-    index db00456..1478416 100644
+    index 9306abb..837355c 100644
     --- a/fedora-updates-testing.repo
     +++ b/fedora-updates-testing.repo
-    @@ -1,7 +1,7 @@
-     [updates-testing]
+    @@ -2,7 +2,7 @@
      name=Fedora $releasever - $basearch - Test Updates
+     #baseurl=http://download.example/pub/fedora/linux/updates/testing/$releasever/Everything/$basearch/
      metalink=https://mirrors.fedoraproject.org/metalink?repo=updates-testing-f$releasever&arch=$basearch
     -enabled=0
     +enabled=1
@@ -800,12 +833,12 @@ Changes to branched branch of fedora-repos package:
      repo_gpgcheck=0
      type=rpm
     diff --git a/fedora-updates.repo b/fedora-updates.repo
-    index 3691dc4..8f009f7 100644
+    index 9992c83..9d9f2fd 100644
     --- a/fedora-updates.repo
     +++ b/fedora-updates.repo
-    @@ -1,7 +1,7 @@
-     [updates]
+    @@ -2,7 +2,7 @@
      name=Fedora $releasever - $basearch - Updates
+     #baseurl=http://download.example/pub/fedora/linux/updates/$releasever/Everything/$basearch/
      metalink=https://mirrors.fedoraproject.org/metalink?repo=updates-released-f$releasever&arch=$basearch
     -enabled=0
     +enabled=1
@@ -813,19 +846,19 @@ Changes to branched branch of fedora-repos package:
      repo_gpgcheck=0
      type=rpm
     diff --git a/fedora.repo b/fedora.repo
-    index 3e59790..8dc0323 100644
+    index b39369e..12a8e11 100644
     --- a/fedora.repo
     +++ b/fedora.repo
-    @@ -1,7 +1,7 @@
-     [fedora]
+    @@ -2,7 +2,7 @@
      name=Fedora $releasever - $basearch
+     #baseurl=http://download.example/pub/fedora/linux/releases/$releasever/Everything/$basearch/os/
      metalink=https://mirrors.fedoraproject.org/metalink?repo=fedora-$releasever&arch=$basearch
     -enabled=0
     +enabled=1
      countme=1
      #metadata_expire=7d
      repo_gpgcheck=0
-    
+
 .. note::
     Build fedora-release, fedora-repos package for **branched release before enabling the rawhide gating**
 
