@@ -942,6 +942,16 @@ Then, you need to restart **fm-consumer@config.service** and **bodhi-celery.serv
 .. note::
     Build fedora-release, fedora-repos package for **rawhide after enabling the rawhide gating**
 
+Update rawhide koji repo
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+We need to point the *rawhide* buildroot repo to the newly created rawhide buildroot. This way kojira doesn't make a newrepo for *rawhide* target as often as fxx-build (new rawhide buildroot).
+
+Run the following command from any of the compose boxes
+
+::
+    $ cd /mnt/koji/repos/rawhide; rm -f latest; ln -s ../f34-build/latest ./latest
+
 
 Enable autosigning on branched release
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
