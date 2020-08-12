@@ -85,6 +85,9 @@ following:
 
         $ sigul grant-key-access fedora-23 kevin
 
+.. note::
+    **IMPORTANT:** Grant the access to autopen user as its required for robosignatory autosigning and then restart robosignatory service
+
 #. Provide the key name and temporary passphrase to signers. If they don't
    respond, revoke access until they are ready to change their passphrase.
    Signers can change their passphrase using the ``change-passphrase`` command:

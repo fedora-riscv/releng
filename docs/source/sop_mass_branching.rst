@@ -55,6 +55,15 @@ information on how to run it)::
 .. note:: the ``--createfile`` argument is necessary, that file is needed
           for the next step.
 
+.. note:: Due to memory leak issue in pdc, we need to set the config in
+          /etc/pdc.d/fedora.json
+          {
+            "fedora": {
+            "host": "http://pdc-web02.iad2.fedoraproject.org/rest_api/v1/",
+            "develop": false,
+            "ssl-verify": false,
+            }
+          }
 
 dist-git
 --------
@@ -115,7 +124,7 @@ To do so, adjust infra ansible playbook in `pkgdb-proxy role`_:
     +      "dist_tag": ".fc32",
     +      "koji_name": "f32",
     +      "name": "Fedora",
-    +      "status": "Active",
+    +      "status": "Under Development",
     +      "version": "32"
     +    },
     +    {
@@ -377,6 +386,29 @@ Set FedoraBranched variable to True in infra ansible repo
     -FedoraBranched: False
     +FedoraBranched: True
 
+Set FedoraBranchedBodhi variable to prebeta in infra ansible repo
+
+::
+    --- a/vars/all/FedoraBranchedBodhi.yaml
+    +++ b/vars/all/FedoraBranchedBodhi.yaml
+    @@ -1,2 +1,2 @@
+    #options are: prebeta, postbeta, current
+    -FedoraBranchedBodhi: current
+    +FedoraBranchedBodhi: prebeta
+
+Koji hub
+^^^^^^^^
+
+Update the koji hub config to allow side tags for new koji rawhide tag
+
+::
+    --- a/roles/koji_hub/templates/hub.conf.j2
+    +++ b/roles/koji_hub/templates/hub.conf.j2
+    @@ +1 @@
+    +tag f34-build :: allow
+     tag f33-build :: allow
+     tag f32-build :: allow
+
 Robosignatory
 ^^^^^^^^^^^^^
 
@@ -538,11 +570,11 @@ ansible playbook:
 
 ::
 
-    sudo rbac-playbook groups/packages.yml -t packages/web
+    sudo rbac-playbook groups/koji-hub.yml
     sudo rbac-playbook groups/releng-compose.yml
     sudo rbac-playbook groups/bodhi-backend.yml
     sudo rbac-playbook openshift-apps/greenwave.yml
-    sudo -i ansible-playbook /srv/web/infra/ansible/playbooks/groups/proxies.yml -t pkgdb
+    sudo -i ansible-playbook /srv/web/infra/ansible/playbooks/groups/proxies.yml -t pkgdb2
     sudo rbac-playbook groups/mbs.yml -t mbs
 
 Ask someone in fedora infra to run the robosignatory playbook.
@@ -969,19 +1001,19 @@ Consider Before Running
 
 
 .. _pkgdb-proxy role:
-    https://infrastructure.fedoraproject.org/cgit/ansible.git/tree/roles/pkgdb-proxy    
+    https://pagure.io/fedora-infra/ansible/blob/master/f/roles/pkgdb-proxy
 .. _packages3 role:
-    https://infrastructure.fedoraproject.org/cgit/ansible.git/tree/roles/packages3
+    https://pagure.io/fedora-infra/ansible/blob/master/f/roles/packages3
 .. _bodhi2 role:
-    https://infrastructure.fedoraproject.org/cgit/ansible.git/tree/roles/bodhi2
+    https://pagure.io/fedora-infra/ansible/blob/master/f/roles/bodhi2
 .. _greenwave openshift role:
-    https://infrastructure.fedoraproject.org/cgit/ansible.git/tree/roles/openshift-apps/greenwave
+    https://pagure.io/fedora-infra/ansible/blob/master/f/roles/openshift-apps/greenwave
 .. _mbs role:
-    https://infrastructure.fedoraproject.org/cgit/ansible.git/tree/roles/mbs
+    https://pagure.io/fedora-infra/ansible/blob/master/f/roles/mbs
 .. _releng role:
-    https://infrastructure.fedoraproject.org/cgit/ansible.git/tree/roles/releng
+    https://pagure.io/fedora-infra/ansible/blob/master/f/roles/releng
 .. _robosignatory role:
-    https://infrastructure.fedoraproject.org/cgit/ansible.git/tree/roles/robosignatory
+    https://pagure.io/fedora-infra/ansible/blob/master/f/roles/robosignatory
 .. _make-koji-release-tags:
     https://pagure.io/releng/blob/master/f/scripts/branching/make-koji-release-tags
 .. _pagure releng:
