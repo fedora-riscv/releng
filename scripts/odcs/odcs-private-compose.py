@@ -7,6 +7,17 @@
 # Private compose from a tag using odcs
 #
 
+"""
+
+Usage: python odcs-private-compose.py <token> <koji_tag>
+
+This is used to generate private composes using ODCS.
+This script is specifically used to generate openh264 repos.
+The compsoe is stored in /srv/odcs/private/ dir on
+odcs-backend-releng01.iad2.fedoraproject.org
+
+"""
+
 import argparse
 from odcs.client.odcs import ODCS, AuthMech, ComposeSourceTag
 
@@ -25,5 +36,6 @@ odcs = ODCS("https://odcs.fedoraproject.org",
 source = ComposeSourceTag(tag)
 
 # Making a private compose with no inheritance
-compose = odcs.request_compose(source, target_dir="private", flags=["no_inheritance"])
+arches = ["armv7hl", "i686", "x86_64", "aarch64", "ppc64le", "s390x"]
+compose = odcs.request_compose(source, target_dir="private", arches = arches, flags=["no_inheritance"])
 print(compose)
