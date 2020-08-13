@@ -9,7 +9,7 @@
 
 """
 
-Usage: python odcs-private-compose.py <token> <koji_tag>
+Usage: python odcs-private-compose.py <token> <koji_tag> <sigkey>
 
 This is used to generate private composes using ODCS.
 This script is specifically used to generate openh264 repos.
@@ -25,15 +25,17 @@ from odcs.client.odcs import ODCS, AuthMech, ComposeSourceTag
 parser = argparse.ArgumentParser()
 parser.add_argument("token", help="OIDC token for authenticating to ODCS")
 parser.add_argument("tag", help="koji tag to compose")
+parser.add_argument("sigkey", help="sigkey that was used to signed the builds in the tag")
 args = parser.parse_args()
 token = args.token
 tag = args.tag
+sigkey = args.sigkey
 
 odcs = ODCS("https://odcs.fedoraproject.org",
             auth_mech=AuthMech.OpenIDC,
             openidc_token=token)
 
-source = ComposeSourceTag(tag)
+source = ComposeSourceTag(tag, sigkeys=[sigkey])
 
 # Making a private compose with no inheritance
 arches = ["armv7hl", "i686", "x86_64", "aarch64", "ppc64le", "s390x"]
