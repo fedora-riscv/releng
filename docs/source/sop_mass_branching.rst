@@ -930,7 +930,7 @@ This should be run on **bodhi-backend01.phx2.fedoraproject.org**
 
 .. note::
     Please verify the repo permissions that are created under /pub/fedora/linux/development/<fedora_release_number>
-    and /pub/fedora-secondary/development/<fedora_release_number>. They should be owned by *ftpsync*
+    and /pub/fedora-secondary/development/<fedora_release_number>. They should be owned by *ftpsync:ftpsync*
 
 Creating rawhide release
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -964,6 +964,12 @@ Run the following command from any of the compose boxes
 ::
     $ cd /mnt/koji/repos/rawhide; rm -f latest; ln -s ../f34-build/latest ./latest
 
+Update block_retired.py script
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`block_retired.py`_ script in releng repo should be updated with rawhide release and also branched release should be added to the script.
+
+Please look at this `block_retired.py commit`_ as an example.
 
 Enable autosigning on branched release
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1048,3 +1054,7 @@ Consider Before Running
     https://docs.pagure.org/releng/layered_image_build_service.html
 .. _fedscm-admin commit:
     https://pagure.io/fedscm-admin/c/7862d58b5982803dbe4c47e0262c6ce78bc903db?branch=master
+.. _block_retired.py:
+    https://pagure.io/releng/blob/master/f/scripts/block_retired.py
+.. _block_retired.py commit:
+    https://pagure.io/releng/c/9eb97f491f7a767ab8b90498adfa3b34ee235247?branch=master
