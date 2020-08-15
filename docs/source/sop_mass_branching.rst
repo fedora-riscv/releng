@@ -15,6 +15,14 @@ polish mode.
 Action
 ======
 
+Update fedscm-admin
+-------------------
+
+Add the new release to fedscm-admin and create an update and send it to limb.
+
+Please take a look at the `fedscm-admin commit`_.
+
+
 Repos to branch
 ---------------
 
@@ -920,6 +928,10 @@ This should be run on **bodhi-backend01.phx2.fedoraproject.org**
 
     $ sudo -u ftpsync sh scripts/branching/create_empty_repos.sh 31
 
+.. note::
+    Please verify the repo permissions that are created under /pub/fedora/linux/development/<fedora_release_number>
+    and /pub/fedora-secondary/development/<fedora_release_number>. They should be owned by *ftpsync*
+
 Creating rawhide release
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -1034,3 +1046,5 @@ Consider Before Running
     https://pagure.io/taskotron/new_issue?title=Fedora%20Branched%20notification&content=Fedora%20NN%20is%20now%20Branched
 .. _Fedora Layered Image Build System:
     https://docs.pagure.org/releng/layered_image_build_service.html
+.. _fedscm-admin commit:
+    https://pagure.io/fedscm-admin/c/7862d58b5982803dbe4c47e0262c6ce78bc903db?branch=master
