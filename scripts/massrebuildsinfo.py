@@ -30,7 +30,7 @@ MASSREBUILDS = {
             "epoch": '2020-07-27 10:00:00.000000',  # rebuild anything not built after this date
             "module_mass_rebuild_epoch": '2020-07-27T10:00:00Z',
             # rebuild anything not built after this date for modules
-            "module_mass_branching_epoch": '2020-02-11T23:30:00Z',
+            "module_mass_branching_epoch": '2020-08-11T12:30:00Z',
             # rebuild anything not built after this date for modules
             "module_mass_rebuild_platform": "f33",
             # rebuild all modules that has build time dependency on this platform, this is used during mass rebuild time
