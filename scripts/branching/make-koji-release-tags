@@ -116,6 +116,22 @@ koji add-pkg --owner=releng "f${modular_release}" $pkgs
 # https://pagure.io/releng/issue/9256
 "${KOJICLI}" list-pkgs --tag "f${old_release}" --noinherit | grep '^rust-' | grep -Pv '(rust-packaging|rust-srpm-macros)' | awk '{print $1}' | xargs -n16 -P4 "${KOJICLI}" untag-build "f${old_release}" --all -v
 
+# Set up a corresponding set of tags for flatpaks.
+# They are only setup for branched release.
+old_flatpak_release=${old_release}-flatpak
+older_release=$(bc -l <<< "${old_release}-1")
+"${KOJICLI}" add-tag "f${old_flatpak_release}"
+"${KOJICLI}" add-tag --parent "f${old_flatpak_release}" "f${old_flatpak_release}-updates"
+"${KOJICLI}" add-tag --parent "f${old_flatpak_release}-updates" "f${old_flatpak_release}-updates-candidate"
+"${KOJICLI}" add-tag --parent "f${old_flatpak_release}-updates" "f${old_flatpak_release}-updates-testing"
+"${KOJICLI}" add-tag --parent "f${old_flatpak_release}-updates-testing" "f${old_flatpak_release}-updates-testing-pending"
+"${KOJICLI}" add-tag --parent "f${old_flatpak_release}-updates" "f${old_flatpak_release}-updates-pending"
+"${KOJICLI}" add-tag --parent "f${old_flatpak_release}-updates" "f${old_flatpak_release}-override"
+"${KOJICLI}" add-target "f${old_flatpak_release}"-candidate "f${old_release}"-build "f${old_flatpak_release}"-updates-candidate
+# Add packages from the stable release
+flatpak_pkgs=$(koji list-pkgs --quiet --tag="f${older_release}-flatpak" | awk '{ print $1}')
+"${KOJICLI}" add-pkg --owner=releng "f${old_flatpak_release}" $flatpak_pkgs
+
 # Point eln to new rawhide release
 "${KOJICLI}" remove-tag-inheritance eln "f${old_release}"
 "${KOJICLI}" add-tag-inheritance eln "f${release}"

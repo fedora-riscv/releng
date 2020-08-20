@@ -179,7 +179,7 @@ new-updates-sync, pungi configs for both rpm and modular updates, bodhi template
          sys.stdout.flush()
          # XXX If you modify this taglist.  Please also modify the other copy in
          # bodhi2/backend/tasks/main.yml
-    -    taglist = 'f32 f32-container f32-modular f31 f31-container f31-flatpak f31-modular f30 f30-container f30-flatpak f30-modular epel8 epel8-playground epel8-modular epel7 dist-6E-epel module-package-list modular'
+    -    taglist = 'f32 f32-container f32-modular f32-flatpak f31 f31-container f31-flatpak f31-modular f30 f30-container f30-flatpak f30-modular epel8 epel8-playground epel8-modular epel7 dist-6E-epel module-package-list modular'
     +    taglist = 'f33 f33-container f33-modular f33-flatpak f32 f32-container f32-modular f32-flatpak f31 f31-container f31-flatpak f31-modular f30 f30-container f30-flatpak f30-modular epel8 epel8-playground epel8-modular epel7 dist-6E-epel module-package-list modular'
         cmd = [
             '/usr/local/bin/owner-sync-pagure',
@@ -249,7 +249,7 @@ new-updates-sync, pungi configs for both rpm and modular updates, bodhi template
        # bodhi2/backend/files/koji-sync-listener.py
        # This cronjob runs only once a day.  The listener script runs reactively.
        cron: name="owner-sync" minute="15" hour="4" user="root"
-    -      job="/usr/local/bin/lock-wrapper owner-sync '/usr/local/bin/owner-sync-pagure f32 f32-container f32-modular f31 f31-container f31-flatpak f31-modular f30 f30-container f30-flatpak f30-modular epel8 epel8-playground epel8-modular epel7 dist-6E-epel module-package-list modular'"
+    -      job="/usr/local/bin/lock-wrapper owner-sync '/usr/local/bin/owner-sync-pagure f32 f32-container f32-modular f32-flatpak f31 f31-container f31-flatpak f31-modular f30 f30-container f30-flatpak f30-modular epel8 epel8-playground epel8-modular epel7 dist-6E-epel module-package-list modular'"
     +      job="/usr/local/bin/lock-wrapper owner-sync '/usr/local/bin/owner-sync-pagure f33 f33-container f33-modular f33-flatpak f32 f32-container f32-modular f32-flatpak f31 f31-container f31-flatpak f31-modular f30 f30-container f30-flatpak f30-modular epel8 epel8-playground epel8-modular epel7 dist-6E-epel module-package-list modular'"
            cron_file=update-koji-owner
        when: env == "production"
@@ -296,6 +296,22 @@ new-updates-sync, pungi configs for both rpm and modular updates, bodhi template
      ##
      ## Buildroot Override
      ##
+
+    diff --git a/roles/bodhi2/backend/templates/koji_sync_listener.toml b/roles/bodhi2/backend/templates/koji_sync_listener.toml
+    --- a/roles/bodhi2/backend/templates/koji_sync_listener.toml
+    +++ b/roles/bodhi2/backend/templates/koji_sync_listener.toml
+    @@ -36,6 +36,10 @@ arguments = {}
+    # XXX If you modify this taglist.  Please also modify the other copy in
+    # bodhi2/backend/tasks/main.yml
+    taglist = [
+    +     "f34",
+    +     "f34-container",
+    +     "f34-modular",
+    +     "f34-flatpak",
+          "f33",
+          "f33-container",
+          "f33-modular",
+
 
 Greenwave
 ^^^^^^^^^
@@ -940,6 +956,12 @@ To create a rawhide release in bodhi, you need to run
 ::
 
     $ bodhi releases create --name "F32" --long-name "Fedora 32" --id-prefix FEDORA --version 32 --branch f32 --dist-tag f32 --stable-tag f32 --testing-tag f32-updates-testing --candidate-tag f32-updates-candidate --pending-stable-tag f32-updates-pending --pending-testing-tag f32-updates-testing-pending --pending-signing-tag f32-signing-pending --state pending --override-tag f32-override --create-automatic-updates --not-composed-by-bodhi
+
+To create a flatpak release in bodhi, you need to run
+
+::
+
+    $ bodhi releases create --name "F32F" --long-name "Fedora 32 Flatpaks" --id-prefix FEDORA-FLATPAK --version 32 --branch f32 --dist-tag f32-flatpak --stable-tag f32-flatpak-updates --testing-tag f32-flatpak-updates-testing --candidate-tag f32-flatpak-updates-candidate --pending-stable-tag f32-flatpak-updates-pending --pending-testing-tag f32-flatpak-updates-testing-pending --state pending --override-tag f32-flatpak-override
 
 You need to run the ``bodhi openshift`` playbook, so that UI will know about the new release.
 Then, you need to restart **fm-consumer@config.service** and **bodhi-celery.service** services on
