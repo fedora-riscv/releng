@@ -182,22 +182,25 @@ def orphan_package(namespace, name, username):
     session = retry_session()
 
     # Orphan the package
-    url = f"{base_url}/api/0/{namespace}/{name}"
+    url = f"{base_url}/_dg/orphan/{namespace}/{name}"
     headers = {"Authorization": f"token {pagure_token}"}
-    data = {"main_admin": "orphan", "retain_access": False}
+    data = {
+        "orphan_reason": "other",
+        "orphan_reason_info": "Orphaned by releng",
+    }
 
-    req = session.patch(url, data=data, headers=headers)
+    req = self.requests_session.post(url, data=data, headers=headers)
     if not req.ok:
         print("**** REQUEST FAILED")
         print("  - Orphan package")
         print(req.url)
         print(data)
+        print(headers)
         print(req.text)
     else:
         print(f"  {username} is no longer the main admin of {namespace}/{name}")
-    session.close()
 
-    unwatch_package(namespace, name, username)
+    session.close()
 
 
 def remove_access(namespace, name, username, usertype):
