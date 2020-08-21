@@ -340,7 +340,7 @@ def main(args):
             while url:
                 req = session.get(url)
                 data = req.json()
-                for repo in data["repos"]:
+                for repo in data.get("repos", []):
                     maintainers = set(repo["user"]["name"])
                     for acl in repo["access_users"]:
                         maintainers.update(set(repo["access_users"][acl]))
@@ -348,7 +348,9 @@ def main(args):
                         namespace = repo["namespace"]
                         package = repo["name"]
                         packages_per_user[username].add(f"{namespace}/{package}")
-                url = data["repos_pagination"]["next"]
+                url = data.get("repos_pagination", {}).get("next")
+                if not url:
+                    break
 
     for username in sorted(usernames):
         _log.debug("Processing user: %s", username)
