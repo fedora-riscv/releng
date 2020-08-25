@@ -993,6 +993,13 @@ Update block_retired.py script
 
 Please look at this `block_retired.py commit`_ as an example.
 
+Updating MirrorManager
+^^^^^^^^^^^^^^^^^^^^^^
+
+We need to update the mirrormanager so that it will point rawhide to the new rawhide release.
+
+Please follow the instructions in the `fedora infra ticket`_ to update the database of mirrormanager.
+
 Enable autosigning on branched release
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -1080,3 +1087,5 @@ Consider Before Running
     https://pagure.io/releng/blob/master/f/scripts/block_retired.py
 .. _block_retired.py commit:
     https://pagure.io/releng/c/9eb97f491f7a767ab8b90498adfa3b34ee235247?branch=master
+.. _fedora infra ticket:
+    https://pagure.io/fedora-infrastructure/issue/9239#comment-671446
