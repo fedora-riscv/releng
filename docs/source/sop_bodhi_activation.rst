@@ -9,88 +9,189 @@ Description
 ===========
 .. Put a description of the task here.
 
-Bodhi must be activated after two weeks of `Mass Branching`_ at 00:00 UTC.
+Bodhi must be activated after two weeks of `Mass Branching`_ at 14:00 UTC.
 
 Action
 ======
 .. Describe the action and provide examples
 
-Run the following command on your own workstation.
+Making koji changes
+^^^^^^^^^^^^^^^^^^^
+
+Make the following koji tag changes
 
 ::
-    $ bodhi releases create \
-        --name F25 \
-        --long-name "Fedora 25" \
-        --id-prefix FEDORA \
-        --version 25 \
-        --branch f25 \
-        --dist-tag f25 \
-        --stable-tag f25-updates \
-        --testing-tag f25-updates-testing \
-        --candidate-tag f25-updates-candidate \
-        --pending-stable-tag f25-updates-pending \
-        --pending-testing-tag f25-updates-testing-pending \
-        --override-tag f25-override \
-        --state pending \
-        --username <user_name>
+
+  $ koji remove-tag-inheritance f33-updates-candidate f33
+  $ koji remove-tag-inheritance f33-updates-testing f33
+  $ koji remove-tag-inheritance f33-updates-pending f33
+  $ koji remove-tag-inheritance f33-override f33
+  $ koji add-tag-inheritance f33-updates-candidate f33-updates
+  $ koji add-tag-inheritance f33-updates-testing f33-updates
+  $ koji add-tag-inheritance f33-updates-pending f33-updates
+  $ koji add-tag-inheritance f33-override f33-updates
+  $ koji edit-tag --perm=admin f33
+
+Update bodhi rpm release
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Set the bodhi rpm to release to not to automatically create the update and also bodhi knows to compose the updates
+
+::
+
+  $ bodhi releases edit --name "F33" --stable-tag f33-updates --testing-repository updates-testing --package-manager dnf --no-create-automatic-updates --composed-by-bodhi
+
+Add the modular release
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Run the following command on your own workstation to add the modular release
+
+::
+
+  $ bodhi releases create --name F33M --long-name "Fedora 33 Modular" --id-prefix FEDORA-MODULAR --version 33 --branch f33m --dist-tag f33-modular --stable-tag f33-modular-updates --testing-tag f33-modular-updates-testing --candidate-tag f33-modular-updates-candidate --pending-stable-tag f33-modular-updates-pending --pending-testing-tag f33-modular-updates-testing-pending --pending-signing-tag f33-modular-signing-pending --override-tag f33-modular-override --state pending --user mohanboddu
 
 .. warning:: Due to a `bug <https://github.com/fedora-infra/bodhi/issues/2177>`_ in Bodhi, it is
-   critical that Bodhi processes be restarted any time ``bodhi releases create`` or
-   ``bodhi releases edit`` are used.
+    critical that Bodhi processes be restarted any time ``bodhi releases create`` or
+    ``bodhi releases edit`` are used.
 
-Now edit the Bodhi ``production.ini.j2`` template in the Infrastructure Ansible repository to
-configure the new release's pre-beta policy
+.. note:: Add the container and flatpak releases if they weren't already added to bodhi
+
+Ansible Changes
+===============
+
+Update vars
+^^^^^^^^^^^
+
+Update the *FedoraBranchedBodhi* and *RelEngFrozen* vars in infra ansible
 
 ::
-    f25.status = pre_beta
-    f25.post_beta.mandatory_days_in_testing = 7
-    f25.post_beta.critpath.num_admin_approvals = 0
-    f25.post_beta.critpath.min_karma = 2
-    f25.post_beta.critpath.stable_after_days_without_negative_karma = 14
-    f25.pre_beta.mandatory_days_in_testing = 3
-    f25.pre_beta.critpath.num_admin_approvals = 0
-    f25.pre_beta.critpath.min_karma = 1
 
-In the same file, look for the section about "Mirror settings" with the ``*_repomd`` settings, and
-make sure they are correct for the new release. You should also define a ``*_primary_arches``
-setting for the new release::
+  diff --git a/vars/all/FedoraBranchedBodhi.yaml b/vars/all/FedoraBranchedBodhi.yaml
+  index aba8be2..606eb2e 100644
+  --- a/vars/all/FedoraBranchedBodhi.yaml
+  +++ b/vars/all/FedoraBranchedBodhi.yaml
+  @@ -3,4 +3,4 @@
+  # prebeta: After bodhi enablement/beta freeze and before beta release
+  # postbeta: After beta release and before final release
+  # current: After final release
+  -FedoraBranchedBodhi: preenable
+  +FedoraBranchedBodhi: prebeta
+  diff --git a/vars/all/RelEngFrozen.yaml b/vars/all/RelEngFrozen.yaml
+  index 5836689..87d85f3 100644
+  --- a/vars/all/RelEngFrozen.yaml
+  +++ b/vars/all/RelEngFrozen.yaml
+  @@ -1 +1 @@
+  -RelEngFrozen: False
+  +RelEngFrozen: True
 
-   fedora_29_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%s/Everything/%s/repodata/repomd.xml
-   fedora_29_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/testing/%s/Everything/%s/repodata/repomd.xml
-   …
-   fedora_29_stable_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/%s/Everything/%s/repodata/repomd.xml
-   fedora_29_testing_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/testing/%s/Everything/%s/repodata/repomd.xml
-   …
-   fedora_29_primary_arches = aarch64 armhfp x86_64
-
-You need to restart all Bodhi processess (httpd and fedmsg-hub) on all machines for this and other
-things to take effect.
+Update Greenwave Policy
+^^^^^^^^^^^^^^^^^^^^^^^
 
 Now edit the Greenwave policy to configure a policy for the new release by editing
 ``roles/openshift-apps/greenwave/templates/configmap.yml`` in the Infrastructure Ansible repository.
-You can probably just search for ``fedora-24`` and add a ``fedora-25`` wherever it appears. Once
-those changes are committed and pushed, run the greenwave playbook
+
+:: 
+
+  diff --git a/roles/openshift-apps/greenwave/templates/fedora.yaml b/roles/openshift-apps/greenwave/templates/fedora.yaml
+  index 7a76f61..d15e154 100644
+  --- a/roles/openshift-apps/greenwave/templates/fedora.yaml
+  +++ b/roles/openshift-apps/greenwave/templates/fedora.yaml
+  @@ -84,6 +84,9 @@ rules:
+  --- !Policy
+  id: "no_requirements_testing"
+  product_versions:
+  +  - fedora-33-modular
+  +  - fedora-33-containers
+  +  - fedora-33-flatpaks
+    - fedora-32-modular
+    - fedora-32-containers
+    - fedora-32-flatpaks
+  @@ -107,6 +110,9 @@ rules: []
+  --- !Policy
+  id: "no_requirements_for_stable"
+  product_versions:
+  +  - fedora-33-modular
+  +  - fedora-33-containers
+  +  - fedora-33-flatpaks
+    - fedora-32-modular
+    - fedora-32-containers
+    - fedora-32-flatpaks
+  @@ -133,6 +139,7 @@ id: "openqa_release_critical_tasks_for_testing"
+  product_versions:
+    - fedora-rawhide
+    - fedora-eln
+  +  - fedora-33
+    - fedora-32
+    - fedora-31
+    - fedora-30
+  @@ -147,6 +154,7 @@ id: "openqa_release_critical_tasks_for_stable"
+  product_versions:
+    - fedora-rawhide
+    - fedora-eln
+  +  - fedora-33
+    - fedora-32
+    - fedora-31
+    - fedora-30
+
+Update Robosignatory Config
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Update the robosignatory config in the infra ansible repo as following
+
+::
+
+  diff --git a/roles/robosignatory/templates/robosignatory.toml.j2 b/roles/robosignatory/templates/robosignatory.toml.j2
+  index 16a6708..68f4251 100644
+  --- a/roles/robosignatory/templates/robosignatory.toml.j2
+  +++ b/roles/robosignatory/templates/robosignatory.toml.j2
+  @@ -259,8 +259,8 @@ handlers = ["console"]
+              type = "modular"
+  
+              [[consumer_config.koji_instances.primary.tags]]
+  -            from = "f33-modular-updates-candidate"
+  -            to = "f33-modular"
+  +            from = "f33-modular-signing-pending"
+  +            to = "f33-modular-updates-testing-pending"
+              key = "{{ (env == 'production')|ternary('fedora-33', 'testkey') }}"
+              keyid = "{{ (env == 'production')|ternary('9570ff31', 'd300e724') }}"
+              type = "modular"
+
+Run the playbooks
+^^^^^^^^^^^^^^^^^
 
 ::
 
     $ rbac-playbook openshift-apps/greenwave.yml
+    $ rbac-playbook openshift-apps/bodhi.yml
+    $ rbac-playbook groups/bodhi-backend.yml
+    $ rbac-playbook groups/releng-compose.yml
+    $ rbac-playbook manual/autosign.yml
 
 Greenwave runs in OpenShift (as implied by the playbook paths), and so the change will not be live
 right away when the playbook finishes. You can monitor
 https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/policies to wait for the new
 policy to appear (it should take a few minutes).
 
-Now the Koji tags should be edited so that Bodhi can push updates.
+Restart bodhi services
+^^^^^^^^^^^^^^^^^^^^^^
+
+Restart bodhi services to understand the bodhi new release on bodhi-backend01
+(Look at warning in https://docs.pagure.org/releng/sop_bodhi_activation.html#action and the bug is https://github.com/fedora-infra/bodhi/issues/2177)
 
 ::
-    $ koji edit-target f25-candidate --dest-tag f25-updates-candidate
-    $ koji edit-target f25 --dest-tag f25-updates-candidate
-    $ koji edit-tag --perm=admin f25
+
+  $ sudo systemctl restart bodhi-celery
+  $ sudo systemctl restart fm-consumer@config
+  $ sudo systemctl restart koji-sync-listener
+
+Send Announcement
+^^^^^^^^^^^^^^^^^
 
 Email **devel-announce** and **test-announce** lists about Bodhi Activation. 
 Please find the body of the email below:
 
 ::
+
   Hi all, 
 
   Today's an important day on the Fedora 25 schedule[1], with several significant cut-offs. First of all today is the Bodhi activation point [2]. That means that from now all Fedora 25 packages must be submitted to updates-testing and pass the relevant requirements[3] before they will be marked as 'stable' and moved to the fedora repository. 
@@ -117,22 +218,21 @@ Verification
 ============
 .. Provide a method to verify that the action completed as expected (success)
 
-The following message is displayed after successful completions of the bodhi command.
+Compare koji tagging structure with older release
 
 ::
-  Name:                F25
-  Long Name:           Fedora 25
-  Version:             25
-  Branch:              f25
-  ID Prefix:           FEDORA
-  Dist Tag:            f25
-  Stable Tag:          f25-updates
-  Testing Tag:         f25-updates-testing
-  Candidate Tag:       f25-updates-candidate
-  Pending Testing Tag: f25-updates-testing-pending
-  Pending Stable Tag:  f25-updates-pending
-  Override Tag:        f25-override
-  State:               pending
+
+  $ koji list-tag-inheritance <branched_release> --reverse
+  $ koji list-tag-inheritance <latest_stable_release> --reverse
+
+Compare the bodhi release with older release
+
+::
+
+  $ bodhi releases info <branched_release>
+  $ bodhi releases info <latest_stable_release>
+
+Check for other variants like modular, container and flatpaks
 
 Consider Before Running
 =======================
