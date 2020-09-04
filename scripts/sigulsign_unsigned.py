@@ -9,6 +9,9 @@
 #     Jesse Keating <jkeating@redhat.com>
 #     Patrick Uiterwijk <puiterwijk@redhat.com>
 #
+# To run the script
+# $ ./sigulsign_unsigned.py --write-all -v --tag f32-updates fedora-32
+#
 # This program requires koji and sigul installed, as well as configured.
 
 import argparse
@@ -17,7 +20,7 @@ import getpass
 import subprocess
 import logging
 import koji
-import cccolutils
+#import cccolutils
 
 errors = {}
 
@@ -63,6 +66,9 @@ KEYS = {
     'fedora-27': {'id': 'f5282ee4', 'v3': True},
     'fedora-28': {'id': '9db62fb1', 'v3': True},
     'fedora-29': {'id': '429476b4', 'v3': True},
+    'fedora-32': {'id': '12c944d0', 'v3': True},
+    'fedora-33': {'id': '9570ff31', 'v3': True},
+    'fedora-34': {'id': '45719a39', 'v3': True},
     'fedora-10-testing': {'id': '0b86274e', 'v3': False},
     'epel-5': {'id': '217521f6', 'v3': False},
     'epel-6': {'id': '0608b895', 'v3': True},
@@ -170,7 +176,7 @@ class KojiHelper(object):
         unsigned = {}
         self.kojisession.multicall = True
 
-        rpm_filenames = rpms.keys()
+        rpm_filenames = list(rpms.keys())
         for rpm in rpm_filenames:
             self.kojisession.queryRPMSigs(rpm_id=rpms[rpm], sigkey=keyid)
 
@@ -210,7 +216,7 @@ def exit(status):
     """End the program using status, report any errors"""
 
     if errors:
-        for type in errors.keys():
+        for type in list(errors.keys()):
             logging.error('Errors during %s:' % type)
             for fault in errors[type]:
                 logging.error('     ' + fault)
@@ -225,10 +231,10 @@ def writeRPMs(status, kojihelper, batch=None):
 
     # Check to see if we want to write all, or just the unsigned.
     if args.write_all:
-        rpms = rpmdict.keys()
+        rpms = list(rpmdict.keys())
     else:
         if batch is None:
-            rpms = [rpm for rpm in rpmdict.keys() if rpm in unsigned]
+            rpms = [rpm for rpm in list(rpmdict.keys()) if rpm in unsigned]
         else:
             rpms = batch
     logging.info('Calling koji to write %s rpms' % len(rpms))
@@ -245,7 +251,7 @@ def writeRPMs(status, kojihelper, batch=None):
                           rpm, key, written, rpmcount)
         errors = kojihelper.write_signed_rpms(workset, KEYS[key]['id'])
 
-        for rpm, result in errors.items():
+        for rpm, result in list(errors.items()):
             logging.error('Error writing out %s' % rpm)
             errors.setdefault('Writing', []).append(rpm)
             if result['traceback']:
@@ -263,14 +269,14 @@ class SigulHelper(object):
         self.key = key
 
         if password is None:
-            try:
-                krb_realm = "FEDORAPROJECT.ORG"
-                if use_staging:
-                    krb_realm = "STAGING.FEDORAPROJECT.ORG"
-
-                fas_username = cccolutils.get_user_for_realm(krb_realm)
-            except:
-                fas_username = getpass.getuser()
+#            try:
+#                krb_realm = "FEDORAPROJECT.ORG"
+#                if use_staging:
+#                    krb_realm = "STAGING.FEDORAPROJECT.ORG"
+#
+#                fas_username = cccolutils.get_user_for_realm(krb_realm)
+#            except:
+            fas_username = getpass.getuser()
 
             cache_id = "sigul:{0}:{1}".format(fas_username, key)
             try:
@@ -315,7 +321,8 @@ class SigulHelper(object):
         else:
             child = subprocess.Popen(command, stdin=subprocess.PIPE)
 
-        stdout, stderr = child.communicate(self.password + '\0')
+        passwd = self.password + '\0'
+        stdout, stderr = child.communicate(passwd.encode('utf-8'))
         ret = child.wait()
         return ret, stdout, stderr
 
@@ -402,7 +409,7 @@ if __name__ == "__main__":
 
     key = extras[0]
     logging.debug('Using %s for key %s' % (KEYS[key]['id'], key))
-    if key not in KEYS.keys():
+    if key not in list(KEYS.keys()):
         logging.error('Unknown key %s' % key)
         parser.print_help()
         sys.exit(1)
@@ -503,7 +510,7 @@ if __name__ == "__main__":
 
     if args.just_list:
         logging.info('Just listing rpms')
-        print('\n'.join(unsigned))
+        print(('\n'.join(unsigned)))
         exit(status)
 
     # run sigul
