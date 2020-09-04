@@ -25,12 +25,15 @@ commits.
 import argparse
 import pathlib
 import re
+import subprocess
 import pygit2
 import requests
 import koji as _koji
 
 BODHI_RELEASES = 'https://bodhi.fedoraproject.org/releases/?rows_per_page=1000'
 NORMAL_BRANCHES = r'^(f\d{1,2}|el\d|epel\d|epel1\d)$'
+
+MACRO_DEF_RE = re.compile(rb'^%(global|define)\s+(?P<macro>\S+)\s+(?P<value>.+)$')
 
 _KOJI_SESSION = None
 def koji_session(opts):
@@ -110,6 +113,17 @@ def containing_branches(repo, commit, *, local, ignore_branch=None):
         if branch != ignore_branch:
             yield branch
 
+
+def rpm_eval(expression, macros):
+    cmd = ['rpm']
+    for macro, value in macros.items():
+        cmd.append('--define')
+        cmd.append(f'{macro} {value}')
+    cmd.append('--eval')
+    cmd.append(expression)
+    return subprocess.check_output(cmd, text=True).strip()
+
+
 def name_in_spec_file(commit, package):
     try:
         spec = (commit.tree / f'{package}.spec').data
@@ -119,17 +133,19 @@ def name_in_spec_file(commit, package):
 
     # We don't try to decode the whole spec file here, to reduce the chances of trouble.
     # Just any interesting lines.
+    macros = {}
     for line in spec.splitlines():
-        if not line.startswith(b'Name:'):
-            continue
         try:
-            name = line[5:].decode().strip()
+            if line.startswith(b'Name:'):
+                name = line[5:].decode().strip()
+                return rpm_eval(name, macros)
+
+            macro_def = MACRO_DEF_RE.match(line)
+            if macro_def:
+                macros[macro_def.group('macro').decode()] = macro_def.group('value').decode()
         except UnicodeDecodeError:
             print(f"Something is wrong: commit {commit.hex} has busted encoding'.")
             raise
-
-        # Note that this does not do macro resolution. No need to support crazy things.
-        return name
 
 def do_opts():
     parser = argparse.ArgumentParser(description=__doc__,
@@ -193,7 +209,7 @@ def branch_is_reachable(opts):
         except UnicodeDecodeError:
             return 1
         if real_name is not None and real_name != opts.package:
-            print(f"Sorry, {commit.hex} has Name:{real_name}, refusing to continue.")
+            print(f"Sorry, {commit.hex} has Name: {real_name}, refusing to continue.")
             return 1
 
         built = builds.get(commit.hex, None)
