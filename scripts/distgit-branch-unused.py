@@ -81,7 +81,13 @@ def find_hash(build):
 def list_builds(package, opts):
     session, koji = koji_session(opts)
 
-    pkg = session.getPackageID(package, strict=True)
+    try:
+        pkg = session.getPackageID(package, strict=True)
+    except koji.GenericError as e:
+        if 'Invalid package name' in str(e):
+            return {}
+        else:
+            raise
     builds = session.listBuilds(packageID=pkg, state=koji.BUILD_STATES['COMPLETE'])
 
     with session.multicall(strict=True) as msession:
@@ -187,7 +193,7 @@ def branch_is_reachable(opts):
         return 0
 
     print('Branch has commits not found anywhere else. Looking for builds.')
-    builds = list_builds(opts.package, opts)
+    builds = {opts.package: list_builds(opts.package, opts)}
 
     for n, commit in enumerate(repo.walk(branch.target, pygit2.GIT_SORT_TOPOLOGICAL)):
         subj = commit.message.splitlines()[0][:60]
@@ -208,16 +214,17 @@ def branch_is_reachable(opts):
             real_name = name_in_spec_file(commit, opts.package)
         except UnicodeDecodeError:
             return 1
-        if real_name is not None and real_name != opts.package:
-            print(f"Sorry, {commit.hex} has Name: {real_name}, refusing to continue.")
-            return 1
+        if real_name is not None and real_name not in builds:
+            print(f"{commit.hex} has Name: {real_name}. Looking for builds.")
+            builds[real_name] = list_builds(real_name, opts)
 
-        built = builds.get(commit.hex, None)
-        if built:
-            print(f"Sorry, {commit.hex} built as {built['nvr']}.")
-            koji_link = f"https://koji.fedoraproject.org/koji/taskinfo?taskID={built['task_id']}"
-            print(f"See {koji_link}.")
-            return 1
+        for name in builds:
+            built = builds[name].get(commit.hex, None)
+            if built:
+                print(f"Sorry, {commit.hex} built as {built['nvr']}.")
+                koji_link = f"https://koji.fedoraproject.org/koji/taskinfo?taskID={built['task_id']}"
+                print(f"See {koji_link}.")
+                return 1
 
     print('No builds found, seems OK to delete.')
     return 0
