@@ -134,8 +134,19 @@ def name_in_spec_file(commit, package):
     try:
         spec = (commit.tree / f'{package}.spec').data
     except KeyError:
-        print(f"Commit {commit.hex} doesn't have '{package}.spec', assuming package is unbuildable.")
-        return None
+        print(f"Commit {commit.hex} doesn't have '{package}.spec', looking for other specs.")
+        specs = set()
+        for candidate in commit.tree:
+            if candidate.name.endswith(".spec"):
+                specs.add(candidate)
+                print(f"Found '{candidate.name}'.")
+        if not specs:
+            print(f"Commit {commit.hex} doesn't have '*.spec', assuming package is unbuildable.")
+            return None
+        if len(specs) > 1:
+            msg = f"Commit {commit.hex} has multiple '*.spec' files, aborting."
+            raise NotImplementedError(msg)
+        spec = specs.pop().data
 
     # We don't try to decode the whole spec file here, to reduce the chances of trouble.
     # Just any interesting lines.
