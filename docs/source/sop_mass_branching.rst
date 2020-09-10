@@ -404,6 +404,7 @@ Fedora Branched
 Set FedoraBranched variable to True in infra ansible repo
 
 ::
+
     --- a/vars/all/FedoraBranched.yaml
     +++ b/vars/all/FedoraBranched.yaml
     @@ -1 +1 @@
@@ -413,12 +414,13 @@ Set FedoraBranched variable to True in infra ansible repo
 Set FedoraBranchedBodhi variable to prebeta in infra ansible repo
 
 ::
+
     --- a/vars/all/FedoraBranchedBodhi.yaml
     +++ b/vars/all/FedoraBranchedBodhi.yaml
     @@ -1,2 +1,2 @@
     #options are: prebeta, postbeta, current
-    -FedoraBranchedBodhi: current
-    +FedoraBranchedBodhi: prebeta
+    -   FedoraBranchedBodhi: current
+    +   FedoraBranchedBodhi: prebeta
 
 Koji hub
 ^^^^^^^^
@@ -426,12 +428,13 @@ Koji hub
 Update the koji hub config to allow side tags for new koji rawhide tag
 
 ::
+
     --- a/roles/koji_hub/templates/hub.conf.j2
     +++ b/roles/koji_hub/templates/hub.conf.j2
     @@ +1 @@
-    +tag f34-build :: allow
-     tag f33-build :: allow
-     tag f32-build :: allow
+    +   tag f34-build :: allow
+    tag f33-build :: allow
+    tag f32-build :: allow
 
 Robosignatory
 ^^^^^^^^^^^^^
@@ -1048,6 +1051,13 @@ On ``compose-x86-01.phx2`` run:
     Untagged: fedora-docker-base-rawhide-20170310.n.0.x86_64:latest
     $ for i in $(sudo docker images -q -f 'dangling=true'); do sudo docker rmi $i; done
 
+Update sync script
+^^^^^^^^^^^^^^^^^^
+
+In releng repository update `script
+<https://pagure.io/releng/blob/master/f/scripts/sync-latest-container-base-image.sh#_38>`_.
+
+And set current_rawhide variable.
 
 Consider Before Running
 =======================
