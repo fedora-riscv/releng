@@ -174,7 +174,7 @@ def unwatch_package(namespace, name, username):
     session.close()
 
 
-def orphan_package(namespace, name, username):
+def orphan_package(session, namespace, name, username):
     """ Give the specified project on dist_git to the ``orphan`` user.
     """
     _log.debug("Going to orphan: %s/%s from %s", namespace, name, username)
@@ -189,7 +189,7 @@ def orphan_package(namespace, name, username):
         "orphan_reason_info": "Orphaned by releng",
     }
 
-    req = self.requests_session.post(url, data=data, headers=headers)
+    req = session.post(url, data=data, headers=headers)
     if not req.ok:
         print("**** REQUEST FAILED")
         print("  - Orphan package")
@@ -362,7 +362,7 @@ def main(args):
                     print(f"{username} is {level} of {namespace}/{name}")
                     if args.retire:
                         if level == "main admin":
-                            orphan_package(namespace, name, username)
+                            orphan_package(session, namespace, name, username)
                         elif level == "maintainer":
                             remove_access(namespace, name, username, "user")
 
