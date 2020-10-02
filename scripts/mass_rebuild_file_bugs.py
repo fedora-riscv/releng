@@ -46,7 +46,7 @@ ASSIGNED when you start fixing it. If the bug remains in NEW state for 8 weeks,
 {component} will be retired, if it still fails to build.
 
 For more details on the FTBFS policy, please visit:
-https://fedoraproject.org/wiki/Fails_to_build_from_source
+https://docs.fedoraproject.org/en-US/fesco/Fails_to_build_from_source_Fails_to_install/
 """
 
 def report_failure(massrebuild, component, task_id, logs,

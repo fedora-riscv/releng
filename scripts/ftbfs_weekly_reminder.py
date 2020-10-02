@@ -59,7 +59,7 @@ A week before the mass branching of Fedora {int(FEDORA)+1} according to the sche
 any packages not successfully rebuilt at least on Fedora {int(FEDORA)-1} will be
 retired regardless of the status of this bug.
 
-[1] https://fedoraproject.org/wiki/Updates_Policy
+[1] https://docs.fedoraproject.org/en-US/fesco/Updates_Policy/
 [2] https://docs.fedoraproject.org/en-US/fesco/Fails_to_build_from_source_Fails_to_install/
 [3] https://fedorapeople.org/groups/schedule/f-{int(FEDORA)+1}/f-{int(FEDORA)+1}-key-tasks.html
 """  # noqa
