@@ -960,7 +960,13 @@ To create a rawhide release in bodhi, you need to run
 
     $ bodhi releases create --name "F32" --long-name "Fedora 32" --id-prefix FEDORA --version 32 --branch f32 --dist-tag f32 --stable-tag f32 --testing-tag f32-updates-testing --candidate-tag f32-updates-candidate --pending-stable-tag f32-updates-pending --pending-testing-tag f32-updates-testing-pending --pending-signing-tag f32-signing-pending --state pending --override-tag f32-override --create-automatic-updates --not-composed-by-bodhi
 
-To create a flatpak release in bodhi, you need to run
+To create a container release for rawhide in bodhi, you need to run
+
+::
+
+    $ bodhi releases create --name "F34C" --long-name "Fedora 34 Containers" --id-prefix FEDORA-CONTAINER --version 34 --branch f34 --dist-tag f34-container --stable-tag f34-container-updates --testing-tag f34-container-updates-testing --candidate-tag f34-container-updates-candidate --pending-stable-tag f34-container-updates-pending --pending-testing-tag f34-container-updates-testing-pending --state pending --override-tag f34-container-override
+
+To create a flatpak release for branched in bodhi, you need to run
 
 ::
 

@@ -101,12 +101,21 @@ koji add-pkg --owner=releng "f${modular_release}" $pkgs
 
 "${KOJICLI}" tag-pkg "f${release}-build" "$(${KOJICLI} latest-build "f${old_release}-build" glibc64 glibc32 --quiet|sed -e "s| .*||g" )"
 
+# Set up a corresponding set of tags for containers.
+container_release=${release}-container
+"${KOJICLI}" add-tag --parent "f${container_release}" "f${container_release}-updates"
+"${KOJICLI}" add-tag --parent "f${container_release}-updates" "f${container_release}-updates-candidate"
+"${KOJICLI}" add-tag --parent "f${container_release}-updates" "f${container_release}-updates-testing"
+"${KOJICLI}" add-tag --parent "f${container_release}-updates-testing" "f${container_release}-updates-testing-pending"
+"${KOJICLI}" add-tag --parent "f${container_release}-updates" "f${container_release}-updates-pending"
+"${KOJICLI}" add-tag --parent "f${container_release}-updates" "f${container_release}-override"
+
 "${KOJICLI}" add-target "f${release}" "f${release}-build" "f${release}-updates-candidate"
 "${KOJICLI}" add-target "f${release}-candidate" "f${release}-build" "f${release}-updates-candidate"
 "${KOJICLI}" add-target "f${release}-infra" "f${release}-infra-build" "f${release}-infra-candidate"
-"${KOJICLI}" add-target "f${release}-container-candidate" "f${release}-container-build" "f${release}-container"
+"${KOJICLI}" add-target "f${release}-container-candidate" "f${release}-container-build" "f${release}-container-updates-candidate"
 "${KOJICLI}" edit-target rawhide --dest-tag="f${release}-updates-candidate" --build-tag="f${release}-build"
-"${KOJICLI}" edit-target rawhide-container-candidate --dest-tag="f${release}-container" --build-tag="f${release}-container-build"
+"${KOJICLI}" edit-target rawhide-container-candidate --dest-tag="f${release}-container-updates-candidate" --build-tag="f${release}-container-build"
 
 
 "${KOJICLI}" remove-tag-inheritance rawhide "f${old_release}"
