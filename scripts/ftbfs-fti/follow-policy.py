@@ -251,7 +251,7 @@ def follow_policy(release):
     for src, pkg_rules in fti.items():
         problems = collections.defaultdict(list)
         for pkg, rules in pkg_rules.items():
-            if re.search(r"^rust-.*-devel$", pkg):
+            if re.search(r"^rust-.*-devel$", pkg) and int(release) < 34:
                 continue
             if pkg.startswith("dummy-test-package"):
                 continue
