@@ -55,7 +55,6 @@ def handle_orphaning(bug, tracker):
     if diff < datetime.timedelta(weeks=1):
         print(
             f"→ Week did not pass since bug started to block tracker ({start_time}), skipping…",
-            file=sys.stderr,
         )
         return
 
@@ -88,7 +87,6 @@ If you know about this problem and are planning on fixing it, please acknowledge
         except StopIteration:
             print(
                 f"→ Week did not pass since first needinfo ({_bzdate_to_python(needinfos[0]['when'])}), skipping…",
-                file=sys.stderr,
             )
             return
         try:
@@ -100,11 +98,10 @@ If you know about this problem and are planning on fixing it, please acknowledge
             )
             if NOW - needinfo_after_four_weeks >= datetime.timedelta(weeks=4):
                 print("Opening releng ticket")
-                # TODO: Implement
+                print(f' * `{bug.component}` ([bug](https://bugzilla.redhat.com/show_bug.cgi?id={bug.id}))', file=sys.stderr)
             else:
                 print(
                     f"→ 4 weeks did not pass since second needinfo ({needinfo_after_four_weeks}), skipping…",
-                    file=sys.stderr,
                 )
                 return
         except StopIteration:
@@ -121,7 +118,6 @@ If you know about this problem and are planning on fixing it, please acknowledge
             else:
                 print(
                     f"→ 3 weeks did not pass since first needinfo ({needinfo_after_week}), skipping…",
-                    file=sys.stderr,
                 )
                 return
 
@@ -223,7 +219,7 @@ def find_broken_packages(pool):
 @click.option(
     "--release",
     type=click.Choice(sorted(set(t[1:3] for t in TRACKERS.keys()))),
-    default="33",
+    default="34",
     show_default=True,
     help="Fedora release",
 )
@@ -306,7 +302,6 @@ def follow_policy(release):
         if src in current_ftis:
             print(
                 f"Skipping {src} because bug already exists: {current_ftis[src].id}",
-                file=sys.stderr,
             )
             continue
 
@@ -337,7 +332,6 @@ def follow_policy(release):
             continue
         print(
             f"Checking {b.id} if it was submitted as an update to appropriate release",
-            file=sys.stderr,
         )
         comments = b.getcomments()
         try:
@@ -374,7 +368,7 @@ def follow_policy(release):
             src: b for src, b in current_ftis.items() if src not in fixed_ftis
         }
     else:
-        print("No FTI bugs to close, everything is still broken", file=sys.stderr)
+        print("No FTI bugs to close, everything is still broken")
 
     # Update bugs for orphaned packages
     orphaned = {
@@ -383,7 +377,7 @@ def follow_policy(release):
         if pkg_owners["rpms"][src]["fedora"] == "orphan"
     }
     for src, b in orphaned.items():
-        click.echo(f"Checking if need to send notice to the orphaned package: {src} ({b.id})", err=True)
+        click.echo(f"Checking if need to send notice to the orphaned package: {src} ({b.id})")
         comments = b.getcomments()
         update = False
         try:
