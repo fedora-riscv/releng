@@ -16,7 +16,7 @@ NAME
 SYNOPSIS
     ${0} FEDORA_RELEASE IMAGE_URL [-s]
 OPTIONS
-    -s  - Sync the production and stage registries.
+    -s  - Sync the stage registries instead of production
 DESCRIPTION
     This is a stop-gap solution to identify parent inheritance of container
     images until the container release automation[0] is in place and we have
@@ -58,133 +58,91 @@ fi
 #   Need fXX-updates-canddiate to get actual latest nightly
 #
 build_name=$(koji -q latest-build --type=image f${1}-updates-candidate Fedora-Container-Base | awk '{print $1}')
+
+if [[ ${1} -eq "$current_stable" ]]; then
+    tagname="latest"
+fi
+if [[ ${1} -eq "$current_rawhide" ]]; then
+    tagname="rawhide"
+fi
+
 minimal_build_name=$(koji -q latest-build --type=image f${1}-updates-candidate Fedora-Container-Minimal-Base | awk '{print $1}')
-
-#Push the base image
 if [[ -n ${build_name} ]]; then
-
     # Download the image
     work_dir=$(mktemp -d)
     pushd ${work_dir} &> /dev/null
     koji download-build --type=image  ${build_name}
-
-    # Create the manifest list for multi-arch support
-    podman manifest create registry.fedoraproject.org/fedora:${1}
-    podman manifest create candidate-registry.fedoraproject.org/fedora:${1}
-    podman manifest create quay.io/fedora/fedora:${1}
-
     # Import the image
     for arch in "${ARCHES[@]}"
     do
         xz -d ${build_name}.${arch}.tar.xz
-        skopeo copy docker-archive:${build_name}.${arch}.tar docker://registry.fedoraproject.org/fedora:${1}-${arch}
-        skopeo copy docker-archive:${build_name}.${arch}.tar docker://candidate-registry.fedoraproject.org/fedora:${1}-${arch}
-        skopeo copy docker-archive:${build_name}.${arch}.tar docker://quay.io/fedora/fedora:${1}-${arch}
-        podman manifest add registry.fedoraproject.org/fedora:${1} docker://registry.fedoraproject.org/fedora:${1}-${arch}
-        podman manifest add candidate-registry.fedoraproject.org/fedora:${1} docker://candidate-registry.fedoraproject.org/fedora:${1}-${arch}
-        podman manifest add quay.io/fedora/fedora:${1} docker://quay.io/fedora/fedora:${1}-${arch}
+        # If ${stage} is a non-zero length string, then perform staging
+        if [[ -z "$stage" ]]; then
+            registries=("registry.fedoraproject.org" "candidate-registry.fedoraproject.org")
+            skopeo copy docker-archive:${build_name}.${arch}.tar docker://registry.fedoraproject.org/fedora:${1}-${arch}
+            skopeo copy docker-archive:${build_name}.${arch}.tar docker://candidate-registry.fedoraproject.org/fedora:${1}-${arch}
+            skopeo copy docker-archive:${build_name}.${arch}.tar docker://quay.io/fedora/fedora:${1}-${arch}
+        else
+            registries=("registry.stg.fedoraproject.org" "candidate-registry.stg.fedoraproject.org")
+            skopeo copy docker-archive:${build_name}.${arch}.tar docker://registry.stg.fedoraproject.org/fedora:${1}-${arch}
+            skopeo copy docker-archive:${build_name}.${arch}.tar docker://candidate-registry.stg.fedoraproject.org/fedora:${1}-${arch}
+        fi
     done
+
     popd &> /dev/null
 
-    podman manifest push registry.fedoraproject.org/fedora:${1} docker://registry.fedoraproject.org/fedora:${1}
-    podman manifest push candidate-registry.fedoraproject.org/fedora:${1} docker://candidate-registry.fedoraproject.org/fedora:${1}
-    podman manifest push quay.io/fedora/fedora:${1} docker://quay.io/fedora/fedora:${1}
-
-    # Create the latest tag
-    if [[ ${1} -eq "$current_stable" ]]; then
-        skopeo copy --all docker://registry.fedoraproject.org/fedora:${1} docker://registry.fedoraproject.org/fedora:latest
-        skopeo copy --all docker://candidate-registry.fedoraproject.org/fedora:${1} docker://candidate-registry.fedoraproject.org/fedora:latest
-        skopeo copy --all docker://quay.io/fedora/fedora:${1} docker://quay.io/fedora/fedora:latest
-    fi
-    # Create the rawhide tag
-    if [[ ${1} -eq "$current_rawhide" ]]; then
-        skopeo copy --all docker://registry.fedoraproject.org/fedora:${1} docker://registry.fedoraproject.org/fedora:rawhide
-        skopeo copy --all docker://candidate-registry.fedoraproject.org/fedora:${1} docker://candidate-registry.fedoraproject.org/fedora:rawhide
-        skopeo copy --all docker://quay.io/fedora/fedora:${1} docker://quay.io/fedora/fedora:rawhide
-    fi
-
-    # Copy the images in staging
-    if ! [[ -z "$stage" ]]; then
-        skopeo copy --all docker://registry.fedoraproject.org/fedora:${1} docker://registry.stg.fedoraproject.org/fedora:${1}
-        skopeo copy --all docker://candidate-registry.fedoraproject.org/fedora:${1} docker://create candidate-registry.stg.fedoraproject.org/fedora:${1}
-
-        if [[ ${1} -eq "$current_stable" ]]; then
-            skopeo copy --all docker://registry.stg.fedoraproject.org/fedora:${1} docker://registry.stg.fedoraproject.org/fedora:latest
-            skopeo copy --all docker://candidate-registry.stg.fedoraproject.org/fedora:${1} docker://candidate-registry.stg.fedoraproject.org/fedora:latest
+    for registry in "${registries[@]}"
+    do
+        printf "Push manifest to ${registry}\n"
+        if [ -z "$tagname" ]
+        then
+            printf "tag is not set: ${tagname}\n"
+            python3 generate-manifest-list.py -r ${1} --registry ${registry} --image fedora
+        else
+            printf "tag is set: ${tagname}\n"
+            python3 generate-manifest-list.py -r ${1} --registry ${registry} --tag ${tagname} --image fedora
         fi
-        if [[ ${1} -eq "$current_rawhide" ]]; then
-            skopeo copy --all docker://registry.stg.fedoraproject.org/fedora:${1} docker://registry.stg.fedoraproject.org/fedora:rawhide
-            skopeo copy --all docker://candidate-registry.stg.fedoraproject.org/fedora:${1} docker://candidate-registry.stg.fedoraproject.org/fedora:latest
-        fi
-    fi
+    done
     printf "Removing temporary directory\n"
     rm -rf $work_dir
-    podman rmi -f registry.fedoraproject.org/fedora:${1}
-    podman rmi -f candidate-registry.fedoraproject.org/fedora:${1}
-    podman rmi -f quay.io/fedora/fedora:${1}
 fi
-
-#Push the minimal base image
 if [[ -n ${minimal_build_name} ]]; then
     # Download the image
     work_dir=$(mktemp -d)
     pushd ${work_dir} &> /dev/null
     koji download-build --type=image  ${minimal_build_name}
-
-    # Create the manifest list for multi-arch support
-    podman manifest create registry.fedoraproject.org/fedora-minimal:${1}
-    podman manifest create candidate-registry.fedoraproject.org/fedora-minimal:${1}
-    podman manifest create quay.io/fedora/fedora-minimal:${1}
-
     # Import the image
     for arch in "${ARCHES[@]}"
     do
         xz -d ${minimal_build_name}.${arch}.tar.xz
-        skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://registry.fedoraproject.org/fedora-minimal:${1}-${arch}
-        skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://candidate-registry.fedoraproject.org/fedora-minimal:${1}-${arch}
-        skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://quay.io/fedora/fedora-minimal:${1}-${arch}
-        podman manifest add registry.fedoraproject.org/fedora-minimal:${1} docker://registry.fedoraproject.org/fedora-minimal:${1}-${arch}
-        podman manifest add candidate-registry.fedoraproject.org/fedora-minimal:${1} docker://candidate-registry.fedoraproject.org/fedora-minimal:${1}-${arch}
-        podman manifest add quay.io/fedora/fedora-minimal:${1} docker://quay.io/fedora/fedora-minimal:${1}-${arch}
-
+        # If ${stage} is a non-zero length string, then perform staging
+        if [[ -z "$stage" ]]; then
+            registries=("registry.fedoraproject.org" "candidate-registry.fedoraproject.org")
+            skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://registry.fedoraproject.org/fedora-minimal:${1}-${arch}
+            skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://candidate-registry.fedoraproject.org/fedora-minimal:${1}-${arch}
+        else
+            registries=("registry.stg.fedoraproject.org" "candidate-registry.stg.fedoraproject.org")
+            skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://registry.stg.fedoraproject.org/fedora-minimal:${1}-${arch}
+            skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://candidate-registry.stg.fedoraproject.org/fedora-minimal:${1}-${arch}
+            skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://quay.io/fedora/fedora-minimal:${1}-${arch}
+        fi
      done
      popd &> /dev/null
 
-    podman manifest push registry.fedoraproject.org/fedora-minimal:${1} docker://registry.fedoraproject.org/fedora-minimal:${1}
-    podman manifest push candidate-registry.fedoraproject.org/fedora-minimal:${1} docker://candidate-registry.fedoraproject.org/fedora-minimal:${1}
-    podman manifest push quay.io/fedora/fedora-minimal:${1} docker://quay.io/fedora/fedora-minimal:${1}
-
-    # Create the latest tag
-    if [[ ${1} -eq "$current_stable" ]]; then
-        skopeo copy --all docker://registry.fedoraproject.org/fedora-minimal:${1} docker://registry.fedoraproject.org/fedora-minimal:latest
-        skopeo copy --all docker://candidate-registry.fedoraproject.org/fedora-minimal:${1} docker://candidate-registry.fedoraproject.org/fedora-minimal:latest
-        skopeo copy --all docker://quay.io/fedora/fedora-minimal:${1} docker://quay.io/fedora/fedora-minimal:latest
-    fi
-    # Create the rawhide tag
-    if [[ ${1} -eq "$current_rawhide" ]]; then
-        skopeo copy --all docker://registry.fedoraproject.org/fedora-minimal:${1} docker://registry.fedoraproject.org/fedora-minimal:rawhide
-        skopeo copy --all docker://candidate-registry.fedoraproject.org/fedora-minimal:${1} docker://candidate-registry.fedoraproject.org/fedora-minimal:rawhide
-        skopeo copy --all docker://quay.io/fedora/fedora-minimal:${1} docker://quay.io/fedora/fedora-minimal:rawhide
-    fi
-
-    # Copy the images in staging
-    if ! [[ -z "$stage" ]]; then
-        skopeo copy --all docker://registry.fedoraproject.org/fedora-minimal:${1} docker://registry.stg.fedoraproject.org/fedora-minimal:${1}
-        skopeo copy --all docker://candidate-registry.fedoraproject.org/fedora-minimal:${1} docker://create candidate-registry.stg.fedoraproject.org/fedora-minimal:${1}
-
-        if [[ ${1} -eq "$current_stable" ]]; then
-            skopeo copy --all docker://registry.stg.fedoraproject.org/fedora-minimal:${1} docker://registry.stg.fedoraproject.org/fedora-minimal:latest
-            skopeo copy --all docker://candidate-registry.stg.fedoraproject.org/fedora-minimal:${1} docker://candidate-registry.stg.fedoraproject.org/fedora-minimal:latest
-        fi
-        if [[ ${1} -eq "$current_rawhide" ]]; then
-            skopeo copy --all docker://registry.stg.fedoraproject.org/fedora-minimal:${1} docker://registry.stg.fedoraproject.org/fedora-minimal:rawhide
-            skopeo copy --all docker://candidate-registry.stg.fedoraproject.org/fedora-minimal:${1} docker://candidate-registry.stg.fedoraproject.org/fedora-minimal:latest
-        fi
-    fi
+     for registry in "${registries[@]}"
+     do
+         printf "Push manifest to ${registry}\n"
+         if [ -z "$tagname" ]
+         then
+             printf "tag is not set: ${tagname}\n"
+             python3 generate-manifest-list.py -r ${1} --registry ${registry} --image fedora-minimal
+         else
+             printf "tag is set: ${tagname}\n"
+             python3 generate-manifest-list.py -r ${1} --registry ${registry} --tag ${tagname} --image fedora-minimal
+         fi
+     done
 
      printf "Removing temporary directory\n"
      rm -rf $work_dir
-     podman rmi -f registry.fedoraproject.org/fedora-minimal:${1}
-     podman rmi -f candidate-registry.fedoraproject.org/fedora-minimal:${1}
-     podman rmi -f quay.io/fedora/fedora-minimal:${1}
+
 fi
