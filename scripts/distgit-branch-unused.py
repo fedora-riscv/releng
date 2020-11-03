@@ -35,6 +35,7 @@ Removal of the 'master' branch is always refused.
 3. Removal is refused in some additional corner cases:
 - the spec file cannot be parsed
 - multiple spec files are found
+- any modular builds exists
 
 Note: when *branch* is specified as a remote branch (e.g. "origin/f33"),
 remote branches are checked. This mode is useful when run in a clone
@@ -130,6 +131,14 @@ def list_builds(package, opts):
     by_hash = {find_hash(b):b for b in builds if b['source']}
     return by_hash
 
+def mbs_builds_exist(builds):
+    for name in builds:
+        for build in builds[name].values():
+            if build.get('owner_name', None) == 'mbs/mbs.fedoraproject.org':
+                print(f"Modular build {build['nvr']} found.")
+                return True
+    return False
+
 def containing_branches(repo, commit, *, local, ignore_branch=None):
     if local:
         containing = repo.branches.local.with_commit(commit)
@@ -219,14 +228,20 @@ def branch_is_reachable(opts):
         print('Branch was used to build packages, cannot delete.')
         return 1
 
+    print('Querying koji for builds...')
+    builds = {opts.package: list_builds(opts.package, opts)}
+
+    if mbs_builds_exist(builds):
+        print('Package was used in modular builds, this script is not smart enough.')
+        return 1
+
     other = list(containing_branches(repo, branch.target, local=local, ignore_branch=branch))
     if other:
         names = ', '.join(o.name for o in other)
         print(f'Branch merged into {names}. Safe to delete.')
         return 0
 
-    print('Branch has commits not found anywhere else. Looking for builds.')
-    builds = {opts.package: list_builds(opts.package, opts)}
+    print('Branch has commits not found anywhere else, checking builds...')
 
     for n, commit in enumerate(repo.walk(branch.target, pygit2.GIT_SORT_TOPOLOGICAL)):
         subj = commit.message.splitlines()[0][:60]
