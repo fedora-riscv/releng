@@ -2,7 +2,7 @@
 
 """This script checks if a branch may be deleted.
 
-A branch may be removed safely when, for all commits in that branch
+1. A branch may be removed safely when, for all commits in that branch
 not reachable from other branches, there are no complete koji builds.
 
 Examples:
@@ -20,6 +20,28 @@ without checking any builds.
 'B' has commits that are not found anywhere else (B, B', and B"), and
 we need to check in koji if it knows about any builds from those
 commits.
+
+2. Release branches are protected: as an additional constraint,
+release branches (fNN, elN, epelN, …) cannot be deleted if any builds
+were done for this release. This means we preserve the branch
+identification, even if we don't need this to preserve commits.
+
+For branches older than f21, bodhi information is not available and we
+cannot check if builds have been performed, so this script always
+refuses removal.
+
+Removal of the 'master' branch is always refused.
+
+3. Removal is refused in some additional corner cases:
+- the spec file cannot be parsed
+- multiple spec files are found
+
+Note: when *branch* is specified as a remote branch (e.g. "origin/f33"),
+remote branches are checked. This mode is useful when run in a clone
+of the canonical origin repository. When *branch* is specified as a
+local branch, local branches are checked. This mode is useful when run
+in the original repo.
+
 """
 
 import argparse
