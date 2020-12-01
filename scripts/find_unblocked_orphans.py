@@ -240,9 +240,16 @@ def get_pagure_orphans(namespace, page=1):
     params = dict(owner=ORPHAN_UID, namespace=namespace,
                   page=page,
                   per_page=PAGURE_MAX_ENTRIES_PER_PAGE)
+    tries = 0
     response = requests.get(url, params=params)
-    if not bool(response):
-        raise IOError(f"{response.request.url!r} gave {response!r}")
+    while not bool(response):
+        msg = f"{response.request.url!r} gave {response!r}"
+        if tries > 20:
+            raise IOError(msg)
+        print(msg, file=sys.stderr)
+        time.sleep(tries)
+        tries += 1
+        response = requests.get(url, params=params)
     pkgs = response.json()['projects']
     pages = response.json()['pagination']['pages']
     return {p['name']: p for p in pkgs}, pages
