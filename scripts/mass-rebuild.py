@@ -141,7 +141,7 @@ for pkg in pkgs:
         continue
 
     # rpmdev-bumpspec
-    bumpspec = ['rpmdev-bumpspec', '-u', user, '-c', comment,
+    bumpspec = ['rpmdev-bumpspec', '-D', '-u', user, '-c', comment,
                 os.path.join(workdir, name, spec)]
     print('Bumping %s' % spec)
     if runme(bumpspec, 'bumpspec', name, enviro):
