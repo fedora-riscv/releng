@@ -291,7 +291,8 @@ def follow_policy(release):
         ],
     )
     query_fti["blocks"] = ftibug.id
-    current_ftis = {b.component: b for b in bz.query(query_fti) if b.status != "CLOSED"}
+    current_ftis = {b.component: b for b in bz.query(query_fti)
+                    if b.status != "CLOSED" and b.component != 'distribution'}
 
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(TEMPLATE_DIR))
     env.globals["release"] = release
