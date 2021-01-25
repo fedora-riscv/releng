@@ -23,7 +23,30 @@ PKG_SKIP_LIST = [
 
 # keep this sorted new -> old
 MASSREBUILDS = {
-    #f34 ftbfs bug tracker: TBA
+    #f35 ftbfs bug tracker: TBA
+    "f34":
+        {
+            "buildtag": 'f34-rebuild',  # tag to build from
+            "epoch": '2021-01-25 21:00:00.000000',  # rebuild anything not built after this date
+            "module_mass_rebuild_epoch": '2020-01-25T21:00:00Z',
+            # rebuild anything not built after this date for modules
+            "module_mass_branching_epoch": '2020-08-11T12:30:00Z',
+            # rebuild anything not built after this date for modules
+            "module_mass_rebuild_platform": "f34",
+            # rebuild all modules that has build time dependency on this platform, this is used during mass rebuild time
+            "module_mass_branching_platform": "f34",
+            # rebuild all modules that has run time dependency on this platform, this is used during mass branching time
+            "targets": ['f34-candidate', 'rawhide', 'f34'],
+            # build targets to check for existing builds to skip rebuild
+            "target": 'f34-rebuild',  # target to build into
+            "desttag": 'f34',  # Tag where fixed builds go
+            "product": "Fedora",  # for BZ product field
+            "version": "rawhide",  # for BZ version field, rawhide before branching or xx after branching
+            "rawhide_version": "34",  # for next version calculation and other comments
+            "tracking_bug": "1868278",  # Tracking bug for mass build failures
+            "wikipage": "https://fedoraproject.org/wiki/Fedora_34_Mass_Rebuild",
+            "pkg_skip_list": PKG_SKIP_LIST,  # packages to skip in rebuild
+        },
     "f33":
         {
             "buildtag": 'f33-rebuild',  # tag to build from
