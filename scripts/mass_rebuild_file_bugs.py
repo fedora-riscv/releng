@@ -99,9 +99,9 @@ def report_failure(massrebuild, component, task_id, logs,
         #Because of having image build requirement of having the image name in koji
         #as a package name, they are missing in the components of koji and we need
         #to skip them.
-        if ex.faultCode == -32000:
-            print(component)
-        #if "There is no component" in ex.faultString:
+        #if ex.faultCode == -32000:
+        #    print(component)
+        if "There is no component" in ex.faultString:
             print(ex.faultString)
             return None
         else:
