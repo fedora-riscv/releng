@@ -11,7 +11,7 @@ Description
 Sometimes, packagers request that we *unretire* a package branch that has
 previously been retired.
 
-This typically happens on the `master` branch, but could conceivably happen on
+This typically happens on the `rawhide` branch, but could conceivably happen on
 any stable or arbitrary branch.
 
 Action

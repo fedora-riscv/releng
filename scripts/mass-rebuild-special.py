@@ -19,7 +19,7 @@ import operator
 # Set some variables
 # Some of these could arguably be passed in as args.
 
-#NOTE: The ordering of inputs matters. Please provide master/rawhide inputs first.
+#NOTE: The ordering of inputs matters. Please provide main/rawhide inputs first.
 
 buildtag = 'f27' # tag to build from
 secondbuildtag = 'f26' # tag to build from
@@ -28,8 +28,8 @@ user = 'Fedora Release Engineering <rel-eng@lists.fedoraproject.org>'
 comment = '- Rebuilt for https://fedoraproject.org/wiki/Fedora_26_27_Mass_Rebuild'
 workdir = os.path.expanduser('~/massbuild-gcc')
 enviro = os.environ
-targets = ['f27-gcc-abi-rebuild','f26-gcc-abi-rebuild'] #Set master/rawhide rebuild target first item in the list
-branches = ['master', 'f26'] #Set master(rawhide) branch first item in the list
+targets = ['f27-gcc-abi-rebuild','f26-gcc-abi-rebuild'] #Set rawhide/rawhide rebuild target first item in the list
+branches = ['rawhide', 'f26'] #Set rawhide(rawhide) branch first item in the list
 enviro['CVS_RSH'] = 'ssh' # use ssh for cvs
 
 pkg_skip_list = ['fedora-release', 'fedora-repos', 'fedora-modular-release', 'fedora-modular-repos', 'generic-release',
@@ -106,10 +106,10 @@ for pkg in pkgs:
     #   continue
 
     # check the git hashes of the branches
-    gitcmd = ['git', 'rev-parse', 'origin/master']
-    print('getting git hash for master')
-    masterhash = runmeoutput(gitcmd, 'git', name, enviro, cwd=os.path.join(workdir, name))
-    if masterhash == 0:
+    gitcmd = ['git', 'rev-parse', 'origin/rawhide']
+    print('getting git hash for rawhide')
+    rawhidehash = runmeoutput(gitcmd, 'git', name, enviro, cwd=os.path.join(workdir, name))
+    if rawhidehash == 0:
         sys.stderr.write('%s has no git hash.\n' % name)
         break
  
@@ -145,7 +145,7 @@ for pkg in pkgs:
             sys.stderr.write('%s failed spec check\n' % name)
             continue
 
-        if branch == buildtag or masterhash != secondhash:
+        if branch == buildtag or rawhidehash != secondhash:
             # rpmdev-bumpspec
             bumpspec = ['rpmdev-bumpspec', '-u', user, '-c', comment,
                         os.path.join(workdir, name, spec)]
@@ -160,8 +160,8 @@ for pkg in pkgs:
                          cwd=os.path.join(workdir, name)):
                 continue
         else:
-            gitmergecmd = ['git', 'merge', 'master']
-            print("merging master into %s" % secondbuildtag)
+            gitmergecmd = ['git', 'merge', 'rawhide']
+            print("merging rawhide into %s" % secondbuildtag)
             if runme(gitmergecmd, 'git', name, enviro,
                          cwd=os.path.join(workdir, name)):
                 continue

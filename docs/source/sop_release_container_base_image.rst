@@ -23,13 +23,13 @@ image root filesystem (rootfs).
 Kickstart files are used to configure how the image is built and what is available in the image
 The solution consist of 3 Kickstarts.
 
-`fedora-container-common <https://pagure.io/fedora-kickstarts/blob/master/f/fedora-container-common.ks>`_
+`fedora-container-common <https://pagure.io/fedora-kickstarts/blob/main/f/fedora-container-common.ks>`_
 
-`fedora-container-base <https://pagure.io/fedora-kickstarts/blob/master/f/fedora-container-base.ks>`_
+`fedora-container-base <https://pagure.io/fedora-kickstarts/blob/main/f/fedora-container-base.ks>`_
 
-`fedora-container-base-minimal <https://pagure.io/fedora-kickstarts/blob/master/f/fedora-container-base-minimal.ks>`_
+`fedora-container-base-minimal <https://pagure.io/fedora-kickstarts/blob/main/f/fedora-container-base-minimal.ks>`_
 
-Changes made on the master branch will results in the rawhide image, other branches (f30, f31) should
+Changes made on the rawhide branch will results in the rawhide image, other branches (f30, f31) should
 be used to modify other releases.
 
 Compose Configuration (Pungi)
@@ -39,7 +39,7 @@ The configuration used to compose the container images is available in the pungi
 
 For rawhide the configuration is in
 
-https://pagure.io/pungi-fedora/blob/master/f/fedora.conf
+https://pagure.io/pungi-fedora/blob/main/f/fedora.conf
 
 While for other releases the configuration is in a dedicated file
 
@@ -52,7 +52,7 @@ Release on registry.fedoraproject.org and quay.io
 If you want to release the base image on registry.fp.o and quay.io you can use the following
 script.
 
-`sync-latest-container-base-image.sh <https://pagure.io/releng/blob/master/f/scripts/sync-latest-container-base-image.sh>`_
+`sync-latest-container-base-image.sh <https://pagure.io/releng/blob/main/f/scripts/sync-latest-container-base-image.sh>`_
 
 You will need to run that script from on of the releng composer machines in the infrastructure
 in order to have the credentials.
@@ -80,4 +80,4 @@ release new images there we have to update a Dockerfile and rootfs tarball on th
 
 For the details on how to run the script please see
 
-`README <https://github.com/fedora-cloud/docker-brew-fedora/blob/master/README.md>`_.
+`README <https://github.com/fedora-cloud/docker-brew-fedora/blob/main/README.md>`_.

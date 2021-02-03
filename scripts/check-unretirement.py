@@ -19,12 +19,12 @@ import datetime as dt
 
     nms: This is the namespace, not necessary default is "rpms"
     pck: This is the name of the fedora package, user has to input this, has no default value
-    brc: This is the specific branch, not necessary default is "master"
+    brc: This is the specific branch, not necessary default is "rawhide"
 """
 parser = argparse.ArgumentParser()
 parser.add_argument("--nms", help="Name of the namespace that contains package", type=str, default="rpms")
 parser.add_argument("pck", help="Name of the fedora package", type=str)
-parser.add_argument("--brc", help="Name of the branched version of the package wanted", type=str, default="master")
+parser.add_argument("--brc", help="Name of the branched version of the package wanted", type=str, default="rawhide")
 args = parser.parse_args()
 
 # this is the default url used for getting contributors the url is api/0/<namespace>/<package>

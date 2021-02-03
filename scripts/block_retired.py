@@ -13,8 +13,8 @@ import requests
 
 
 log = logging.getLogger(__name__)
-RETIRING_BRANCHES = ["el6", "epel7", "epel8", "epel8-playground", "master", "f33"]
-PROD_ONLY_BRANCHES = ["el6", "epel7", "epel8", "epel8-playground", "master", "f33"]
+RETIRING_BRANCHES = ["el6", "epel7", "epel8", "epel8-playground", "rawhide", "f33"]
+PROD_ONLY_BRANCHES = ["el6", "epel7", "epel8", "epel8-playground", "rawhide", "f33"]
 
 PRODUCTION_PDC = "https://pdc.fedoraproject.org"
 STAGING_PDC = "https://pdc.stg.fedoraproject.org"
@@ -44,7 +44,7 @@ class ReleaseMapper(object):
         if namespace == "container":
             # git branchname, koji tag, epel build tag
             self.mapping = (
-                ("master", "f34-container", ""),
+                ("rawhide", "f34-container", ""),
                 ("f33", "f33-container", ""),
                 ("f32", "f32-container", ""),
                 ("f31", "f31-container", ""),
@@ -58,7 +58,7 @@ class ReleaseMapper(object):
         else:
             # git branchname, koji tag, epel build tag
             self.mapping = (
-                ("master", "f34", ""),
+                ("rawhide", "f34", ""),
                 ("f33", "f33", ""),
                 ("f32", "f32", ""),
                 ("f31", "f31", ""),
@@ -121,7 +121,7 @@ def get_packages(tag, staging=False):
     return unblocked, blocked
 
 
-def unblocked_packages(branch="master", staging=False, namespace=DEFAULT_NS):
+def unblocked_packages(branch="rawhide", staging=False, namespace=DEFAULT_NS):
     """
     Get a list of all unblocked pacakges in a branch.
     """
@@ -131,7 +131,7 @@ def unblocked_packages(branch="master", staging=False, namespace=DEFAULT_NS):
     return unblocked
 
 
-def get_retired_packages(branch="master", staging=False, namespace=DEFAULT_NS):
+def get_retired_packages(branch="rawhide", staging=False, namespace=DEFAULT_NS):
     retiredpkgs = []
     # PDC uses singular names such as rpm and container
     if namespace.endswith('s'):
@@ -171,7 +171,7 @@ def run_koji(koji_params, staging=False):
     return process, stdout, stderr
 
 
-def block_package(packages, branch="master", staging=False, namespace=DEFAULT_NS):
+def block_package(packages, branch="rawhide", staging=False, namespace=DEFAULT_NS):
     if isinstance(packages, str):
         packages = [packages]
 
@@ -281,7 +281,7 @@ if __name__ == "__main__":
     parser.add_argument("packages", nargs="*", metavar="package",
                         help="Packages to block, default all retired packages")
     parser.add_argument(
-        "--branch", default="master",
+        "--branch", default="rawhide",
         help="Branch to retire specified packages on, default: %(default)s")
     parser.add_argument(
         "--staging", default=False, action="store_true",

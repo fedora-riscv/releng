@@ -58,7 +58,7 @@ GIT and Package DB
 ^^^^^^^^^^^^^^^^^^
 Required permissions: provenpackage for GIT, cvsadmin for Package DB.
 
-We just have to remove the existing files from the ``master`` branch and
+We just have to remove the existing files from the ``rawhide`` branch and
 replace them with a ``dead.package`` file whose contents describe why the
 package is dead. Also the package needs to be marked as retired in PackageDB.
 Fedpkg takes care of this:
@@ -110,7 +110,7 @@ To verify that the packages were blocked correctly we can use the
 This should return nothing, as the ``wdm`` package is blocked.
 
 Also check that package DB shows that the package is retired and that the
-master branch contains only a dead.package file.
+rawhide branch contains only a dead.package file.
 
 Consider Before Running
 =======================
@@ -128,4 +128,4 @@ be made to find owners or to fix the broken dependencies.
 
 
 .. _FTBFS: https://fedoraproject.org/wiki/Fails_to_build_from_source
-.. _find_FTBFS.py: https://pagure.io/releng/blob/master/f/scripts/find_FTBFS.py
+.. _find_FTBFS.py: https://pagure.io/releng/blob/main/f/scripts/find_FTBFS.py

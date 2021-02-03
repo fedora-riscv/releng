@@ -27,7 +27,7 @@ Repos to branch
 ---------------
 
 All the following listed repos needs updating, including adding a new branch
-for branched release and updating master branch with new release values.
+for branched release and updating rawhide branch with new release values.
 
 1. https://pagure.io/pungi-fedora
 2. https://pagure.io/fedora-kickstarts
@@ -113,7 +113,7 @@ To do so, adjust infra ansible playbook in `pkgdb-proxy role`_:
     +++ b/roles/pkgdb-proxy/files/pkgdb-gnome-software-collections.json
     @@ -4,8 +4,8 @@
            "allow_retire": true,
-           "branchname": "master",
+           "branchname": "rawhide",
            "date_created": "2014-05-14 12:36:15",
     -      "date_updated": "2019-08-14 17:07:23",
     -      "dist_tag": ".fc32",
@@ -616,16 +616,16 @@ be added.
 Koji
 ----
 The koji build system needs to have some tag/target work done to handle builds
-from the new branch and to update where builds from master go. 
+from the new branch and to update where builds from rawhide go.
 
 Run `make-koji-release-tags`_ script in `pagure releng`_ repo
 
 Fedora Release
 --------------
 The Fedora release package needs to be updated in both the new branch and in
-master.
+rawhide.
 
-Changes to master branch in fedora-release package:
+Changes to rawhide branch in fedora-release package:
 
 ::
 
@@ -711,7 +711,7 @@ Fedora Repos
 
 Similar to fedora-release, fedora-repos package also needs to be updated.
 
-Changes to master branch of fedora-repos package:
+Changes to rawhide branch of fedora-repos package:
 
 ::
 
@@ -1061,7 +1061,7 @@ Update sync script
 ^^^^^^^^^^^^^^^^^^
 
 In releng repository update `script
-<https://pagure.io/releng/blob/master/f/scripts/sync-latest-container-base-image.sh#_38>`_.
+<https://pagure.io/releng/blob/main/f/scripts/sync-latest-container-base-image.sh#_38>`_.
 
 And set current_rawhide variable.
 
@@ -1074,34 +1074,34 @@ Consider Before Running
 
 
 .. _pkgdb-proxy role:
-    https://pagure.io/fedora-infra/ansible/blob/master/f/roles/pkgdb-proxy
+    https://pagure.io/fedora-infra/ansible/blob/main/f/roles/pkgdb-proxy
 .. _packages3 role:
-    https://pagure.io/fedora-infra/ansible/blob/master/f/roles/packages3
+    https://pagure.io/fedora-infra/ansible/blob/main/f/roles/packages3
 .. _bodhi2 role:
-    https://pagure.io/fedora-infra/ansible/blob/master/f/roles/bodhi2
+    https://pagure.io/fedora-infra/ansible/blob/main/f/roles/bodhi2
 .. _greenwave openshift role:
-    https://pagure.io/fedora-infra/ansible/blob/master/f/roles/openshift-apps/greenwave
+    https://pagure.io/fedora-infra/ansible/blob/main/f/roles/openshift-apps/greenwave
 .. _mbs role:
-    https://pagure.io/fedora-infra/ansible/blob/master/f/roles/mbs
+    https://pagure.io/fedora-infra/ansible/blob/main/f/roles/mbs
 .. _releng role:
-    https://pagure.io/fedora-infra/ansible/blob/master/f/roles/releng
+    https://pagure.io/fedora-infra/ansible/blob/main/f/roles/releng
 .. _robosignatory role:
-    https://pagure.io/fedora-infra/ansible/blob/master/f/roles/robosignatory
+    https://pagure.io/fedora-infra/ansible/blob/main/f/roles/robosignatory
 .. _make-koji-release-tags:
-    https://pagure.io/releng/blob/master/f/scripts/branching/make-koji-release-tags
+    https://pagure.io/releng/blob/main/f/scripts/branching/make-koji-release-tags
 .. _pagure releng:
     https://pagure.io/releng
 .. _create_emtpy_repos.sh:
-    https://pagure.io/releng/blob/master/f/scripts/branching/create_empty_repos.sh
+    https://pagure.io/releng/blob/main/f/scripts/branching/create_empty_repos.sh
 .. _File a Taskotron ticket:
     https://pagure.io/taskotron/new_issue?title=Fedora%20Branched%20notification&content=Fedora%20NN%20is%20now%20Branched
 .. _Fedora Layered Image Build System:
     https://docs.pagure.org/releng/layered_image_build_service.html
 .. _fedscm-admin commit:
-    https://pagure.io/fedscm-admin/c/7862d58b5982803dbe4c47e0262c6ce78bc903db?branch=master
+    https://pagure.io/fedscm-admin/c/7862d58b5982803dbe4c47e0262c6ce78bc903db?branch=main
 .. _block_retired.py:
-    https://pagure.io/releng/blob/master/f/scripts/block_retired.py
+    https://pagure.io/releng/blob/main/f/scripts/block_retired.py
 .. _block_retired.py commit:
-    https://pagure.io/releng/c/9eb97f491f7a767ab8b90498adfa3b34ee235247?branch=master
+    https://pagure.io/releng/c/9eb97f491f7a767ab8b90498adfa3b34ee235247?branch=main
 .. _fedora infra ticket:
     https://pagure.io/fedora-infrastructure/issue/9239#comment-671446

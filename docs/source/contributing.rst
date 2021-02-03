@@ -54,23 +54,23 @@ changes to the `releng git repository`_ for both code and documentation.
 
 The general workflow is as follows:
 
-* Checkout ``master`` branch of the local git clone of your releng repository
+* Checkout ``main`` branch of the local git clone of your releng repository
   clone.
 
   ::
 
-    $ git checkout master
+    $ git checkout main
 
-* Pull upstream and merge into local master to make sure that your master
+* Pull upstream and merge into local main to make sure that your main
   branch is in line with the latest changes from upstream. Then push it to your
   clone so that origin knows about the changes.
 
   ::
 
-    $ git pull --rebase upstream master
-    $ git push origin master
+    $ git pull --rebase upstream main
+    $ git push origin main
 
-* Create a topic branch from master.
+* Create a topic branch from main.
 
   ::
 
@@ -88,20 +88,20 @@ The general workflow is as follows:
     $ git commit -s -m "awesome patch to somefile.py"
 
 * This step is optional but recommended in order to avoid collisions when
-  submitting upstream. Here we will checkout master again and merge
-  ``upstream/master`` so that we can resolve any conflicts locally.
+  submitting upstream. Here we will checkout main again and merge
+  ``upstream/main`` so that we can resolve any conflicts locally.
 
   ::
 
-    $ git checkout master
-    $ git pull --rebase upstream master
-    $ git push origin master
+    $ git checkout main
+    $ git pull --rebase upstream main
+    $ git push origin main
 
-* Rebase on master before submitting a pull request
+* Rebase on main before submitting a pull request
 
   ::
 
-    $ git rebase master
+    $ git rebase main
 
     ..... Resolve any conflicts if needed ......
 
@@ -128,7 +128,7 @@ pullupstream
 
 The following is an useful shell function to place in your ``~/.bashrc`` to
 help automate certain aspects of the developer workflow. It will allow you to
-merge in the upstream master or devel branch into your forked repository for
+merge in the upstream main or devel branch into your forked repository for
 easily keeping in line with the upstream repository.
 
 The following is the bash function to be added to your ``~/.bashrc`` and make
@@ -138,7 +138,7 @@ sure to ``source ~/.bashrc`` after adding it in order to "enable" the function.
 
     pullupstream () {
         if [[ -z "$1" ]]; then
-            printf "Error: must specify a branch name (e.g. - master, devel)\n"
+            printf "Error: must specify a branch name (e.g. - main, devel)\n"
         else
             pullup_startbranch=$(git describe --contains --all HEAD)
             git checkout $1
@@ -148,7 +148,7 @@ sure to ``source ~/.bashrc`` after adding it in order to "enable" the function.
         fi
     }
 
-With the function in place you can easily pull and merge in the releng master
+With the function in place you can easily pull and merge in the releng main
 branch even while using a topic branch as follows:
 
 ::
@@ -157,9 +157,9 @@ branch even while using a topic branch as follows:
     On branch docs
     nothing to commit, working directory clean
 
-    $ pullupstream master
-    Switched to branch 'master'
-    Your branch is up-to-date with 'origin/master'.
+    $ pullupstream main
+    Switched to branch 'main'
+    Your branch is up-to-date with 'origin/main'.
     Already up-to-date.
     Everything up-to-date
     Switched to branch 'docs'
@@ -169,12 +169,12 @@ branch even while using a topic branch as follows:
     nothing to commit, working directory clean
 
 Now that you're back on your topic branch you can easily rebase on your local
-master branch in order to resolve any merge conflicts that may come up for
+main branch in order to resolve any merge conflicts that may come up for
 clean pull request submission.
 
 ::
 
-    $ git rebase master
+    $ git rebase main
     Current branch docs is up to date.
 
 

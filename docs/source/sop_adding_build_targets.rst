@@ -109,17 +109,17 @@ the branch that is its parent.
 
 ::
 
-    BRANCHES = {'el4': 'master', 'el5': 'master', 'el6': 'f12',
+    BRANCHES = {'el4': 'rawhide', 'el5': 'rawhide', 'el6': 'f12',
             'OLPC-2': 'f7',
-            'master': None,
-            'fc6': 'master',
-            'f7': 'master',
-            'f8': 'master',
-            'f9': 'master',
-            'f10': 'master',
-            'f11': 'master',
-            'f12': 'master',
-            'f13': 'master', 'f14': 'master'}
+            'rawhide': None,
+            'fc6': 'rawhide',
+            'f7': 'rawhide',
+            'f8': 'rawhide',
+            'f9': 'rawhide',
+            'f10': 'rawhide',
+            'f11': 'rawhide',
+            'f12': 'rawhide',
+            'f13': 'rawhide', 'f14': 'rawhide'}
 
 
 and update ``GITBRANCHES`` with the translation from pkgdb branch string to git
@@ -129,7 +129,7 @@ branch string:
 
     GITBRANCHES = {'EL-4': 'el4', 'EL-5': 'el5', 'EL-6': 'el6', 'OLPC-2': 'olpc2',
                    'FC-6': 'fc6', 'F-7': 'f7', 'F-8': 'f8', 'F-9': 'f9', 'F-10': 'f10',
-                   'F-11': 'f11', 'F-12': 'f12', 'F-13': 'f13', 'F-14': 'f14', 'devel': 'master'}
+                   'F-11': 'f11', 'F-12': 'f12', 'F-13': 'f13', 'F-14': 'f14', 'devel': 'rawhide'}
 
 
 The genacls.pkgdb file also needs to be updated for active branches to
@@ -141,7 +141,7 @@ branch string to git branch string (until pkgdb uses git branch strings):
 
     ACTIVE = {'OLPC-2': 'olpc2/', 'EL-4': 'el4/', 'EL-5': 'el5/',
               'EL-6': 'el6/', 'F-11': 'f11/', 'F-12': 'f12/', 'F-13': 'f13/',
-              'F-14': 'f14/', 'devel': 'master'}
+              'F-14': 'f14/', 'devel': 'rawhide'}
 
 fedora-release
 --------------
@@ -169,7 +169,7 @@ good test case.  For example, this was used to test the new Fedora 15 target:
 * Use pkgdb to request an F-15 branch of fedora-release
 * Use pkgdb2branch.py to actually make the branch
 * Update fedora-release clone
-* Adjust .spec file in master for new dist defines
+* Adjust .spec file in rawhide for new dist defines
 * commit/build
 * Track build in koji to ensure proper tagging is used
 

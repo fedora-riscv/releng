@@ -41,4 +41,4 @@ To verify just list the branches.
 Consider Before Running
 =======================
 Make sure that the branch in question isn't one of our pre-created branches
-``f??/master``, ``olpc?/master``, ``el?/master``
+``f??/rawhide``, ``olpc?/rawhide``, ``el?/rawhide``

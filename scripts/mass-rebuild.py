@@ -112,7 +112,7 @@ for pkg in pkgs:
         continue
 
     # Check out git
-    fedpkgcmd = ['fedpkg', '--user', 'releng', 'clone', '--branch', 'master', name]
+    fedpkgcmd = ['fedpkg', '--user', 'releng', 'clone', '--branch', 'rawhide', name]
     print('Checking out %s' % name)
     if runme(fedpkgcmd, 'fedpkg', name, enviro):
         continue

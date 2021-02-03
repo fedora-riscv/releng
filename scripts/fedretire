@@ -39,15 +39,15 @@ ORPHAN_NOT_FOUND = """Retired orphaned package, because it was not built or
 published."""
 
 BRANCH_HIERARCHY = {
-    "master": "",
-    "f26": "master",
+    "rawhide": "",
+    "f26": "rawhide",
     "f25": "f26",
     "f24": "f25",
     "epel7": "",
     "el6": ""
 }
 
-def get_status(name, branch="master", namespace='rpms'):
+def get_status(name, branch="rawhide", namespace='rpms'):
     # First, check to see if it is retired.
     # PDCClient pulls connection information from /etc/pdc.d/
     # develop=True means: don't authenticate.
@@ -136,7 +136,7 @@ def retire(pkg, branch, reason, dryrun=False):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Helper to retire packages")
-    parser.add_argument("--branch", default=["master"], nargs="*",
+    parser.add_argument("--branch", default=["rawhide"], nargs="*",
                         choices=BRANCH_HIERARCHY.keys())
     parser.add_argument("--dry-run", default=False, action="store_true")
     parser.add_argument("--reasonfile", default=None)

@@ -39,7 +39,7 @@ site for us.
 The documentation is now live.
 
 .. note::
-    This will require someone with permissions to push to the master branch for
+    This will require someone with permissions to push to the rawhide branch for
     the releng repository. If you are curious whom all has this ability, please
     refer to the :doc:`Main Page <index>` and contact someone from the "Team
     Composition"

@@ -74,7 +74,7 @@ RAWHIDE_RELEASE = dict(
     source_repo='https://kojipkgs.fedoraproject.org/compose/rawhide/'
                 'latest-Fedora-Rawhide/compose/Everything/source/tree/',
     tag='f34',
-    branch='master',
+    branch='rawhide',
     mailto='devel@lists.fedoraproject.org',
     bcc=[],
 )
@@ -125,7 +125,7 @@ FOOTER = """-- \nThe script creating this output is run and developed by Fedora
 Release Engineering. Please report issues at its pagure instance:
 https://pagure.io/releng/
 The sources of this script can be found at:
-https://pagure.io/releng/blob/master/f/scripts/find_unblocked_orphans.py
+https://pagure.io/releng/blob/main/f/scripts/find_unblocked_orphans.py
 """
 
 

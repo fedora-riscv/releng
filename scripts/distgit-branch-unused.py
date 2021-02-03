@@ -8,13 +8,13 @@ not reachable from other branches, there are no complete koji builds.
 Examples:
 
 -\------A---\
-  \----------\----- master
+  \----------\----- rawhide
 
-'A' has been merged into 'master', so it can be trivially deletected
+'A' has been merged into 'rawhide', so it can be trivially deletected
 without checking any builds.
 
   /---/-------\-B"-B'-B
--/---/---\-----\----master
+-/---/---\-----\----rawhide
           \--C
 
 'B' has commits that are not found anywhere else (B, B', and B"), and
@@ -30,7 +30,7 @@ For branches older than f21, bodhi information is not available and we
 cannot check if builds have been performed, so this script always
 refuses removal.
 
-Removal of the 'master' branch is always refused.
+Removal of the 'rawhide' branch is always refused.
 
 3. Removal is refused in some additional corner cases:
 - the spec file cannot be parsed
@@ -220,8 +220,8 @@ def branch_is_reachable(opts):
         branch_name = branch.branch_name[l+1:]
         local = False
 
-    if branch_name == 'master':
-        print("Branch 'master' cannot be deleted.")
+    if branch_name == 'rawhide':
+        print("Branch 'rawhide' cannot be deleted.")
         return 1
 
     if bodhi_builds_exist(branch_name, opts.package, opts):

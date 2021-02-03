@@ -134,7 +134,7 @@ for owner in sorted(tobuild.keys()):
         print('<dd><a href="http://koji.fedoraproject.org/koji/packageinfo?packageID=%s">%s</a></dd>' % (pkg, pkg))
     print('</dl>')
 print('<p>The script that generated this page can be found at ')
-print('<a href="https://pagure.io/releng/blob/master/f/scripts">https://pagure.io/releng/blob/master/f/scripts</a>.')
+print('<a href="https://pagure.io/releng/blob/main/f/scripts">https://pagure.io/releng/blob/main/f/scripts</a>.')
 print('There you can also report bugs and RFEs.</p>')
 print('</body>')
 print('</html>')

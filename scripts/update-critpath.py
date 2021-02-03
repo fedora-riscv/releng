@@ -58,8 +58,8 @@ def setup_parser():
                         help="Uses the stg instance instead of the real pdc.")
 
     parser.add_argument(
-        'branch', default='master',
-        help="Branch of the package to add to critpath (default: 'master')")
+        'branch', default='rawhide',
+        help="Branch of the package to add to critpath (default: 'rawhide')")
     parser.add_argument(
         'txtlist',
         help="Filename containing list of packages to critpath")
