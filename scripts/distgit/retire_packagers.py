@@ -185,8 +185,7 @@ def orphan_package(session, namespace, name, username):
     url = f"{base_url}/_dg/orphan/{namespace}/{name}"
     headers = {"Authorization": f"token {pagure_token}"}
     data = {
-        "orphan_reason": "other",
-        "orphan_reason_info": "Orphaned by releng",
+        "orphan_reason": "Orphaned by releng",
     }
 
     req = session.post(url, data=data, headers=headers)
