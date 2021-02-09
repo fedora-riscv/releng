@@ -30,11 +30,11 @@ MASSREBUILDS = {
             "epoch": '2021-01-25 21:00:00.000000',  # rebuild anything not built after this date
             "module_mass_rebuild_epoch": '2021-01-25T21:00:00Z',
             # rebuild anything not built after this date for modules
-            "module_mass_branching_epoch": '2020-08-11T12:30:00Z',
+            "module_mass_branching_epoch": '2020-02-09T22:30:00Z',
             # rebuild anything not built after this date for modules
             "module_mass_rebuild_platform": "f34",
             # rebuild all modules that has build time dependency on this platform, this is used during mass rebuild time
-            "module_mass_branching_platform": "f34",
+            "module_mass_branching_platform": "f35",
             # rebuild all modules that has run time dependency on this platform, this is used during mass branching time
             "targets": ['f34-candidate', 'rawhide', 'f34'],
             # build targets to check for existing builds to skip rebuild
