@@ -53,7 +53,7 @@ if __name__ == '__main__':
 
     active_components = set()
     for branch in pdc.get_paged(res=pdc['component-branches/'],
-                                name='master', active=True, type=args.namespace, page_size=100):
+                                name='rawhide', active=True, type=args.namespace, page_size=100):
         package = branch['global_component']
         package_type = branch['type']
         critpath = branch['critical_path']
