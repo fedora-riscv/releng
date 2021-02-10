@@ -16,16 +16,16 @@ TEMPLATE_DIR = os.path.dirname(os.path.realpath(__file__))
 
 NOW = datetime.datetime.now(datetime.timezone.utc)
 TRACKERS = {
-    "F31FailsToInstall": 1700324,
     "F32FailsToInstall": 1750909,
     "F33FailsToInstall": 1803235,
     "F34FailsToInstall": 1868279,
-    "F31FTBFS": 1700317,
+    "F35FailsToInstall": 1927313,
     "F32FTBFS": 1750908,
     "F33FTBFS": 1803234,
     "F34FTBFS": 1868278,
+    "F35FTBFS": 1927309,
 }
-RAWHIDE = "34"
+RAWHIDE = "35"
 
 
 def _bzdate_to_python(date):
@@ -219,7 +219,7 @@ def find_broken_packages(pool):
 @click.option(
     "--release",
     type=click.Choice(sorted(set(t[1:3] for t in TRACKERS.keys()))),
-    default="34",
+    default=RAWHIDE,
     show_default=True,
     help="Fedora release",
 )
@@ -227,7 +227,9 @@ def follow_policy(release):
     pool = solv.Pool()
     pool.setarch()
 
-    for r in ("koji",):  # "koji-source"):
+    reponame = f"koji{release}" if release != RAWHIDE else "koji"
+
+    for r in (reponame,):  # f"{reponame}-source"):
         repo = pool.add_repo(r)
         f = solv.xfopen(f"/var/cache/dnf/{r}.solv")
         repo.add_solv(f)
