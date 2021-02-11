@@ -411,7 +411,7 @@ Set FedoraBranched variable to True in infra ansible repo
     -FedoraBranched: False
     +FedoraBranched: True
 
-Set FedoraBranchedBodhi variable to prebeta in infra ansible repo
+Set FedoraBranchedBodhi variable to preenable in infra ansible repo
 
 ::
 
@@ -420,7 +420,7 @@ Set FedoraBranchedBodhi variable to prebeta in infra ansible repo
     @@ -1,2 +1,2 @@
     #options are: prebeta, postbeta, current
     -   FedoraBranchedBodhi: current
-    +   FedoraBranchedBodhi: prebeta
+    +   FedoraBranchedBodhi: preenable
 
 Koji hub
 ^^^^^^^^
@@ -958,19 +958,19 @@ To create a rawhide release in bodhi, you need to run
 
 ::
 
-    $ bodhi releases create --name "F32" --long-name "Fedora 32" --id-prefix FEDORA --version 32 --branch f32 --dist-tag f32 --stable-tag f32 --testing-tag f32-updates-testing --candidate-tag f32-updates-candidate --pending-stable-tag f32-updates-pending --pending-testing-tag f32-updates-testing-pending --pending-signing-tag f32-signing-pending --state pending --override-tag f32-override --create-automatic-updates --not-composed-by-bodhi
+    $ bodhi releases create --name "F36" --long-name "Fedora 36" --id-prefix FEDORA --version 36 --branch f36 --dist-tag f36 --stable-tag f36 --testing-tag f36-updates-testing --candidate-tag f36-updates-candidate --pending-stable-tag f36-updates-pending --pending-testing-tag f36-updates-testing-pending --pending-signing-tag f36-signing-pending --state pending --override-tag f36-override --create-automatic-updates --not-composed-by-bodhi
 
 To create a container release for rawhide in bodhi, you need to run
 
 ::
 
-    $ bodhi releases create --name "F34C" --long-name "Fedora 34 Containers" --id-prefix FEDORA-CONTAINER --version 34 --branch f34 --dist-tag f34-container --stable-tag f34-container-updates --testing-tag f34-container-updates-testing --candidate-tag f34-container-updates-candidate --pending-stable-tag f34-container-updates-pending --pending-testing-tag f34-container-updates-testing-pending --state pending --override-tag f34-container-override
+    $ bodhi releases create --name "F36C" --long-name "Fedora 36 Containers" --id-prefix FEDORA-CONTAINER --version 36 --branch f36 --dist-tag f36-container --stable-tag f36-container-updates --testing-tag f36-container-updates-testing --candidate-tag f36-container-updates-candidate --pending-stable-tag f36-container-updates-pending --pending-testing-tag f36-container-updates-testing-pending --state pending --override-tag f36-container-override
 
 To create a flatpak release for branched in bodhi, you need to run
 
 ::
 
-    $ bodhi releases create --name "F32F" --long-name "Fedora 32 Flatpaks" --id-prefix FEDORA-FLATPAK --version 32 --branch f32 --dist-tag f32-flatpak --stable-tag f32-flatpak-updates --testing-tag f32-flatpak-updates-testing --candidate-tag f32-flatpak-updates-candidate --pending-stable-tag f32-flatpak-updates-pending --pending-testing-tag f32-flatpak-updates-testing-pending --state pending --override-tag f32-flatpak-override
+    $ bodhi releases create --name "F35F" --long-name "Fedora 35 Flatpaks" --id-prefix FEDORA-FLATPAK --version 35 --branch f35 --dist-tag f35-flatpak --stable-tag f35-flatpak-updates --testing-tag f35-flatpak-updates-testing --candidate-tag f35-flatpak-updates-candidate --pending-stable-tag f35-flatpak-updates-pending --pending-testing-tag f35-flatpak-updates-testing-pending --state pending --override-tag f35-flatpak-override
 
 You need to run the ``bodhi openshift`` playbook, so that UI will know about the new release.
 Then, you need to restart **fm-consumer@config.service** and **bodhi-celery.service** services on
