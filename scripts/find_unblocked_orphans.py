@@ -384,7 +384,7 @@ class DepChecker:
                 if pkg.name in ignore:
                     # eprint(f"Ignoring provider package {pkg.name}")
                     pass
-                else:
+                elif pkg not in rpms:
                     break
             else:
                 for dependent_pkg in self.dnfquery.filter(
