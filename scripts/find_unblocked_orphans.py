@@ -24,6 +24,7 @@ import os
 import smtplib
 import sys
 import textwrap
+import time
 import traceback
 
 import dnf
