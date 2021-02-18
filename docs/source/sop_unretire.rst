@@ -151,18 +151,6 @@ Update Product Definition Center (PDC)
     .. note::
         The local machine will have configuration information in the `/etc/pdc.d/` directory. This is why *fedora* can be passed as an argument instead of the full API endpoint URL.
 
-#. Connect to the package server
-
-    ::
-
-    $ ssh pkgs02.phx2.fedoraproject.org
-
-#. Refresh Gitolite to reflect the new acls
-   
-    ::
-
-    $ PAGURE_CONFIG=/etc/pagure/pagure.cfg pagure-admin refresh-gitolite --project rpms/PACKAGENAME
-
 
 .. _Fedora PDC instance: https://pdc.fedoraproject.org/
 .. _Release Engineering Repo: https://pagure.io/releng
