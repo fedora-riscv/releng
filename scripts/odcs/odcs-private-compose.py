@@ -38,6 +38,6 @@ odcs = ODCS("https://odcs.fedoraproject.org",
 source = ComposeSourceTag(tag, sigkeys=[sigkey])
 
 # Making a private compose with no inheritance
-arches = ["armv7hl", "i686", "x86_64", "aarch64", "ppc64le", "s390x"]
+arches = ["armhfp", "i386", "x86_64", "aarch64", "ppc64le", "s390x"]
 compose = odcs.request_compose(source, target_dir="private", arches = arches, flags=["no_inheritance"])
 print(compose)
