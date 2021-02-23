@@ -205,7 +205,7 @@ Please find the body of the email below:
   Regards 
   <your_name>
 
-  [1] https://fedoraproject.org/wiki/Releases/25/Schedule 
+  [1] https://fedorapeople.org/groups/schedule/f-34/f-34-key-tasks.html
   [2] https://fedoraproject.org/wiki/Updates_Policy#Bodhi_enabling 
   [3] https://fedoraproject.org/wiki/Updates_Policy#Branched_release 
   [4] https://fedoraproject.org/wiki/Milestone_freezes 
