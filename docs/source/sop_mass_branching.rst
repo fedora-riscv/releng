@@ -160,7 +160,7 @@ like before, make the following edit the ansible repo in `packages3 role`_:
     +        {'name': 'Fedora 32', 'tag': 'f32-updates'},
     +        {'name': 'Fedora 32', 'tag': 'f32'},
     +        {'name': 'Fedora 32 Testing', 'tag': 'f32-updates-testing'},
-     
+
              {'name': 'Fedora 31', 'tag': 'f31-updates'},
              {'name': 'Fedora 31', 'tag': 'f31'},
 
@@ -451,9 +451,9 @@ Both can be in `robosignatory role`_ in infra ansible repo
     --- a/roles/robosignatory/templates/robosignatory.toml.j2
     +++ b/roles/robosignatory/templates/robosignatory.toml.j2
     @@ -218,23 +218,23 @@ handlers = ["console"]
-     
+
                  # Gated rawhide and branched
-     
+
     -            [[consumer_config.koji_instances.primary.tags]]
     -            from = "f32-signing-pending"
     -            to = "f32-updates-testing-pending"
@@ -488,16 +488,16 @@ Both can be in `robosignatory role`_ in infra ansible repo
     +#            to = "f32"
     +#            key = "{{ (env == 'production')|ternary('fedora-32', 'testkey') }}"
     +#            keyid = "{{ (env == 'production')|ternary('12c944d0', 'd300e724') }}"
-     
+
                  [[consumer_config.koji_instances.primary.tags]]
                  from = "f32-modular-pending"
-    
+
     --- a/roles/robosignatory/templates/robosignatory.toml.j2
     +++ b/roles/robosignatory/templates/robosignatory.toml.j2
     @@ -216,8 +216,46 @@ handlers = ["console"]
                  key = "{{ (env == 'production')|ternary('fedora-32', 'testkey') }}"
                  keyid = "{{ (env == 'production')|ternary('12c944d0', 'd300e724') }}"
-     
+
     +            [[consumer_config.koji_instances.primary.tags]]
     +            from = "f33-coreos-signing-pending"
     +            to = "coreos-pool"
@@ -505,7 +505,7 @@ Both can be in `robosignatory role`_ in infra ansible repo
     +            keyid = "{{ (env == 'production')|ternary('9570ff31', 'd300e724') }}"
     +
                  # Gated rawhide and branched
-     
+
     +            [[consumer_config.koji_instances.primary.tags]]
     +            from = "f33-signing-pending"
     +            to = "f33-updates-testing-pending"
@@ -544,7 +544,7 @@ Both can be in `robosignatory role`_ in infra ansible repo
     @@ -469,15 +507,43 @@ handlers = ["console"]
              directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
              key = "{{ (env == 'production')|ternary('fedora-31', 'testkey') }}"
-     
+
     -        [consumer_config.ostree_refs."fedora/rawhide/aarch64/silverblue"]
     +        [consumer_config.ostree_refs."fedora/32/x86_64/silverblue"]
              directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
@@ -585,8 +585,8 @@ Both can be in `robosignatory role`_ in infra ansible repo
     +        [consumer_config.ostree_refs."fedora/rawhide/x86_64/silverblue"]
     +        directory = "/mnt/fedora_koji/koji/compose/ostree/repo/"
     +        key = "{{ (env == 'production')|ternary('fedora-33', 'testkey') }}"
-     
-     
+
+
          [consumer_config.coreos]
 
 Push the changes
@@ -607,12 +607,6 @@ ansible playbook:
 Ask someone in fedora infra to run the robosignatory playbook.
 
 
-Taskotron
----------
-`File a Taskotron ticket`_ and ask for the newly branched release support to
-be added.
-
-
 Koji
 ----
 The koji build system needs to have some tag/target work done to handle builds
@@ -620,306 +614,148 @@ from the new branch and to update where builds from rawhide go.
 
 Run `make-koji-release-tags`_ script in `pagure releng`_ repo
 
+
 Fedora Release
 --------------
-The Fedora release package needs to be updated in both the new branch and in
-rawhide.
+The ``fedora-release`` package needs to be updated in Rawhide and Branched.
 
-Changes to rawhide branch in fedora-release package:
+Changes to ``fedora-release.spec`` in the **rawhide** branch:
 
-::
+1. Increment ``%define dist_version``::
 
-    diff --git a/fedora-release.spec b/fedora-release.spec
-    index bdba221..ad8d8f4 100644
-    --- a/fedora-release.spec
-    +++ b/fedora-release.spec
-    @@ -1,5 +1,5 @@
-     %define release_name Rawhide
-    -%define dist_version 32
-    +%define dist_version 33
-     %define bug_version rawhide
-     
-     # Change this when branching to fNN
-    @@ -13,8 +13,8 @@
-     
-     Summary:        Fedora release files
-     Name:           fedora-release
-    -Version:        32
-    -Release:        0.5
-    +Version:        33
-    +Release:        0.1
-     License:        MIT
-     URL:            https://fedoraproject.org/
-     
-    @@ -646,6 +646,9 @@ echo _DISABLED_ > %{buildroot}%{_prefix}/lib/variant
-     
-     
+    -%define dist_version 35
+    +%define dist_version 36
+
+2. Increment ``Version:`` and reset ``Release:``::
+
+    -Version:        35
+    -Release:        0.3%{?eln:.eln%{eln}}
+    +Version:        36
+    +Release:        0.1%{?eln:.eln%{eln}}
+
+3. Add a ``%changelog`` entry::
+
      %changelog
-    +* Tue Feb 11 2020 Mohan Boddu <mboddu@bhujji.com> - 33-0.1
-    +- Setup for rawhide being F33
-    +
-     * Fri Feb  7 2020 Zbigniew Jędrzejewski-Szmek <zbyszek@in.waw.pl> - 32-0.5
-     - Add 'disable *' default preset for user units (#1468501)
+    +* Tue Feb 23 2021 Mohan Boddu <mboddu@bhujji.com> - 36-0.1
+    +- Setup for rawhide being F36
 
-Changes to branched branch in fedora-release package:
+Changes to ``fedora-release.spec`` in the **branched** branch:
 
-::
+1. Adjust ``release_name`` and unset ``is_rawhide``::
 
-    diff --git a/fedora-release.spec b/fedora-release.spec
-    index ad8d8f4..2588ec9 100644
-    --- a/fedora-release.spec
-    +++ b/fedora-release.spec
-    @@ -1,9 +1,9 @@
     -%define release_name Rawhide
-    -%define dist_version 33
-    -%define bug_version rawhide
-    +%define release_name Thirty Two
-    +%define dist_version 32
-    +%define bug_version 32
-     
-     # Change this when branching to fNN
-    -%define doc_version rawhide
-    +%define doc_version f32
-     
-     # Changes should be submitted as pull requests under
-     #     https://src.fedoraproject.org/rpms/fedora-release
-    @@ -13,8 +13,8 @@
-     
-     Summary:        Fedora release files
-     Name:           fedora-release
-    -Version:        33
-    -Release:        0.1
-    +Version:        32
-    +Release:        0.6
-     License:        MIT
-     URL:            https://fedoraproject.org/
-     
-    @@ -646,8 +646,8 @@ echo _DISABLED_ > %{buildroot}%{_prefix}/lib/variant
-     
-     
+    -%define is_rawhide 1
+    +%define release_name Thirty Five
+    +%define is_rawhide 0
+
+2. Verify the correct number for ``dist_version`` and ``Version:``::
+
+    %define dist_version 35
+    Version:        35
+
+3. Bump ``Release:``::
+
+    -Release:        0.3%{?eln:.eln%{eln}}
+    +Release:        0.4%{?eln:.eln%{eln}}
+
+3. Add a ``%changelog`` entry::
+
      %changelog
-    -* Tue Feb 11 2020 Mohan Boddu <mboddu@bhujji.com> - 33-0.1
-    -- Setup for rawhide being F33
-    +* Tue Feb 11 2020 Mohan Boddu <mboddu@bhujji.com> - 32-0.6
-    +- Branching F32 from rawhide
-     
-     * Fri Feb  7 2020 Zbigniew Jędrzejewski-Szmek <zbyszek@in.waw.pl> - 32-0.5
-     - Add 'disable *' default preset for user units (#1468501)
+    +* Tue Feb 23 2021 Mohan Boddu <mboddu@bhujji.com> - 35-0.4
+    +- Branching F35 from rawhide
+
 
 Fedora Repos
 ------------
 
-Similar to fedora-release, fedora-repos package also needs to be updated.
+The ``fedora-repos`` package needs to be updated in Rawhide, Branched, and also
+in all stable release branches (in order to receive new GPG keys and updated
+symlinks).
 
-Changes to rawhide branch of fedora-repos package:
+Changes to the **rawhide** branch (mostly in ``fedora-repos.spec``):
 
-::
+1. Generate and add a *Rawhide+1* GPG key file, then add it to the spec file::
 
-    diff --git a/archmap b/archmap
-    index cfd6fb7..3a83fff 100644
-    --- a/archmap
-    +++ b/archmap
-    @@ -70,3 +70,5 @@ fedora-31-primary: i386 x86_64 armhfp aarch64 ppc64le s390x
-     fedora-32-primary: i386 x86_64 armhfp aarch64 ppc64le s390x
-     
-     fedora-33-primary: i386 x86_64 armhfp aarch64 ppc64le s390x
-    +
-    +fedora-34-primary: i386 x86_64 armhfp aarch64 ppc64le s390x
-    diff --git a/fedora-repos.spec b/fedora-repos.spec
-    index 6ddc5bc..dfa70c7 100644
-    --- a/fedora-repos.spec
-    +++ b/fedora-repos.spec
-    @@ -1,7 +1,7 @@
-     Summary:        Fedora package repositories
-     Name:           fedora-repos
-    -Version:        33
-    -Release:        0.9%{?_module_build:%{?dist}}
-    +Version:        34
-    +Release:        0.1%{?_module_build:%{?dist}}
-     License:        MIT
-     URL:            https://fedoraproject.org/
-     
-    @@ -206,6 +206,9 @@ install -m 644 %{_sourcedir}/fedora-compose.conf $RPM_BUILD_ROOT/etc/ostree/remo
-     
-     
+    Source57:       RPM-GPG-KEY-fedora-37-primary
+
+2. Update the ``archmap`` file and define architectures for *Rawhide+1*::
+
+    +fedora-37-primary: x86_64 armhfp aarch64 ppc64le s390x
+
+3. Increment ``%global rawhide_release``::
+
+    -%global rawhide_release 35
+    +%global rawhide_release 36
+
+4. Bump ``Version:`` and reset ``Release:``::
+
+    -Version:        35
+    -Release:        0.2%{?eln:.eln%{eln}}
+    +Version:        36
+    +Release:        0.1%{?eln:.eln%{eln}}
+
+5. Add a ``%changelog`` entry::
+
      %changelog
-    +* Mon Aug 10 2020 Tomas Hrcka <thrcka@redhat.com> - 34-0.1
-    +- Setup for rawhide being F34
-    +
-     * Thu Aug 06 2020 Mohan Boddu <mboddu@bhujji.com> - 33-0.9
-     - Adding F34 key
+    +* Tue Feb 23 2021 Tomas Hrcka <thrcka@redhat.com> - 36-0.1
+    +- Setup for rawhide being F36
 
-Changes to branched branch of fedora-repos package:
+Changes to the **branched** branch (mostly in ``fedora-repos.spec``):
 
-::
+1. Copy the *Rawhide+1* GPG key file from the *rawhide* branch, then add it to
+   the spec file::
 
-    diff --git a/fedora-eln-modular.repo b/fedora-eln-modular.repo
-    index 5c1165a..719e1e1 100644
-    --- a/fedora-eln-modular.repo
-    +++ b/fedora-eln-modular.repo
-    @@ -23,7 +23,7 @@
-     name=Fedora - Modular ELN - Developmental modular packages for the next Enterprise Linux release
-     baseurl=https://odcs.fedoraproject.org/composes/production/latest-Fedora-ELN/compose/Modular/$basearch/os/
-     #metalink=https://mirrors.fedoraproject.org/metalink?repo=eln-modular&arch=$basearch
-    -enabled=1
-    +enabled=0
-     countme=1
-     metadata_expire=6h
-     repo_gpgcheck=0
-    diff --git a/fedora-eln.repo b/fedora-eln.repo
-    index 1b02c9b..78f9bfb 100644
-    --- a/fedora-eln.repo
-    +++ b/fedora-eln.repo
-    @@ -23,7 +23,7 @@
-     name=Fedora - ELN - Developmental modular packages for the next Enterprise Linux release
-     baseurl=https://odcs.fedoraproject.org/composes/production/latest-Fedora-ELN/compose/Everything/$basearch/os/
-     #metalink=https://mirrors.fedoraproject.org/metalink?repo=eln&arch=$basearch
-    -enabled=1
-    +enabled=0
-     countme=1
-     metadata_expire=6h
-     repo_gpgcheck=0
-    diff --git a/fedora-modular.repo b/fedora-modular.repo
-    index 5aa9c26..1ecdf6f 100644
-    --- a/fedora-modular.repo
-    +++ b/fedora-modular.repo
-    @@ -2,7 +2,7 @@
-     name=Fedora Modular $releasever - $basearch
-     #baseurl=http://download.example/pub/fedora/linux/releases/$releasever/Modular/$basearch/os/
-     metalink=https://mirrors.fedoraproject.org/metalink?repo=fedora-modular-$releasever&arch=$basearch
-    -enabled=0
-    +enabled=1
-     countme=1
-     #metadata_expire=7d
-     repo_gpgcheck=0
-    diff --git a/fedora-rawhide-modular.repo b/fedora-rawhide-modular.repo
-    index 5646313..68fd3ae 100644
-    --- a/fedora-rawhide-modular.repo
-    +++ b/fedora-rawhide-modular.repo
-    @@ -23,7 +23,7 @@
-     name=Fedora - Modular Rawhide - Developmental packages for the next Fedora release
-     #baseurl=http://download.example/pub/fedora/linux/development/rawhide/Modular/$basearch/os/
-     metalink=https://mirrors.fedoraproject.org/metalink?repo=rawhide-modular&arch=$basearch
-    -enabled=1
-    +enabled=0
-     countme=1
-     metadata_expire=6h
-     repo_gpgcheck=0
-    diff --git a/fedora-rawhide.repo b/fedora-rawhide.repo
-    index 2e649e6..5bed85b 100644
-    --- a/fedora-rawhide.repo
-    +++ b/fedora-rawhide.repo
-    @@ -23,7 +23,7 @@
-     name=Fedora - Rawhide - Developmental packages for the next Fedora release
-     #baseurl=http://download.example/pub/fedora/linux/development/rawhide//Everything/$basearch/os/
-     metalink=https://mirrors.fedoraproject.org/metalink?repo=rawhide&arch=$basearch
-    -enabled=1
-    +enabled=0
-     countme=1
-     metadata_expire=6h
-     repo_gpgcheck=0
-    diff --git a/fedora-repos.spec b/fedora-repos.spec
-    index dfa70c7..e22f438 100644
-    --- a/fedora-repos.spec
-    +++ b/fedora-repos.spec
-    @@ -1,14 +1,13 @@
-     Summary:        Fedora package repositories
-     Name:           fedora-repos
-    -Version:        34
-    -Release:        0.1%{?_module_build:%{?dist}}
-    +Version:        33
-    +Release:        0.10%{?_module_build:%{?dist}}
-     License:        MIT
-     URL:            https://fedoraproject.org/
-     
-     Provides:       fedora-repos(%{version}) = %{release}
-     Requires:       system-release(%{version})
-     Obsoletes:      fedora-repos < 33-0.7
-    -Requires:       fedora-repos-rawhide = %{version}-%{release}
-     Requires:       fedora-gpg-keys >= %{version}-%{release}
-     BuildArch:      noarch
-     
-    @@ -206,8 +205,10 @@ install -m 644 %{_sourcedir}/fedora-compose.conf $RPM_BUILD_ROOT/etc/ostree/remo
-     
-     
+    Source57:       RPM-GPG-KEY-fedora-37-primary
+
+2. Copy the ``archmap`` file from the *rawhide* branch.
+3. Update ``%global rawhide_release``::
+
+    -%global rawhide_release 35
+    +%global rawhide_release 36
+
+4. Enable ``updates_testing_enabled``::
+
+    -%global updates_testing_enabled 0
+    +%global updates_testing_enabled 1
+
+5. Bump ``Release:``::
+
+    -Release:        0.2%{?eln:.eln%{eln}}
+    +Release:        0.3%{?eln:.eln%{eln}}
+
+6. Add a ``%changelog`` entry::
+
      %changelog
-    -* Mon Aug 10 2020 Tomas Hrcka <thrcka@redhat.com> - 34-0.1
-    -- Setup for rawhide being F34
-    +
-    +* Mon Aug 10 2020 Tomas Hrcka <thrcka@redhat.com> - 33-0.10
-    +- Disable rawhide, eln repos            
-    +- Enable fedora, updates, updates-testing repos            
-     
-     * Thu Aug 06 2020 Mohan Boddu <mboddu@bhujji.com> - 33-0.9
-     - Adding F34 key
-    diff --git a/fedora-updates-modular.repo b/fedora-updates-modular.repo
-    index 37e4b71..bcfc886 100644
-    --- a/fedora-updates-modular.repo
-    +++ b/fedora-updates-modular.repo
-    @@ -2,7 +2,7 @@
-     name=Fedora Modular $releasever - $basearch - Updates
-     #baseurl=http://download.example/pub/fedora/linux/updates/$releasever/Modular/$basearch/
-     metalink=https://mirrors.fedoraproject.org/metalink?repo=updates-released-modular-f$releasever&arch=$basearch
-    -enabled=0
-    +enabled=1
-     countme=1
-     repo_gpgcheck=0
-     type=rpm
-    diff --git a/fedora-updates-testing-modular.repo b/fedora-updates-testing-modular.repo
-    index 5cd78af..6e39b26 100644
-    --- a/fedora-updates-testing-modular.repo
-    +++ b/fedora-updates-testing-modular.repo
-    @@ -2,7 +2,7 @@
-     name=Fedora Modular $releasever - $basearch - Test Updates
-     #baseurl=http://download.example/pub/fedora/linux/updates/testing/$releasever/Modular/$basearch/
-     metalink=https://mirrors.fedoraproject.org/metalink?repo=updates-testing-modular-f$releasever&arch=$basearch
-    -enabled=0
-    +enabled=1
-     countme=1
-     repo_gpgcheck=0
-     type=rpm
-    diff --git a/fedora-updates-testing.repo b/fedora-updates-testing.repo
-    index 9306abb..837355c 100644
-    --- a/fedora-updates-testing.repo
-    +++ b/fedora-updates-testing.repo
-    @@ -2,7 +2,7 @@
-     name=Fedora $releasever - $basearch - Test Updates
-     #baseurl=http://download.example/pub/fedora/linux/updates/testing/$releasever/Everything/$basearch/
-     metalink=https://mirrors.fedoraproject.org/metalink?repo=updates-testing-f$releasever&arch=$basearch
-    -enabled=0
-    +enabled=1
-     countme=1
-     repo_gpgcheck=0
-     type=rpm
-    diff --git a/fedora-updates.repo b/fedora-updates.repo
-    index 9992c83..9d9f2fd 100644
-    --- a/fedora-updates.repo
-    +++ b/fedora-updates.repo
-    @@ -2,7 +2,7 @@
-     name=Fedora $releasever - $basearch - Updates
-     #baseurl=http://download.example/pub/fedora/linux/updates/$releasever/Everything/$basearch/
-     metalink=https://mirrors.fedoraproject.org/metalink?repo=updates-released-f$releasever&arch=$basearch
-    -enabled=0
-    +enabled=1
-     countme=1
-     repo_gpgcheck=0
-     type=rpm
-    diff --git a/fedora.repo b/fedora.repo
-    index b39369e..12a8e11 100644
-    --- a/fedora.repo
-    +++ b/fedora.repo
-    @@ -2,7 +2,7 @@
-     name=Fedora $releasever - $basearch
-     #baseurl=http://download.example/pub/fedora/linux/releases/$releasever/Everything/$basearch/os/
-     metalink=https://mirrors.fedoraproject.org/metalink?repo=fedora-$releasever&arch=$basearch
-    -enabled=0
-    +enabled=1
-     countme=1
-     #metadata_expire=7d
-     repo_gpgcheck=0
+    +* Tue Feb 23 2021 Tomas Hrcka <thrcka@redhat.com> - 35-0.3
+    +- Update Rawhide definition, enable updates-testing for Branched
 
 .. note::
-    Build fedora-release, fedora-repos package for **branched release before enabling the rawhide gating**
+    Build ``fedora-release`` and ``fedora-repos`` packages for Branched release **before enabling the Rawhide gating**.
+
+Changes to the **stable** branches (mostly in ``fedora-repos.spec``):
+
+1. Copy the *Rawhide+1* GPG key file from the *rawhide* branch, then add it to
+   the spec file::
+
+    Source57:       RPM-GPG-KEY-fedora-37-primary
+
+2. Copy the ``archmap`` file from the *rawhide* branch.
+3. Update ``%global rawhide_release``::
+
+    -%global rawhide_release 35
+    +%global rawhide_release 36
+
+4. Bump ``Release:``::
+
+    -Release:        0.2%{?eln:.eln%{eln}}
+    +Release:        0.3%{?eln:.eln%{eln}}
+
+5. Add a ``%changelog`` entry::
+
+     %changelog
+    +* Tue Feb 23 2021 Tomas Hrcka <thrcka@redhat.com> - 34-0.3
+    +- Update Rawhide definition
+
 
 Bodhi
 -----
@@ -1093,8 +929,6 @@ Consider Before Running
     https://pagure.io/releng
 .. _create_emtpy_repos.sh:
     https://pagure.io/releng/blob/main/f/scripts/branching/create_empty_repos.sh
-.. _File a Taskotron ticket:
-    https://pagure.io/taskotron/new_issue?title=Fedora%20Branched%20notification&content=Fedora%20NN%20is%20now%20Branched
 .. _Fedora Layered Image Build System:
     https://docs.pagure.org/releng/layered_image_build_service.html
 .. _fedscm-admin commit:
