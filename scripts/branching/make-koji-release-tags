@@ -25,7 +25,7 @@ KOJICLI=koji
 "${KOJICLI}" clone-tag --all --latest-only "f${old_release}" "f${release}"
 "${KOJICLI}" edit-tag -x mock.package_manager=dnf "f${release}"
 "${KOJICLI}" add-tag "f${release}-container"
-"${KOJICLI}" add-tag --parent "f${release}-container" --arches=x86_64 "f${release}-container-build"
+"${KOJICLI}" add-tag --parent "f${release}-container" --arches="x86_64 aarch64" "f${release}-container-build"
 "${KOJICLI}" add-tag --parent "f${release}" "f${release}-updates"
 "${KOJICLI}" add-tag --parent "f${release}" "f${release}-compose"
 "${KOJICLI}" add-tag --parent "f${release}" "f${release}-updates-candidate"
