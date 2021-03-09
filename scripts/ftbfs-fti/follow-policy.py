@@ -331,7 +331,7 @@ def follow_policy(release):
     fixed_ftis = {src: b for src, b in current_ftis.items() if src not in fti_report}
     # Ignore bugs which have pending updates in Bodhi
     for src, b in list(fixed_ftis.items()):
-        if b.status not in {"MODIFIED", "ON_QA"}:
+        if b.status not in {"MODIFIED", "ON_QA", "VERIFIED"}:
             continue
         print(
             f"Checking {b.id} if it was submitted as an update to appropriate release",
