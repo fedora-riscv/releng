@@ -24,6 +24,7 @@ Windows
 
 
    ::
+   
         $ openssl pkcs7 -print_certs -in certificate.p7b -out certificate.cer
         $ openssl pkcs12 -export -in certificate.cer -inkey authenticode.key -out authenticode.pfx -certfile CACert.cer;
 
@@ -155,6 +156,12 @@ Account Holders(OS X)
 #. Primary: Dennis Gilmore(ausil)
 #. Backup: Kevin Fenzi(kevin)
 #. Manager/bill-payer: Paul Frields(pfrields)
+
+
+Sync binaries to the web
+=======================
+copy both files to  /srv/web/fmw on sundries01
+create symlinks to the FedoraMediaWriter-win32-latest.exe and FedoraMediaWriter-osx-latest.dmg
 
 Consider Before Running
 =======================
