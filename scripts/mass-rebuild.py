@@ -33,6 +33,24 @@ enviro = os.environ
 # Define functions
 
 # This function needs a dry-run like option
+def buildmeoutput(cmd, action, pkg, env, cwd=workdir):
+    """Simple function to run a command and return 0 for success, 1 for
+       failure.  It also writes the taskID and name to a file and console.
+       cmd is the command and arguments, action is aname for the action (for
+       logging), pkg is the name of the packagebeing operated on, env is the
+       environment dict, and cwd is where the script should be executed from."""
+
+    try:
+        output = subprocess.check_output(cmd, env=env, cwd=cwd).decode('utf-8').split()
+        with open(workdir+"/taskID_file", 'a') as task_file:
+            task_file.write('%s %s\n' % (pkg, output[2]))
+        sys.stdout.write('  Successful submission: %s  taskID: %s\n' % (pkg, output[2]))
+    except subprocess.CalledProcessError as e:
+        sys.stderr.write('%s failed %s: %s\n' % (pkg, action, e))
+        return 1
+    return 0
+
+# This function needs a dry-run like option
 def runme(cmd, action, pkg, env, cwd=workdir):
     """Simple function to run a command and return 0 for success, 1 for
        failure.  cmd is a list of the command and arguments, action is a
@@ -176,5 +194,5 @@ for pkg in pkgs:
     # build
     build = [koji_bin, 'build', '--nowait', '--background', '--fail-fast', massrebuild['target'], url]
     print('Building %s' % name)
-    runme(build, 'build', name, enviro, 
+    buildmeoutput(build, 'build', name, enviro,
           cwd=os.path.join(workdir, name))
