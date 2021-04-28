@@ -33,12 +33,12 @@ EOF
 ARCHES=("aarch64" "armhfp" "ppc64le" "s390x" "x86_64")
 # This is the release of Fedora that is currently stable, it will define if we
 # need to move the fedora:latest tag
-current_stable="33"
+current_stable="34"
 # Define what is rawhide so we know to push that tag
 current_rawhide="35"
 # Sanity checking
 # FIXME - Have to update this regex every time we drop a new Fedora Release
-if ! [[ "${1}" =~ [24|25|26|27|28|29|30|31] ]];
+if ! [[ "${1}" =~ [31|32] ]];
 then
     printf "ERROR: FEDORA_RELEASE missing or invalid\n"
     f_help
