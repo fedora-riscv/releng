@@ -19,7 +19,13 @@ Action
 ======
 The FTBFS bugs are filed in bugzilla.
 
-#. Create a bugzilla bug for FTBFS, use the `previous FTBFS bugzilla bug example`_ if its not created
+#. Create a bugzilla bug for FTBFS
+    * use the `previous FTBFS bugzilla bug example`_ if its not created
+
+#. Set alias for RAWHIDEFTBFS
+    * remove RAWHIDEFTBFS alias from the previous FTBFS bugzilla
+    * set RAWHIDEFTBFS alias on the new rawhide version FTBFS bugzilla
+    * set the alias on RAWHIDEFailsToInstall bugzilla in same fashion
 
 #. Install `python-bugzilla-cli` on your local machine if its not installed
     ::
