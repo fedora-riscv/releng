@@ -77,8 +77,10 @@ for build, [result] in zip(builds, results):
         if newbuild['build_id'] == build['build_id']:
             continue
         newbuilds.setdefault(build['package_name'], []).append(newbuild)
-        kojisession.getTaskInfo(newbuild['task_id'],
-                                request=True)
+        # Skip tasks with task_id as None
+        if newbuild['task_id']:
+            kojisession.getTaskInfo(newbuild['task_id'],
+                                    request=True)
 
 requests = kojisession.multiCall()
 
