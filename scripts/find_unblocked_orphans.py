@@ -750,6 +750,7 @@ def main():
         orphans = sorted(orphan_packages())
         eprint('done')
 
+    text = "Report started at %s\n\n" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     eprint('Getting builds from koji...', end=' ')
     koji_tag = RELEASES[args.release]["tag"]
     allpkgs = sorted(list(set(list(orphans) + failed)))
@@ -759,7 +760,7 @@ def main():
         unblocked = allpkgs
     eprint('done')
 
-    text = HEADER.format(RELEASES[args.release]["tag"].upper())
+    text += HEADER.format(RELEASES[args.release]["tag"].upper())
     eprint("Setting up dependency checker...", end=' ')
     depchecker = DepChecker(args.release)
     eprint("done")
@@ -775,6 +776,7 @@ def main():
     text += "\n"
     text += info
     text += FOOTER
+    text += "\nReport finished at %s" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(text)
 
     if args.json is not None:
