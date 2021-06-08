@@ -20,10 +20,6 @@ TRACKERS = {
     "F33FailsToInstall": 1803235,
     "F34FailsToInstall": 1868279,
     "F35FailsToInstall": 1927313,
-    "F32FTBFS": 1750908,
-    "F33FTBFS": 1803234,
-    "F34FTBFS": 1868278,
-    "F35FTBFS": 1927309,
 }
 RAWHIDE = "35"
 
