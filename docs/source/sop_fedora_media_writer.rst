@@ -16,17 +16,16 @@ Action
 Windows
 -------
 
-#. Get a windows code signing key from any certification authority that is
-   trusted by windows.
+#. Get a windows code signing key from private ansible repository.
+It is in the ansible-private/files/code-signing/ directory
 
 
-#. Convert the .p7b formatted certificate to .pxf format:
+#. Convert the .cert formatted certificate to .pxf format:
 
 
    ::
    
-        $ openssl pkcs7 -print_certs -in certificate.p7b -out certificate.cer
-        $ openssl pkcs12 -export -in certificate.cer -inkey authenticode.key -out authenticode.pfx -certfile CACert.cer;
+        $ openssl pkcs12 -export -in code-signing.crt -inkey code-signing.key -out authenticode.pfx
 
 
 #. Clone the Fedora Media Writer git repo:
