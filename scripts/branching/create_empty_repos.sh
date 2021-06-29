@@ -7,9 +7,6 @@ release=$1
 mkdir -p /pub/fedora/linux/updates/$release/Everything/{aarch64,armhfp,x86_64}/{Packages,debug,drpms}
 mkdir -p /pub/fedora/linux/updates/$release/Modular/{aarch64,armhfp,x86_64}/{Packages,debug,drpms}
 
-mkdir -p /pub/fedora/linux/updates/$release/Everything/SRPMS/Packages
-mkdir -p /pub/fedora/linux/updates/$release/Modular/SRPMS/Packages
-
 mkdir -p /pub/fedora-secondary/updates/$release/Everything/{i386,ppc64le,s390x}/{Packages,debug,drpms}
 mkdir -p /pub/fedora-secondary/updates/$release/Modular/{i386,ppc64le,s390x}/{Packages,debug,drpms}
 
@@ -68,9 +65,6 @@ done
 
 mkdir -p /pub/fedora/linux/updates/testing/$release/Everything/{aarch64,armhfp,x86_64}/{Packages,debug,drpms}
 mkdir -p /pub/fedora/linux/updates/testing/$release/Modular/{aarch64,armhfp,x86_64}/{Packages,debug,drpms}
-
-mkdir -p /pub/fedora/linux/updates/testing/$release/Everything/SRPMS/Packages
-mkdir -p /pub/fedora/linux/updates/testing/$release/Modular/SRPMS/Packages
 
 mkdir -p /pub/fedora-secondary/updates/testing/$release/Everything/{i386,ppc64le,s390x}/{Packages,debug,drpms}
 mkdir -p /pub/fedora-secondary/updates/testing/$release/Modular/{i386,ppc64le,s390x}/{Packages,debug,drpms}
