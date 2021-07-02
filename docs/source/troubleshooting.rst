@@ -114,7 +114,7 @@ final parameter being altered. This is used as the name of the output directory.
 The compose can take some time to run, so don't be alarmed if you don't see
 output in a while. This should provide you all the infromation needed to debug
 and/or diagnose further. When in doubt, as in ``#fedora-releng`` on
-``irc.freenode.net``.
+``irc.libera.chat``.
 
 Docker Layered Image Build Service
 ==================================

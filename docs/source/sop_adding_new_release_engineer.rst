@@ -89,9 +89,9 @@ New releng people need to subscribe.
 
 IRC
 ---
-We ask that release engineers idle in `#fedora-releng` on Freenode to be
+We ask that release engineers idle in `#fedora-releng` on Libera to be
 available for queries by other infrastructure admins. Idling on `#fedora-admin`
-on Freenode is optional. It is noisy little bit but people sometimes ask
+on Libera is optional. It is noisy little bit but people sometimes ask
 releng stuff.
 
 New member announcement

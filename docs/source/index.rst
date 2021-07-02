@@ -29,7 +29,7 @@ This page contains information about the Fedora Release Engineering team.
 
 Contact Information
 ===================
-* IRC: ``#fedora-releng`` on irc.freenode.net
+* IRC: ``#fedora-releng`` on irc.libera.chat
 * Mailing List: `rel-eng@lists.fedoraproject.org <https://admin.fedoraproject.org/mailman/listinfo/rel-eng>`_
 * Issue tracker: `Fedora Releng Pagure Tickets <https://pagure.io/releng/new_issue>`_
 
@@ -137,7 +137,7 @@ the :ref:`releng-contact-info`
 Meetings
 ========
 rel-eng holds regular meetings every Monday at 14:30 UTC in `#fedora-meeting-2`
-on the Freenode IRC network.
+on the Libera IRC network.
 
 * `Meeting agendas <https://pagure.io/releng/issues?status=Open&tags=meeting>`_ are created
   from open tickets in pagure that contain the meeting keyword.
