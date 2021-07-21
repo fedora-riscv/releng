@@ -177,11 +177,18 @@ for pkg in pkgs:
         continue
 
     # git commit
-    commit = ['fedpkg', 'commit', '-s', '-p', '-m', comment, '--' , '--allow-empty']
+    commit = ['git', 'commit', '-s', '-m', comment, '--allow-empty']
     print('Committing changes for %s' % name)
     if runme(commit, 'commit', name, enviro,
                  cwd=os.path.join(workdir, name)):
         continue
+    # git push
+    push = ['git', 'push']
+    print('Pushing changes for %s' % name)
+    if runme(push, 'push', name, enviro,
+                 cwd=os.path.join(workdir, name)):
+        continue
+
 
     # get git url
     urlcmd = ['fedpkg', 'giturl']
