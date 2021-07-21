@@ -28,8 +28,8 @@ MASSREBUILDS = {
     "f35":
         {
             "buildtag": 'f35-rebuild',  # tag to build from
-            "epoch": '2021-07-21 10:00:00.000000',  # rebuild anything not built after this date
-            "module_mass_rebuild_epoch": '2021-07-21T10:00:00Z',
+            "epoch": '2021-07-21 15:30:00.000000',  # rebuild anything not built after this date
+            "module_mass_rebuild_epoch": '2021-07-21T15:30:00Z',
             # rebuild anything not built after this date for modules
             "module_mass_branching_epoch": '2022-08-10T22:30:00Z',
             # rebuild anything not built after this date for modules
