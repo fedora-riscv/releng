@@ -22,7 +22,7 @@ from massrebuildsinfo import MASSREBUILDS
 
 # Set some variables
 # Some of these could arguably be passed in as args.
-rebuildid = 'f34'
+rebuildid = 'f35'
 massrebuild = MASSREBUILDS[rebuildid]
 user = 'Fedora Release Engineering <releng@fedoraproject.org>'
 comment = '- Rebuilt for ' + massrebuild['wikipage']
@@ -177,7 +177,7 @@ for pkg in pkgs:
         continue
 
     # git commit
-    commit = ['fedpkg', 'commit', '-s', '-p', '-m', comment]
+    commit = ['fedpkg', 'commit', '-s', '-p', '-m', comment, '--' , '--allow-empty']
     print('Committing changes for %s' % name)
     if runme(commit, 'commit', name, enviro,
                  cwd=os.path.join(workdir, name)):

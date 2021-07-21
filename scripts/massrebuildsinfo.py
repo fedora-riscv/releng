@@ -18,14 +18,35 @@ PKG_SKIP_LIST = [
     'shim-signed',
     'shim-unsigned-aarch64',
     'shim-unsigned-x64',
+    'ghc', #remove after mass rebuild
 ]
 
 
 # keep this sorted new -> old
 MASSREBUILDS = {
+    #f36 ftbfs bug tracker: TBA
     "f35":
         {
+            "buildtag": 'f35-rebuild',  # tag to build from
+            "epoch": '2021-07-21 10:00:00.000000',  # rebuild anything not built after this date
+            "module_mass_rebuild_epoch": '2021-07-21T10:00:00Z',
+            # rebuild anything not built after this date for modules
+            "module_mass_branching_epoch": '2022-08-10T22:30:00Z',
+            # rebuild anything not built after this date for modules
+            "module_mass_rebuild_platform": "f35",
+            # rebuild all modules that has build time dependency on this platform, this is used during mass rebuild time
+            "module_mass_branching_platform": "f36",
+            # rebuild all modules that has run time dependency on this platform, this is used during mass branching time
+            "targets": ['f35-candidate', 'rawhide', 'f35'],
+            # build targets to check for existing builds to skip rebuild
+            "target": 'f35-rebuild',  # target to build into
+            "desttag": 'f35',  # Tag where fixed builds go
+            "product": "Fedora",  # for BZ product field
+            "version": "rawhide",  # for BZ version field, rawhide before branching or xx after branching
+            "rawhide_version": "35",  # for next version calculation and other comments
             "tracking_bug": "1927309",  # Tracking bug for mass build failures
+            "wikipage": "https://fedoraproject.org/wiki/Fedora_35_Mass_Rebuild",
+            "pkg_skip_list": PKG_SKIP_LIST,  # packages to skip in rebuild
         },
     "f34":
         {
