@@ -8,7 +8,7 @@ PKG_SKIP_LIST = [
     'fedora-release',
     'fedora-repos',
     'generic-release',
-    'glibc32'
+    'glibc32',
     'grub2',
     'kernel',
     'linux-firmware',
