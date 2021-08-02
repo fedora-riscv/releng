@@ -278,6 +278,7 @@ def follow_policy(release):
     ftibug = bz.getbug(f"F{release}FailsToInstall")
     query_fti = bz.build_query(
         product="Fedora",
+        status="__open__",
         include_fields=[
             "id",
             "status",
@@ -290,7 +291,7 @@ def follow_policy(release):
     )
     query_fti["blocks"] = ftibug.id
     current_ftis = {b.component: b for b in bz.query(query_fti)
-                    if b.status != "CLOSED" and b.component != 'distribution'}
+                    if b.component != 'distribution'}
 
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(TEMPLATE_DIR))
     env.globals["release"] = release
