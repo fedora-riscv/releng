@@ -290,7 +290,10 @@ def follow_policy(release):
         ],
     )
     query_fti["blocks"] = ftibug.id
-    current_ftis = {b.component: b for b in bz.query(query_fti)
+    query_results = bz.query(query_fti)
+    if len(query_results) == 1000:
+        raise NotImplementedError('Bugzilla pagination not yet implemented')
+    current_ftis = {b.component: b for b in query_results
                     if b.component != 'distribution'}
 
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(TEMPLATE_DIR))
