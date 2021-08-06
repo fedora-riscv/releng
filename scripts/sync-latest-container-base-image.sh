@@ -78,7 +78,7 @@ if [[ -n ${build_name} ]]; then
         xz -d ${build_name}.${arch}.tar.xz
         # If ${stage} is a non-zero length string, then perform staging
         if [[ -z "$stage" ]]; then
-            registries=("registry.fedoraproject.org" "candidate-registry.fedoraproject.org")
+            registries=("registry.fedoraproject.org" "candidate-registry.fedoraproject.org" "quay.io/fedora")
             skopeo copy docker-archive:${build_name}.${arch}.tar docker://registry.fedoraproject.org/fedora:${1}-${arch}
             skopeo copy docker-archive:${build_name}.${arch}.tar docker://candidate-registry.fedoraproject.org/fedora:${1}-${arch}
             skopeo copy docker-archive:${build_name}.${arch}.tar docker://quay.io/fedora/fedora:${1}-${arch}
@@ -94,14 +94,17 @@ if [[ -n ${build_name} ]]; then
     for registry in "${registries[@]}"
     do
         printf "Push manifest to ${registry}\n"
-        if [ -z "$tagname" ]
+        if [ -n "$tagname" ]
         then
-            printf "tag is not set: ${tagname}\n"
-            python3 generate-manifest-list.py -r ${1} --registry ${registry} --image fedora
-        else
             printf "tag is set: ${tagname}\n"
-            python3 generate-manifest-list.py -r ${1} --registry ${registry} --tag ${tagname} --image fedora
-        fi
+            buildah rmi "${registry}/fedora:${tagname}" || true
+            buildah manifest create "${registry}/fedora:${tagname}" "${ARCHES[@]/#/docker://${registry}/fedora:${1}-}"
+            buildah manifest push "${registry}/fedora:${tagname}" "docker://${registry}/fedora:${tagname}" --all
+
+        fi 
+        buildah rmi "${registry}/fedora:${1}" || true
+        buildah manifest create "${registry}/fedora:${1}" "${ARCHES[@]/#/docker://${registry}/fedora:${1}-}"
+        buildah manifest push "${registry}/fedora:${1}" "docker://${registry}/fedora:${1}" --all
     done
     printf "Removing temporary directory\n"
     rm -rf $work_dir
@@ -117,7 +120,7 @@ if [[ -n ${minimal_build_name} ]]; then
         xz -d ${minimal_build_name}.${arch}.tar.xz
         # If ${stage} is a non-zero length string, then perform staging
         if [[ -z "$stage" ]]; then
-            registries=("registry.fedoraproject.org" "candidate-registry.fedoraproject.org")
+            registries=("registry.fedoraproject.org" "candidate-registry.fedoraproject.org" "quay.io/fedora")
             skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://registry.fedoraproject.org/fedora-minimal:${1}-${arch}
             skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://candidate-registry.fedoraproject.org/fedora-minimal:${1}-${arch}
         else
@@ -132,14 +135,16 @@ if [[ -n ${minimal_build_name} ]]; then
      for registry in "${registries[@]}"
      do
          printf "Push manifest to ${registry}\n"
-         if [ -z "$tagname" ]
+         if [ -n "$tagname" ]
          then
-             printf "tag is not set: ${tagname}\n"
-             python3 generate-manifest-list.py -r ${1} --registry ${registry} --image fedora-minimal
-         else
              printf "tag is set: ${tagname}\n"
-             python3 generate-manifest-list.py -r ${1} --registry ${registry} --tag ${tagname} --image fedora-minimal
-         fi
+             buildah rmi "${registry}/fedora-minimal:${tagname}" || true
+             buildah manifest create "${registry}/fedora-minimal:${tagname}" "${ARCHES[@]/#/docker://${registry}/fedora-minimal:${1}-}"
+             buildah manifest push "${registry}/fedora-minimal:${tagname}" "docker://${registry}/fedora-minimal:${tagname}" --all
+         fi 
+         buildah rmi "${registry}/fedora-minimal:${1}" || true
+         buildah manifest create "${registry}/fedora-minimal:${1}" "${ARCHES[@]/#/docker://${registry}/fedora-minimal:${1}-}"
+         buildah manifest push "${registry}/fedora-minimal:${1}" "docker://${registry}/fedora-minimal:${1}" --all
      done
 
      printf "Removing temporary directory\n"
