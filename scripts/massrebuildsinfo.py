@@ -24,7 +24,11 @@ PKG_SKIP_LIST = [
 
 # keep this sorted new -> old
 MASSREBUILDS = {
-    #f36 ftbfs bug tracker: TBA
+    #f37 ftbfs bug tracker: TBA
+    "f36":
+        {
+            "tracking_bug": "1992484"
+        },
     "f35":
         {
             "buildtag": 'f35-rebuild',  # tag to build from
