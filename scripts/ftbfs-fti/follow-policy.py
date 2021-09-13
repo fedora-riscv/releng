@@ -291,6 +291,7 @@ def follow_policy(release):
         ],
     )
     query_fti["blocks"] = ftibug.id
+    query_fti["limit"] = 1000
     query_results = bz.query(query_fti)
     if len(query_results) == 1000:
         raise NotImplementedError('Bugzilla pagination not yet implemented')
