@@ -850,6 +850,11 @@ Enable autosigning on branched release
 
 Once the branched compose is composed, we need to re-enable robosignatory on branched release
 
+ELN related work
+^^^^^^^^^^^^^^^^
+
+Add the new rawhide key to eln pungi config. For example, look at this `pungi eln config commit`_
+
 
 Fedora Container Base Image
 ---------------------------
@@ -939,3 +944,5 @@ Consider Before Running
     https://pagure.io/releng/c/9eb97f491f7a767ab8b90498adfa3b34ee235247?branch=main
 .. _fedora infra ticket:
     https://pagure.io/fedora-infrastructure/issue/9239#comment-671446
+.. _pungi eln config commit:
+    https://pagure.io/pungi-fedora/c/e993441164ee83374df7f463777f2bf1d456fd6d?branch=eln
