@@ -33,7 +33,7 @@ EOF
 ARCHES=("aarch64" "armhfp" "ppc64le" "s390x" "x86_64")
 # This is the release of Fedora that is currently stable, it will define if we
 # need to move the fedora:latest tag
-current_stable="34"
+current_stable="35"
 # Define what is rawhide so we know to push that tag
 current_rawhide="36"
 # Sanity checking
@@ -101,7 +101,7 @@ if [[ -n ${build_name} ]]; then
             buildah manifest create "${registry}/fedora:${tagname}" "${ARCHES[@]/#/docker://${registry}/fedora:${1}-}"
             buildah manifest push "${registry}/fedora:${tagname}" "docker://${registry}/fedora:${tagname}" --all
 
-        fi 
+        fi
         buildah rmi "${registry}/fedora:${1}" || true
         buildah manifest create "${registry}/fedora:${1}" "${ARCHES[@]/#/docker://${registry}/fedora:${1}-}"
         buildah manifest push "${registry}/fedora:${1}" "docker://${registry}/fedora:${1}" --all
@@ -141,7 +141,7 @@ if [[ -n ${minimal_build_name} ]]; then
              buildah rmi "${registry}/fedora-minimal:${tagname}" || true
              buildah manifest create "${registry}/fedora-minimal:${tagname}" "${ARCHES[@]/#/docker://${registry}/fedora-minimal:${1}-}"
              buildah manifest push "${registry}/fedora-minimal:${tagname}" "docker://${registry}/fedora-minimal:${tagname}" --all
-         fi 
+         fi
          buildah rmi "${registry}/fedora-minimal:${1}" || true
          buildah manifest create "${registry}/fedora-minimal:${1}" "${ARCHES[@]/#/docker://${registry}/fedora-minimal:${1}-}"
          buildah manifest push "${registry}/fedora-minimal:${1}" "docker://${registry}/fedora-minimal:${1}" --all
