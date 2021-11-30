@@ -12,11 +12,18 @@ by maintainers.
 
 Action
 ======
-#. Log into pkgs.fedoraproject.org
+#. Log into batcave01
 
    ::
 
-        ssh <fas-username>@pkgs.fedoraproject.org
+        ssh <fas-username>@batcave01.iad2.fedoraproject.org
+
+#. Get root shell 
+
+#. Log into pkgs01.iad2.fedoraproject.org
+   ::
+
+        ssh pkgs01.iad2.fedoraproject.org
 
 #. Change to the package's directory
 
