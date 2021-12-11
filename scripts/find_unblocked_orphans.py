@@ -753,7 +753,7 @@ def main():
         orphans = sorted(orphan_packages())
         eprint('done')
 
-    text = "Report started at %s\n\n" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    text = "Report started at %s\n\n" % datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
     eprint('Getting builds from koji...', end=' ')
     koji_tag = RELEASES[args.release]["tag"]
     allpkgs = sorted(list(set(list(orphans) + failed)))
@@ -779,7 +779,7 @@ def main():
     text += "\n"
     text += info
     text += FOOTER
-    text += "\nReport finished at %s" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    text += "\nReport finished at %s" % datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
     print(text)
 
     if args.json is not None:
