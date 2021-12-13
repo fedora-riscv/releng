@@ -712,6 +712,9 @@ def main():
     parser.add_argument("--skip-orphans", dest="skip_orphans",
                         help="Do not look for orphans",
                         default=False, action="store_true")
+    parser.add_argument("--max_deps", dest="max_deps", type=int,
+                        help="set max_deps on recursive find deps",
+                        default=20)
     parser.add_argument("--release", choices=RELEASES.keys(),
                         default="rawhide")
     parser.add_argument("--mailto", default=None,
@@ -768,7 +771,7 @@ def main():
     eprint('Calculating dependencies...', end=' ')
     # Create dnf object and depsolve out if requested.
     # TODO: add app args to either depsolve or not
-    dep_map, incomplete = depchecker.recursive_deps(unblocked)
+    dep_map, incomplete = depchecker.recursive_deps(unblocked, args.max_deps)
     eprint('done')
     info, addresses = package_info(
         unblocked, dep_map, depchecker, orphans=orphans, failed=failed,
