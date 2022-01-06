@@ -13,8 +13,8 @@ import requests
 
 
 log = logging.getLogger(__name__)
-RETIRING_BRANCHES = ["el6", "epel7", "epel8", "epel8-playground", "rawhide"]
-PROD_ONLY_BRANCHES = ["el6", "epel7", "epel8", "epel8-playground", "rawhide"]
+RETIRING_BRANCHES = ["el6", "epel7", "epel8", "epel8-next", "epel9", "epel9-next", "epel8-playground", "rawhide"]
+PROD_ONLY_BRANCHES = ["el6", "epel7", "epel8", "epel8-next", "epel9", "epel9-next", "epel8-playground", "rawhide"]
 
 PRODUCTION_PDC = "https://pdc.fedoraproject.org"
 STAGING_PDC = "https://pdc.stg.fedoraproject.org"
@@ -77,6 +77,7 @@ class ReleaseMapper(object):
 
             if not staging:
                 self.mapping = self.mapping + (
+                    ("epel9", "epel9", "epel9-build"),
                     ("epel8-playground", "epel8-playground", "epel8-playground-build"),
                     ("epel8", "epel8", "epel8-build"),
                     ("epel7", "epel7", "epel7-build"),
