@@ -54,8 +54,9 @@ EPEL6_RELEASE = dict(
     'x86_64/',
     source_repo='https://kojipkgs.fedoraproject.org/mash/updates/'
     'dist-6E-epel/SRPMS',
-    tag='dist-6E-epel',
-    branch='el6',
+    koji_tag='dist-6E-epel',
+    koji_hub='https://koji.fedoraproject.org/kojihub',
+    pagure_branch='el6',
     mailto='epel-announce@lists.fedoraproject.org',
     bcc=[],
 )
@@ -63,8 +64,9 @@ EPEL6_RELEASE = dict(
 EPEL7_RELEASE = dict(
     repo='https://kojipkgs.fedoraproject.org/mash/updates/epel7/x86_64/',
     source_repo='https://kojipkgs.fedoraproject.org/mash/updates/epel7/SRPMS',
-    tag='epel7',
-    branch='epel7',
+    koji_tag='epel7',
+    koji_hub='https://koji.fedoraproject.org/kojihub',
+    pagure_branch='epel7',
     mailto='epel-announce@lists.fedoraproject.org',
     bcc=[],
 )
@@ -74,8 +76,9 @@ RAWHIDE_RELEASE = dict(
          'latest-Fedora-Rawhide/compose/Everything/x86_64/os',
     source_repo='https://kojipkgs.fedoraproject.org/compose/rawhide/'
                 'latest-Fedora-Rawhide/compose/Everything/source/tree/',
-    tag='f36',
-    branch='rawhide',
+    koji_tag='f36',
+    koji_hub='https://koji.fedoraproject.org/kojihub',
+    pagure_branch='rawhide',
     mailto='devel@lists.fedoraproject.org',
     bcc=[],
 )
@@ -85,8 +88,9 @@ BRANCHED_RELEASE = dict(
          'latest-Fedora-35/compose/Everything/x86_64/os',
     source_repo='https://kojipkgs.fedoraproject.org/compose/branched/'
                 'latest-Fedora-35/compose/Everything/source/tree/',
-    tag='f35',
-    branch='f35',
+    koji_tag='f35',
+    pagure_branch='f35',
+    koji_hub='https://koji.fedoraproject.org/kojihub',
     mailto='devel@lists.fedoraproject.org',
     bcc=[],
 )
@@ -153,7 +157,7 @@ def send_mail(from_, to, subject, text, bcc=None):
 
 
 class PagureInfo:
-    def __init__(self, package, branch=RAWHIDE_RELEASE["branch"], ns='rpms'):
+    def __init__(self, package, branch=RAWHIDE_RELEASE["pagure_branch"], ns='rpms'):
         self.package = package
         self.branch = branch
 
@@ -256,9 +260,9 @@ def get_pagure_orphans(namespace, page=1):
     return {p['name']: p for p in pkgs}, pages
 
 
-def unblocked_packages(packages, tagID=RAWHIDE_RELEASE["tag"]):
+def unblocked_packages(packages, tagID=RAWHIDE_RELEASE["koji_tag"], kojihub=RAWHIDE_RELEASE["koji_hub"]):
     unblocked = []
-    kojisession = koji.ClientSession('https://koji.fedoraproject.org/kojihub')
+    kojisession = koji.ClientSession(kojihub)
 
     kojisession.multicall = True
     for p in packages:
@@ -407,7 +411,7 @@ class DepChecker:
         return OrderedDict(sorted(dependent_packages.items()))
 
     def pagure_worker(self):
-        branch = RELEASES[self.release]["branch"]
+        branch = RELEASES[self.release]["pagure_branch"]
         while True:
             package = self.pagureinfo_queue.get()
             if package not in self.pagure_dict:
@@ -605,7 +609,7 @@ def package_info(unblocked, dep_map, depchecker, orphans=None, failed=None,
 
     if release:
         release_text = f" ({release})"
-        branch = RELEASES[release]["branch"]
+        branch = RELEASES[release]["pagure_branch"]
     else:
         release_text = ""
 
@@ -755,15 +759,16 @@ def main():
 
     text = "Report started at %s\n\n" % datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
     eprint('Getting builds from koji...', end=' ')
-    koji_tag = RELEASES[args.release]["tag"]
     allpkgs = sorted(list(set(list(orphans) + failed)))
     if args.skipblocked:
-        unblocked = unblocked_packages(allpkgs, tagID=koji_tag)
+        koji_tag = RELEASES[args.release]["koji_tag"]
+        koji_hub = RELEASES[args.release]["koji_hub"]
+        unblocked = unblocked_packages(allpkgs, tagID=koji_tag, kojihub=koji_hub)
     else:
         unblocked = allpkgs
     eprint('done')
 
-    text += HEADER.format(RELEASES[args.release]["tag"].upper())
+    text += HEADER.format(RELEASES[args.release]["koji_tag"].upper())
     eprint("Setting up dependency checker...", end=' ')
     depchecker = DepChecker(args.release)
     eprint("done")
