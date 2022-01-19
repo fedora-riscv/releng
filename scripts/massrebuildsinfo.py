@@ -26,6 +26,7 @@ MASSREBUILDS = {
     #f37 ftbfs bug tracker: TBA
     "f36":
         {
+            "buildtag": 'f36-rebuild',  # tag to build from
             "epoch": '2022-01-19 15:30:00.000000',  # rebuild anything not built after this date
             "module_mass_rebuild_epoch": '2022-01-19T15:30:00Z',
             # rebuild anything not built after this date for modules
