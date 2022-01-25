@@ -223,7 +223,7 @@ accomplish this task.  The script will:
     ::
 
         $ cd path/to/releng_repo/scripts
-        $ ./mass-tag.py --source f26-rebuild --target-f26-pending
+        $ ./mass-tag.py --source f36-rebuild --target f36
 
 #. Send the final notification to the
    *devel-announce@lists.fedoraproject.org* list
