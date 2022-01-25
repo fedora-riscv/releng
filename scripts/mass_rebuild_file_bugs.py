@@ -27,6 +27,7 @@ rebuildid = 'f36'
 failures = {} # dict of owners to lists of packages that failed.
 failed = [] # raw list of failed packages
 
+BZ_PAGE_SIZE = 1000
 bzurl = 'https://bugzilla.redhat.com'
 BZCLIENT = RHBugzilla(url="%s/xmlrpc.cgi" % bzurl,
                       user="releng@fedoraproject.org")
@@ -175,11 +176,13 @@ def get_filed_bugs(tracking_bug):
     version -- component version to file bug for (usually rawhide for Fedora)
     summary -- short bug summary
     """
-    query_data = {'blocks': tracking_bug}
+    query_data = {'blocks': tracking_bug, 'offset': 0, 'limit': 1000 }
     bzurl = 'https://bugzilla.redhat.com'
     bzclient = RHBugzilla(url="%s/xmlrpc.cgi" % bzurl)
 
-    return bzclient.query(query_data)
+    results = _iterate_query(query_data,bzclient)
+
+    return results
 
 def get_task_failed(kojisession, task_id):
     ''' For a given task_id, use the provided kojisession to return the
@@ -189,6 +192,16 @@ def get_task_failed(kojisession, task_id):
         if child['state'] == koji.TASK_STATES["FAILED"]:  # 5 == Failed
             return child['id']
 
+def _iterate_query(querydata, bzclient):
+    """Iterate Bugzilla query until all results are fetched."""
+    results = bzclient.query(querydata)
+    if len(results) == BZ_PAGE_SIZE:
+        last_result_id = results[-1].id
+        querydata['f1'] = 'bug_id'
+        querydata['o1'] = 'greaterthan'
+        querydata['v1'] = last_result_id
+        results += _iterate_query(querydata,bzclient)
+    return results
 
 if __name__ == '__main__':
     massrebuild = MASSREBUILDS[rebuildid]
