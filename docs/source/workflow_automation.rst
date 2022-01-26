@@ -4,7 +4,7 @@
 Fedora RelEng Workflow Automation
 =================================
 
-.. _releng-automation:
+.. `releng-automation`_:
 
 The Fedora RelEng Workflow Automation is a means to allow RelEng to define a
 pattern by which Release Engineering work is automated in an uniform fashion.

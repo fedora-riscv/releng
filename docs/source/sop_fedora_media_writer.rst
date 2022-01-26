@@ -84,7 +84,7 @@ Build:
         $ cp build/helper/mac/helper.app/Contents/MacOS/helper build/app/Fedora\ Media\ Writer.app/Contents/MacOS/
         $ cd build/app
         $ $QT_PREFIX/$QT_VERSION/clang_64/bin/macdeployqt "Fedora Media Writer.app" \
-                -executable="Fedora Media Writer.app/Contents/MacOS/helper" -qmldir="../../app"
+        -executable="Fedora Media Writer.app/Contents/MacOS/helper" -qmldir="../../app"
 
 Prepare certificates
 --------------------
@@ -121,12 +121,12 @@ Sign and DMG
         cd "build/app/Fedora Media Writer.app"
         for dylib in $(find  . -name "*dylib")
         do
-             codesign -s "Developer ID Application: Fedora Gilmore" -v $dylib
+        codesign -s "Developer ID Application: Fedora Gilmore" -v $dylib
         done
         # Now sign framework bundles
         for framework in $(find  . -name "*framework")
         do
-             codesign -s "Developer ID Application: Fedora Gilmore" -v $framework
+        codesign -s "Developer ID Application: Fedora Gilmore" -v $framework
         done
 
         # Sign the two binaries

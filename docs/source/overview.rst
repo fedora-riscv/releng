@@ -33,8 +33,7 @@ before they are sent out as stable releases, and the milestone releases
 
 Nightly snapshot images of various kinds are built from Rawhide and Branched
 (when it exists) and made available for download from within the trees on the
-`mirrors`_ or from the `Koji`_ build system. Many of these can be located via
-the `release engineering dashboard`_.
+`mirrors`_ or from the `Koji`_ build system.
 
 The `Fedora Release Life Cycle`_ page is a good entry point for more details
 on these processes. Some other useful references regarding the Fedora release

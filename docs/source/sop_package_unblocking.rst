@@ -123,5 +123,5 @@ Consider Before Running
   deps related to the package.  We may have to re-block the package in order
   to fix the deps.
 
-.. _releng_issue_tracker:
+.. _rel-eng issue tracker:
     https://pagure.io/releng/issues

@@ -66,11 +66,11 @@ information on how to run it)::
 .. note:: Due to memory leak issue in pdc, we need to set the config in
           /etc/pdc.d/fedora.json
           {
-            "fedora": {
-            "host": "http://pdc-web02.iad2.fedoraproject.org/rest_api/v1/",
-            "develop": false,
-            "ssl-verify": false,
-            }
+          "fedora": {
+          "host": "http://pdc-web02.iad2.fedoraproject.org/rest_api/v1/",
+          "develop": false,
+          "ssl-verify": false,
+          }
           }
 
 dist-git

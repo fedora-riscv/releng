@@ -160,7 +160,7 @@ Create Side Build Target
 
    Update the issue according to the following template which assumes a side
    target was made for KDE under Fedora 28.
-      *TAG_NAME* has been created:
+   *TAG_NAME* has been created:
 
       $ koji add-tag f28-kde --parent=f28-build --arches=armv7hl,i686,x86_64,aarch64,ppc64,ppc64le,s390x
 
