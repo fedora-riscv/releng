@@ -25,7 +25,7 @@ from massrebuildsinfo import MASSREBUILDS
 rebuildid = 'f36'
 massrebuild = MASSREBUILDS[rebuildid]
 user = 'Fedora Release Engineering <releng@fedoraproject.org>'
-comment = '- Rebuilt for ' + massrebuild['wikipage']
+comment = 'Rebuilt for ' + massrebuild['wikipage']
 workdir = os.path.expanduser('~/massbuild')
 enviro = os.environ
 

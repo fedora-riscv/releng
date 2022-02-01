@@ -24,7 +24,7 @@ from massrebuildsinfo import MASSREBUILDS
 rebuildid = 'f36'
 massrebuild = MASSREBUILDS[rebuildid]
 user = 'Fedora Release Engineering <releng@fedoraproject.org>'
-comment = '- Rebuilt for ' + massrebuild['wikipage']
+comment = 'Rebuilt for ' + massrebuild['wikipage']
 module_mass_rebuild_epoch = massrebuild['module_mass_rebuild_epoch']
 module_mass_branching_epoch = massrebuild['module_mass_branching_epoch']
 workdir = os.path.expanduser('~/mass_branch_modules')
