@@ -373,6 +373,21 @@ def follow_policy(release):
         current_ftis = {
             src: b for src, b in current_ftis.items() if src not in fixed_ftis
         }
+        # we clear all needinfos on closed bugzillas
+        for bug_id in to_close:
+            bug  = bz.getbug(bug_id)
+            flags = [f for f in bug.flags if f["name"] == "needinfo"]
+            if flags:
+                print(f"Clearing {len(flags)} needinfo flags from closed {bug.id}")
+                bz.update_bugs(
+                    [bug.id],
+                    bz.build_update(
+                        flags=[
+                            {"name": "needinfo", "id": f["id"], "status": "X"}
+                            for f in flags
+                        ]
+                    ),
+                )
     else:
         print("No FTI bugs to close, everything is still broken")
 
