@@ -855,6 +855,11 @@ ELN related work
 
 Add the new rawhide key to eln pungi config. For example, look at this `pungi eln config commit`_
 
+Branch new rawhide in Koschei
+^^^^^^^^^^^^^^^^
+
+Branch new fedora rawhide in `koschei <https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/koschei/#_branching_a_new_fedora_release>`_.
+
 
 Fedora Container Base Image
 ---------------------------
