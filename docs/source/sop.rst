@@ -44,6 +44,7 @@ Standard Operating Procedures
     sop_adding_build_targets
     sop_adding_content_generator
     sop_adding_new_release_engineer
+    sop_adding_new_branch_sla
     sop_adding_packages_compose_artifact
     sop_adding_side_build_targets
     sop_branch_freeze
@@ -61,6 +62,7 @@ Standard Operating Procedures
     sop_mass_rebuild_packages
     sop_mass_rebuild_modules
     sop_file_ftbfs
+    sop_generating_openh264_composes
     sop_package_blocking
     sop_package_unblocking
     sop_process_dist_git_requests
