@@ -158,7 +158,7 @@ Account Holders(OS X)
 
 
 Sync binaries to the web
-=======================
+========================
 copy both files to  /srv/web/fmw on sundries01
 create symlinks to the FedoraMediaWriter-win32-latest.exe and FedoraMediaWriter-osx-latest.dmg
 

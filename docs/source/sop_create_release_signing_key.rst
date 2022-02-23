@@ -191,7 +191,7 @@ import they key into our local keyring, and then upload it to the key servers.
     $ gpg --send-keys E8E40FDE
 
 pungi-fedora
-----
+------------
 The nightly compose configs come from the pungi-fedora project on https://pagure.io
 We need to create a pull request to pull in the new key.
 

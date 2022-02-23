@@ -52,8 +52,6 @@ Standard Operating Procedures
     sop_composing_fedora
     sop_clean_amis
     sop_create_release_signing_key
-    sop_creating_live_translation_images
-    sop_custom_spins
     sop_deprecate_ftbfs_packages
     sop_end_of_life
     sop_eol_change
@@ -63,10 +61,8 @@ Standard Operating Procedures
     sop_mass_rebuild_packages
     sop_mass_rebuild_modules
     sop_file_ftbfs
-    sop_multi_boot_media
     sop_package_blocking
     sop_package_unblocking
-    sop_pdc
     sop_process_dist_git_requests
     sop_promoting_container_content
     sop_signing_builds
@@ -79,7 +75,6 @@ Standard Operating Procedures
     sop_stage_final_release_for_mirrors
     sop_two_week_atomic
     sop_unretire
-    sop_update_branch_last_known_good
     sop_update_critpath
     sop_update_releng_docs
     sop_updating_comps
