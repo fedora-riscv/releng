@@ -36,8 +36,7 @@ config = configparser.ConfigParser()
 config.read(config_path)
 
 URL = config['bugzilla'].get('url', 'https://bugzilla.redhat.com')
-USERNAME = config['bugzilla']['username']
-PASSWORD = config['bugzilla']['password']
+API_KEY = config['bugzilla'].get('api_key', None)
 FEDORA = config['bugzilla'].get('fedora', fedora).upper().replace('F', '')
 TRACKING = config['bugzilla'].get('tracking', tracking)
 
@@ -68,7 +67,7 @@ cache_dir = pathlib.Path('~/.cache/FTBFS_weekly_reminder/').expanduser()
 cache_dir.mkdir(exist_ok=True)
 ALREADY_FILED = cache_dir / 'ALREADY_FILED'
 
-bzapi = bugzilla.Bugzilla(URL, user=USERNAME, password=PASSWORD)
+bzapi = bugzilla.Bugzilla(URL, api_key=API_KEY)
 
 failed = []
 updated = []
