@@ -71,6 +71,14 @@ fi
 if [[ ${1} -eq "$current_rawhide" ]]; then
     tagname="rawhide"
 fi
+#
+# Version should not be higher than rawhide
+# Either there is a mistake or script is out of date
+#
+if [[ ${1} -gt "$current_rawhide" ]]; then
+    printf "ERROR: VERSION HIGHER THAN RAWHIDE"
+    exit(1)
+fi
 
 minimal_build_name=$(koji -q latest-build --type=image f${1}-updates-candidate Fedora-Container-Minimal-Base | awk '{print $1}')
 if [[ -n ${build_name} ]]; then
