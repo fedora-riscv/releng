@@ -30,7 +30,13 @@ EXAMPLE
 EOF
 }
 
-ARCHES=("aarch64" "armhfp" "ppc64le" "s390x" "x86_64")
+if ! [[ "${1}" =~ [31|32|33|34|35|36] ]];
+then
+    ARCHES=("aarch64" "armhfp" "ppc64le" "s390x" "x86_64")
+else
+    ARCHES=("aarch64" "ppc64le" "s390x" "x86_64")
+
+fi
 # This is the release of Fedora that is currently stable, it will define if we
 # need to move the fedora:latest tag
 current_stable="35"
@@ -38,7 +44,7 @@ current_stable="35"
 current_rawhide="37"
 # Sanity checking
 # FIXME - Have to update this regex every time we drop a new Fedora Release
-if ! [[ "${1}" =~ [31|32] ]];
+if ! [[ "${1}" =~ [31|32|33|34|35|36|37] ]];
 then
     printf "ERROR: FEDORA_RELEASE missing or invalid\n"
     f_help
