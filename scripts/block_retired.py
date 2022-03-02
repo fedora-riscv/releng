@@ -80,8 +80,10 @@ class ReleaseMapper(object):
             if not staging:
                 self.mapping = self.mapping + (
                     ("epel9", "epel9", "epel9-build"),
+                    ("epel9-next", "epel9-next", "epel9-next-build"),
                     ("epel8-playground", "epel8-playground", "epel8-playground-build"),
                     ("epel8", "epel8", "epel8-build"),
+                    ("epel8-next", "epel8-next", "epel8-next-build"),
                     ("epel7", "epel7", "epel7-build"),
                     ("el6", "dist-6E-epel", "dist-6E-epel-build"),
                 )
