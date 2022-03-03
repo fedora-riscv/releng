@@ -49,24 +49,38 @@ PAGURE_URL = 'https://src.fedoraproject.org'
 PAGURE_MAX_ENTRIES_PER_PAGE = 100
 
 
-EPEL6_RELEASE = dict(
-    repo='https://kojipkgs.fedoraproject.org/mash/updates/dist-6E-epel/'
-    'x86_64/',
-    source_repo='https://kojipkgs.fedoraproject.org/mash/updates/'
-    'dist-6E-epel/SRPMS',
-    koji_tag='dist-6E-epel',
+EPEL7_RELEASE = dict(
+    repo='https://kojipkgs.fedoraproject.org/compose/updates/epel7/'
+         'compose/Everything/x86_64/os/',
+    source_repo='https://kojipkgs.fedoraproject.org/compose/updates/epel7/'
+                'compose/Everything/source/tree/',
+    koji_tag='epel7',
     koji_hub='https://koji.fedoraproject.org/kojihub',
-    pagure_branch='el6',
+    pagure_branch='epel7',
     mailto='epel-announce@lists.fedoraproject.org',
     bcc=[],
 )
 
-EPEL7_RELEASE = dict(
-    repo='https://kojipkgs.fedoraproject.org/mash/updates/epel7/x86_64/',
-    source_repo='https://kojipkgs.fedoraproject.org/mash/updates/epel7/SRPMS',
-    koji_tag='epel7',
+EPEL8_RELEASE = dict(
+    repo='https://kojipkgs.fedoraproject.org/compose/updates/epel8/'
+         'compose/Everything/x86_64/os/',
+    source_repo='https://kojipkgs.fedoraproject.org/compose/updates/epel8/'
+                'compose/Everything/source/tree/',
+    koji_tag='epel8',
     koji_hub='https://koji.fedoraproject.org/kojihub',
-    pagure_branch='epel7',
+    pagure_branch='epel8',
+    mailto='epel-announce@lists.fedoraproject.org',
+    bcc=[],
+)
+
+EPEL9_RELEASE = dict(
+    repo='https://kojipkgs.fedoraproject.org/compose/updates/epel9/'
+         'compose/Everything/x86_64/os/',
+    source_repo='https://kojipkgs.fedoraproject.org/compose/updates/epel9/'
+                'compose/Everything/source/tree/',
+    koji_tag='epel9',
+    koji_hub='https://koji.fedoraproject.org/kojihub',
+    pagure_branch='epel9',
     mailto='epel-announce@lists.fedoraproject.org',
     bcc=[],
 )
@@ -98,8 +112,9 @@ BRANCHED_RELEASE = dict(
 RELEASES = {
     "rawhide": RAWHIDE_RELEASE,
     "branched": BRANCHED_RELEASE,
+    "epel9": EPEL9_RELEASE,
+    "epel8": EPEL8_RELEASE,
     "epel7": EPEL7_RELEASE,
-    "epel6": EPEL6_RELEASE,
 }
 
 # pagure uid for orphan
