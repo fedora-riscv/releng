@@ -1,0 +1,19 @@
+Hello all,
+
+Fedora N will go end of life for updates and support on YYYY-MM-DD
+No further updates, including security updates, will be
+available for Fedora N after the said date. All the updates of Fedora
+N being pushed to stable will be stopped as well.
+
+Fedora N+1 will continue to receive updates until approximately one
+month after the release of Fedora N+2. The maintenance schedule of
+Fedora releases is documented on the Fedora Project wiki [0]. The
+fedora Project wiki also contains instructions [1] on how to upgrade
+from a previous release of Fedora to a version receiving updates.
+
+Regards,
+Fedora Release Engineering
+
+[0]https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle#Maintenance_Schedule
+[1]https://fedoraproject.org/wiki/Upgrading?rd=DistributionUpgrades
+
