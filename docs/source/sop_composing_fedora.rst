@@ -15,7 +15,6 @@ or nightly composes set to run at a scheduled time each day.
 =============== ===================== =======================
 Compose Name    Configuration File    Compose Script
 =============== ===================== =======================
-Atomic          fedora-atomic.conf    twoweek-nightly.sh
 Docker          fedora-docker.conf    docker-nightly.sh
 Cloud           fedora-cloud.conf     cloud-nightly.sh
 Modular         fedora-modular.conf   modular-nightly.sh
@@ -29,14 +28,9 @@ currently automated.
 =============== ===================== =======================
 Compose Name    Configuration File    Compose Script
 =============== ===================== =======================
-Alpha           fedora-alpha.conf     release-candidate.sh
 Beta            fedora-beta.conf      release-candidate.sh
 GA              fedora-final.conf     release-candidate.sh
 =============== ===================== =======================
-
-.. note::
-   Fedora 26 was the last release to include an Alpha release candidate.
-
 
 Action
 ======
@@ -58,9 +52,9 @@ Review Compose Tags
    of builds expected in this output.
 
    .. note::
-      The very first run of an Alpha, Beta, or GA compose should have no builds
+      The very first run of an Beta, or GA compose should have no builds
       listed under the compose tag. It is important to clear pre-existing builds
-      from the compose tag when moving between the Alpha, Beta and RC composes.
+      from the compose tag when moving between the Beta and RC composes.
       Verify that these builds were removed.
 
       ::
@@ -106,7 +100,6 @@ Running the Compose
    should start from 1.1 and the second number should increment each time
    a new compose is created.
 
-   * Alpha - ``fedora-alpha.conf``
    * Beta - ``fedora-beta.conf``
    * RC - ``fedora-final.conf``
 
@@ -127,7 +120,7 @@ Running the Compose
    The first time any user account executes a compose the pungi-fedora
    git repository must be cloned. The compose candidate script that
    invokes pungi should be run from 
-   ``compose-x86-01.phx2.fedoraproject.org``.
+   ``compose-x86-01.iad2.fedoraproject.org``.
 
    ::
 
@@ -152,7 +145,7 @@ Running the Compose
 
    ::
 
-        $ sudo ./release-candidate.sh [Alpha|Beta|RC]-#.#
+        $ sudo ./release-candidate.sh [Beta|RC]-#.#
 
    The numbering scheme begins with 1.1 and the second number is incremented
    after each compose.
@@ -176,7 +169,7 @@ for QA and the larger Fedora community.
 
    ::
 
-        $ ssh compose-x86-01.phx2.fedoraproject.org
+        $ ssh compose-x86-01.iad2.fedoraproject.org
 
 #. Open a screen session
 
