@@ -504,6 +504,7 @@ Bodhi config
 
 After Beta
 ----------
+::
 
     diff --git a/vars/all/FedoraBranchedBodhi.yaml b/vars/all/FedoraBranchedBodhi.yaml
     index 606eb2e..ca2ba61 100644
@@ -518,6 +519,7 @@ After Beta
 
 After Final
 -----------
+::
 
     diff --git a/vars/all/FedoraBranchedBodhi.yaml b/vars/all/FedoraBranchedBodhi.yaml
     index 380f61d..76ba14d 100644

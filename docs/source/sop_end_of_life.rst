@@ -53,6 +53,7 @@ Announcement Content
 Koji tasks
 ----------
 * Disable builds by removing targets
+
 ::
 
   $ koji remove-target f31
@@ -67,6 +68,7 @@ Koji tasks
 * Purge from disk the signed copies of rpms that are signed with the EOL'd
   release key.
   To acheive this, add the release key to **koji_cleanup_signed.py** script in `releng`_ repo and the script on compose-branched01.iad2.fedoraproject.org
+
 ::
 
   ./scripts/koji_cleanup_signed.py
@@ -74,12 +76,14 @@ Koji tasks
 PDC tasks
 ---------
 * Set PDC **active** value for the release to **False**
+
 ::
 
   curl -u: -H 'Authorization: Token <token>' -H 'Accept: application/json' -H 'Content-Type:application/json' -X PATCH -d '{"active":"false"}' https://pdc.fedoraproject.org/rest_api/v1/releases/fedora-31/
 
 * Set the EOL dates in PDC for all the components to the release EOL date if they are not already set.
   Run the following script from `releng`_ repo
+
 ::
 
   python scripts/pdc/adjust-eol-all.py <token> f31 2020-11-24
@@ -87,6 +91,7 @@ PDC tasks
 Bodhi tasks
 -----------
 * Run the following bodhi commands to set the releases state to **archived**
+
 ::
 
   $ bodhi releases edit --name "F31" --state archived
@@ -100,6 +105,7 @@ Bodhi tasks
   ``bodhi releases edit`` are used.
 
 * On bodhi-backend01.iad2.fedoraproject.org, run the following commands
+
 ::
 
   $ sudo systemctl restart fm-consumer@config.service
@@ -109,6 +115,7 @@ Fedora Infra Ansible Changes
 ----------------------------
 
 * We need to make changes to bodhi, koji, mbs, releng, autosign roles in ansible repo.
+
 .. code-block:: diff
 
   From 73dc8a1042a190f1b88bf78e110d44753cfa7962 Mon Sep 17 00:00:00 2001
@@ -389,6 +396,7 @@ Fedora Infra Ansible Changes
               from = "f33-rebuild"
 
 * Run the associated playbooks on *batcave*
+
 ::
 
   $ sudo ansible-playbook /srv/web/infra/ansible/playbooks/groups/bodhi-backend.yml
@@ -402,6 +410,7 @@ Fedora Infra Ansible Changes
 MBS Platform Retirement
 -----------------------
 * To retire the platform in mbs, run the following command on mbs-backend01.iad2.fedoraproject.org
+
 ::
 
   $ sudo mbs-manager retire platform:f31
