@@ -389,6 +389,7 @@ Run the appropriate playbooks after the following changes
     @@ -1 +1 @@
     -FedoraCycleNumber: 30
     +FedoraCycleNumber: 31
+
     diff --git a/vars/all/FedoraBranched.yaml b/vars/all/FedoraBranched.yaml
     index 42ac534..0bbcc1d 100644
     --- a/vars/all/FedoraBranched.yaml
@@ -396,14 +397,7 @@ Run the appropriate playbooks after the following changes
     @@ -1 +1 @@
     -FedoraBranched: True 
     +FedoraBranched: False 
-    diff --git a/vars/all/FedoraBranchedBodhi.yaml b/vars/all/FedoraBranchedBodhi.yaml
-    index 380f61d..76ba14d 100644
-    --- a/vars/all/FedoraBranchedBodhi.yaml
-    +++ b/vars/all/FedoraBranchedBodhi.yaml
-    @@ -1,2 +1,2 @@
-     #options are: prebeta, postbeta, current
-    -FedoraBranchedBodhi: postbeta 
-    +FedoraBranchedBodhi: current 
+
     diff --git a/vars/all/FedoraPreviousPrevious.yaml b/vars/all/FedoraPreviousPrevious.yaml
     index a8e3d3b..a061e04 100644
     --- a/vars/all/FedoraPreviousPrevious.yaml
@@ -504,6 +498,36 @@ Run the appropriate playbooks after the following changes
            "version": "31"
          },
          {
+
+Bodhi config
+------------
+
+After Beta
+----------
+
+diff --git a/vars/all/FedoraBranchedBodhi.yaml b/vars/all/FedoraBranchedBodhi.yaml
+index 606eb2e..ca2ba61 100644
+--- a/vars/all/FedoraBranchedBodhi.yaml
++++ b/vars/all/FedoraBranchedBodhi.yaml
+@@ -3,4 +3,4 @@
+ # prebeta: After bodhi enablement/beta freeze and before beta release
+ # postbeta: After beta release and before final release
+ # current: After final release
+-FedoraBranchedBodhi: prebeta
++FedoraBranchedBodhi: postbeta
+
+After Final
+-----------
+
+diff --git a/vars/all/FedoraBranchedBodhi.yaml b/vars/all/FedoraBranchedBodhi.yaml
+    index 380f61d..76ba14d 100644
+    --- a/vars/all/FedoraBranchedBodhi.yaml
+    +++ b/vars/all/FedoraBranchedBodhi.yaml
+    @@ -1,2 +1,2 @@
+     #options are: prebeta, postbeta, current
+    -FedoraBranchedBodhi: postbeta 
+    +FedoraBranchedBodhi: current 
+
 
 Mirroring
 ---------
