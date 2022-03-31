@@ -56,7 +56,6 @@ Standard Operating Procedures
     sop_deprecate_ftbfs_packages
     sop_end_of_life
     sop_eol_change
-    sop_package_announce_update
     sop_mass_branching
     sop_bodhi_activation
     sop_mass_rebuild_packages
@@ -75,7 +74,6 @@ Standard Operating Procedures
     sop_retire_orphaned_packages
     sop_sigul_client_setup
     sop_stage_final_release_for_mirrors
-    sop_two_week_atomic
     sop_unretire
     sop_update_critpath
     sop_update_releng_docs

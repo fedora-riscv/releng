@@ -505,26 +505,26 @@ Bodhi config
 After Beta
 ----------
 
-diff --git a/vars/all/FedoraBranchedBodhi.yaml b/vars/all/FedoraBranchedBodhi.yaml
-index 606eb2e..ca2ba61 100644
---- a/vars/all/FedoraBranchedBodhi.yaml
-+++ b/vars/all/FedoraBranchedBodhi.yaml
-@@ -3,4 +3,4 @@
- # prebeta: After bodhi enablement/beta freeze and before beta release
- # postbeta: After beta release and before final release
- # current: After final release
--FedoraBranchedBodhi: prebeta
-+FedoraBranchedBodhi: postbeta
+    diff --git a/vars/all/FedoraBranchedBodhi.yaml b/vars/all/FedoraBranchedBodhi.yaml
+    index 606eb2e..ca2ba61 100644
+    --- a/vars/all/FedoraBranchedBodhi.yaml
+    +++ b/vars/all/FedoraBranchedBodhi.yaml
+    @@ -3,4 +3,4 @@
+    #prebeta: After bodhi enablement/beta freeze and before beta release
+    #postbeta: After beta release and before final release
+    #current: After final release
+    -FedoraBranchedBodhi: prebeta
+    +FedoraBranchedBodhi: postbeta
 
 After Final
 -----------
 
-diff --git a/vars/all/FedoraBranchedBodhi.yaml b/vars/all/FedoraBranchedBodhi.yaml
+    diff --git a/vars/all/FedoraBranchedBodhi.yaml b/vars/all/FedoraBranchedBodhi.yaml
     index 380f61d..76ba14d 100644
     --- a/vars/all/FedoraBranchedBodhi.yaml
     +++ b/vars/all/FedoraBranchedBodhi.yaml
     @@ -1,2 +1,2 @@
-     #options are: prebeta, postbeta, current
+    #options are: prebeta, postbeta, current
     -FedoraBranchedBodhi: postbeta 
     +FedoraBranchedBodhi: current 
 
