@@ -188,7 +188,7 @@ for QA and the larger Fedora community.
 #. Create the directory targeted for the copy
    ::
 
-        $ sudo -u ftpsync mkdir -p /pub/alt/stage/[release_version]_[release_label]-[#.#]
+        $ sudo -u ftpsync mkdir -m 750 -p /pub/alt/stage/[release_version]_[release_label]-[#.#]
 
 #. Locate the compose directory that will be the copy source
    ::
@@ -210,12 +210,15 @@ for QA and the larger Fedora community.
 
    ::
 
-        $ for dir in Everything Cloud CloudImages Docker Labs Server Spins Workstation WorkstationOstree metadata; do sudo -u ftpsync rsync -avhH /mnt/koji/compose/26/Fedora-26-20170328.0/compose/$dir/ /pub/alt/stage/26_Alpha-1.4/$dir/ --link-dest=/pub/fedora/linux/development/26/Everything/ --link-dest=/pub/alt/stage/26_Alpha-1.1/Everything/ --link-dest=/pub/alt/stage/26_Alpha-1.2/Everything/ --link-dest=/pub/alt/stage/26_Alpha-1.3/Everything --link-dest=/pub/alt/stage/26_Alpha-1.4/Everything; done
+        $ sudo -u ftpsync sh -c 'for dir in Everything Cloud Container Kinoite Labs Modular Server Silverblue Spins Workstation metadata; do rsync -avhH /mnt/koji/compose/31/Fedora-31-20190911.0/compose/$dir/ /pub/alt/stage/31_Beta-1.1/$dir/ --link-dest=/pub/fedora/linux/development/31/Everything/ --link-dest=/pub/alt/stage/31_Beta-1.1/Everything/; done'
 
    .. note::
-      This one-liner prompts for the password+token several times over the course of its runtime. If the
-      login window is missed it will skip an entire variant.  Just check the source and destination after
-      completion and, if there is a directory missing, run the script again.
+      If multiple composes are run like 1.2, 1.3, add multiple --link-dest arguments above with multiple composes
+
+#. Set the permissions of the synced compose
+   ::
+
+        $ sudo -u ftpsync chmod 755 /pub/alt/stage/[release_version]_[release_label]-[#.#]
 
 #. Update the issue in the releng pagure repository
 
