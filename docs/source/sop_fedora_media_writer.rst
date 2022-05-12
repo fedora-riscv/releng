@@ -1,9 +1,9 @@
 .. SPDX-License-Identifier:    CC-BY-SA-3.0
 
 
-==============
+========================================
 Fedora Media Writer Building and Signing
-==============
+========================================
 
 Description
 ===========
@@ -112,42 +112,43 @@ Sign and DMG
 #. cd to the root directory of the FMW project
 #. Run the following bash script:
 
-   ::
-        #/bin/bash
+      ::
 
-        security -v unlock-keychain login.keychain
+         #/bin/bash
 
-        # First sign all dynamic libraries (dylib's)
-        cd "build/app/Fedora Media Writer.app"
-        for dylib in $(find  . -name "*dylib")
-        do
-        codesign -s "Developer ID Application: Fedora Gilmore" -v $dylib
-        done
-        # Now sign framework bundles
-        for framework in $(find  . -name "*framework")
-        do
-        codesign -s "Developer ID Application: Fedora Gilmore" -v $framework
-        done
+         security -v unlock-keychain login.keychain
 
-        # Sign the two binaries
-        codesign -s "Developer ID Application: Fedora Gilmore" -v Contents/MacOS/helper
-        codesign -s "Developer ID Application: Fedora Gilmore" -v "Contents/MacOS/Fedora Media Writer"
+         # First sign all dynamic libraries (dylib's)
+         cd "build/app/Fedora Media Writer.app"
+         for dylib in $(find  . -name "*dylib")
+         do
+         codesign -s "Developer ID Application: Fedora Gilmore" -v $dylib
+         done
+         # Now sign framework bundles
+         for framework in $(find  . -name "*framework")
+         do
+         codesign -s "Developer ID Application: Fedora Gilmore" -v $framework
+         done
 
-        # Sign the app bundle
-        codesign -s "Developer ID Application: Fedora Gilmore" -v .
+         # Sign the two binaries
+         codesign -s "Developer ID Application: Fedora Gilmore" -v Contents/MacOS/helper
+         codesign -s "Developer ID Application: Fedora Gilmore" -v "Contents/MacOS/Fedora Media Writer"
 
-        # Create the dmg
-        cd ..
-        rm -f FedoraMediaWriter-osx-*.dmg
+         # Sign the app bundle
+         codesign -s "Developer ID Application: Fedora Gilmore" -v .
 
-        hdiutil create -srcfolder "Fedora Media Writer.app"  -format UDCO -imagekey zlib-level=9 -scrub \
-                       -volname FedoraMediaWriter-osx FedoraMediaWriter-osx-$(git  describe --tags).dmg
+         # Create the dmg
+         cd ..
+         rm -f FedoraMediaWriter-osx-*.dmg
+
+         hdiutil create -srcfolder "Fedora Media Writer.app"  -format UDCO -imagekey zlib-level=9 -scrub \
+                        -volname FedoraMediaWriter-osx FedoraMediaWriter-osx-$(git  describe --tags).dmg
 
 Account Email(OS X)
 -------------------
 
-   ::
-        releng@fedoraproject.org
+      ::
+         releng@fedoraproject.org
 
 Account Holders(OS X)
 ---------------------

@@ -15,7 +15,6 @@ this SOP.
 The following freeze policies are set for the following significant release
 milestones:
 
-* `Alpha Freeze`_
 * `String Freeze`_
 * `Beta Freeze`_
 * `Final Freeze`_
@@ -51,7 +50,6 @@ Consider Before Running
   `Freeze Exception Bug Process`
 
 
-.. _Alpha Freeze: https://fedoraproject.org/wiki/Milestone_freezes
 .. _Beta Freeze: https://fedoraproject.org/wiki/Milestone_freezes
 .. _Final Freeze: https://fedoraproject.org/wiki/Milestone_freezes
 .. _String Freeze: https://fedoraproject.org/wiki/Software_String_Freeze_Policy

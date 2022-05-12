@@ -39,6 +39,7 @@ The mass rebuild depends on two main scripts from the `releng git repository`_. 
     * *massrebuildsinfo.py*
         * module_mass_rebuild_epoch
         * module_mass_rebuild_platform
+
 Change the following items:
 
 * the ``rebuildid`` to match the release for which you are mass rebuilding modules as per in massrebuildsinfo.py

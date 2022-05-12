@@ -107,7 +107,7 @@ Update Product Definition Center (PDC)
 
     ::
 
-    https://pdc.fedoraproject.org/rest_api/v1/component-branch-slas/?branch=TAG&global_component=PACKAGENAME
+      https://pdc.fedoraproject.org/rest_api/v1/component-branch-slas/?branch=TAG&global_component=PACKAGENAME
 
     .. note::
          If no information is returned by this query then it is not in PDC
