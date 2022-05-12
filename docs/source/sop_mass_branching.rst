@@ -45,7 +45,7 @@ The "product-release" needs to be created in PDC.
 
 In the ``scripts/pdc/`` directory, run::
 
-    $ python create-product-release.py fedora $TOKEN fedora $NEW_VERSION
+    $ python create-product-release.py fedora $TOKEN Fedora $NEW_VERSION
 
 
 On ``pdc-backend01.stg`` (for testing) or ``pdc-backend01`` (for production)
