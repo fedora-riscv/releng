@@ -28,6 +28,13 @@ Action
 
 #. Sync the release to the Red Hat internal archive following internally documented
 
+Check and set EOL on previous releases to reflect reality
+=========================================================
+
+#. check PDC for active releases and respective EOL date
+
+#. if needed run the adjust-eol-all.py script from releng repository to correct any mistakes
+
 
 Verification
 ============
