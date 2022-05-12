@@ -44,6 +44,7 @@ KOJICLI=koji
 "${KOJICLI}" add-tag --parent "f${release}" "f${release}-openh264"
 "${KOJICLI}" add-tag --parent "f${release}" "f${release}-atomic"
 "${KOJICLI}" add-tag --parent "f${release}" "f${release}-atomic-host-installer"
+"${KOJICLI}" add-tag --parent "f${release}" "f${release}-iot"
 "${KOJICLI}" add-tag "f${release}-atomic-host-overrides"
 "${KOJICLI}" edit-tag -x mock.new_chroot=0  "f${release}"
 "${KOJICLI}" edit-tag -x tag2distrepo.enabled=true -x tag2distrepo.keys=47dd8ef9  "f${release}-infra"
