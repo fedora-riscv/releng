@@ -426,7 +426,7 @@ Announcement content
 
   Hello all,
 
-  As of the 24th of November 2020, Fedora 31 has reached its end of life
+  As of the 24th of November 2020, Fedora |fedora-version| has reached its end of life
   for updates and support. No further updates, including security
   updates, will be available for Fedora 31. All the updates that are
   currently in testing won't get pushed to stable. Fedora 32 will
@@ -447,6 +447,70 @@ Update eol wiki page
 https://fedoraproject.org/wiki/End_of_life update with release and number of
 days.
 
+Move the EOL release to archive
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#. log into to bodhi-backend01 and become root
+
+    ::
+
+      $ ssh bodhi-backend01.iad2.fedoraproject.org
+      $ sudo su
+      $ su - ftpsync  
+  
+#. then change into the releases directory.
+
+    ::
+
+      $ cd /pub/fedora/linux/releases
+
+#. check to see that the target directory doesnt already exist.
+
+    ::
+
+      $ ls /pub/archive/fedora/linux/releases/
+  
+#. do a recursive rsync to update any changes in the trees since the previous copy.
+
+    ::
+
+      $ rsync -avAXSHP ./35/ /pub/archive/fedora/linux/releases/35/
+  
+#. we now do the updates and updates/testing in similar ways.
+
+    ::
+
+      $ cd ../updates/
+      $ rsync -avAXSHP 35/ /pub/archive/fedora/linux/updates/35/
+      $ cd testing
+      $ rsync -avAXSHP 35/ /pub/archive/fedora/linux/updates/testing/35/
+  
+#. do the same with fedora-secondary.
+#. announce to the mirror list this has been done and that in 2 weeks you will move the old trees to archives.
+#. in two weeks, log into mm-backend01 and run the archive script
+
+    ::
+
+      $ sudo -u mirrormanager mm2_move-to-archive --originalCategory="Fedora Linux" --archiveCategory="Fedora Archive" --directoryRe='/35/Everything'
+
+#. if there are problems, the postgres DB may have issues and so you need to get a DBA to update the backend to fix items.
+#. wait an hour or so then you can remove the files from the main tree.
+
+    ::
+
+      $ ssh bodhi-backend01
+      $ cd /pub/fedora/linux
+      $ cd releases/35
+      $ ls # make sure you have stuff here
+      $ rm -rf *
+      $ ln ../20/README .
+      $ cd ../../updates/35
+      $ ls #make sure you have stuff here
+      $ rm -rf *
+      $ ln ../20/README .
+      $ cd ../testing/35
+      $ ls # make sure you have stuff here
+      $ rm -rf *
+      $ ln ../20/README .
 
 
 Consider Before Running
