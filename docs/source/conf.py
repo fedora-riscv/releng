@@ -27,8 +27,8 @@ import os
 
 #### BEGIN Fedora specific items
 rst_epilog = """
-.. |fedora-version| replace:: 22
-.. |fedora-version-next| replace:: 23
+.. |fedora-version| replace:: 36
+.. |fedora-version-next| replace:: 37
 """
 #### END Fedora specific items
 
@@ -109,6 +109,7 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
+html_css_files = ['custom.css',]
 html_theme = 'alabaster'
 
 # Theme options are theme-specific and customize the look and feel of a theme
