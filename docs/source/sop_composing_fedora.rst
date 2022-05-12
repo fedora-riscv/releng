@@ -567,6 +567,23 @@ We need to sync the signed checksums to /pub/alt/stage/ by running the following
 
    $ for dir in Everything Cloud CloudImages Docker Labs Server Spins Workstation WorkstationOstree metadata; do sudo -u ftpsync rsync -avhH /mnt/koji/compose/26/Fedora-26-20170328.0/compose/$dir/ /pub/alt/stage/26_Alpha-1.4/$dir/ --link-dest=/pub/fedora/linux/development/26/Everything/ --link-dest=/pub/alt/stage/26_Alpha-1.1/Everything/ --link-dest=/pub/alt/stage/26_Alpha-1.2/Everything/ --link-dest=/pub/alt/stage/26_Alpha-1.3/Everything --link-dest=/pub/alt/stage/26_Alpha-1.4/Everything; done
 
+Move development to release folder with mirrormanager
+=====================================================
+
+Two weeks after the release move bits from development to release directory
+
+#. ssh to the mm-backend01.iad2.fedoraproject.org
+      ::
+         $ ssh mm-backend01.iad2.fedoraproject.org
+
+#. get root
+      ::
+         $ sudo su
+
+#. run the mm2_move-devel-to-release
+      ::
+         $ mm2_move-devel-to-release --version=35 --category='Fedora Linux'
+
 
 Consider before Running
 =======================

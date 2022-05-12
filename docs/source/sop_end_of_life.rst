@@ -426,7 +426,7 @@ Announcement content
 
   Hello all,
 
-  As of the 24th of November 2020, Fedora |fedora-version| has reached its end of life
+  As of the 24th of November 2020, Fedora 31 has reached its end of life
   for updates and support. No further updates, including security
   updates, will be available for Fedora 31. All the updates that are
   currently in testing won't get pushed to stable. Fedora 32 will
