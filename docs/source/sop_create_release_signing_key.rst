@@ -65,28 +65,37 @@ following:
 
    ::
 
-        $ sigul new-key --key-admin ausil --name-real Fedora \
-                --name-comment 23 \
-                --name-email fedora-23-primary@fedoraproject.org fedora-23
+        $ sigul new-key --key-admin ausil --key-type gnupg \
+                --gnupg-name-real Fedora \
+                --gnupg-name-comment 23 \
+                --gnupg-name-email fedora-23-primary@fedoraproject.org fedora-23
 
    For EPEL
 
    ::
 
-        $ sigul new-key --key-admin ausil --name-real "Fedora EPEL" \
-                --name-comment 7 \
-                --name-email epel@fedoraproject.org epel-7
+        $ sigul new-key --key-admin ausil --key-type gnupg \
+                --gnupg-name-real "Fedora EPEL" \
+                --gnupg-name-comment 7 \
+                --gnupg-name-email epel@fedoraproject.org epel-7
 
 #. Wait a while for entropy.  This can take several minutes.
+#. For Fedora, also create the IMA signing key
+
+   ::
+
+        $ sigul new-key --key-admin ausil --key-type ECC fedora-23-ima
+
 #. Grant key access to Fedora Account holders who will be signing packages and
-   protect it with a temporary a passphrase.  For example, ``CHANGEME.``
+   protect it with a temporary a passphrase.  For example, ``CHANGEME.``. Do the
+   same with the -ima key for Fedora.
 
    ::
 
         $ sigul grant-key-access fedora-23 kevin
 
 .. note::
-    **IMPORTANT:** Grant the access to autopen user as its required for robosignatory autosigning and then restart robosignatory service
+    **IMPORTANT:** Grant the access to autopen user as it's required for robosignatory autosigning and then restart robosignatory service
 
 #. Provide the key name and temporary passphrase to signers. If they don't
    respond, revoke access until they are ready to change their passphrase.
