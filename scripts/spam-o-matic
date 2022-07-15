@@ -194,7 +194,7 @@ def get_unresolved_deps(dbo, arch):
     if dbo.conf.best:
         available = available.latest()
     if arch is not None:
-        available = available.filter(arch=arch)
+        available = available.filter(arch=[arch, "noarch"])
     pkgs = set()
     for pkgs_filtered in available:
         pkgs.add(pkgs_filtered)
