@@ -414,11 +414,6 @@ class DepChecker:
                     if dependent_pkg in self.by_src[srpmname]:
                         continue
 
-                    # skip if the dependent rpm package is also a
-                    # package that should be removed
-                    if dependent_pkg.name in ignore:
-                        continue
-
                     # use setdefault to either create an entry for the
                     # dependent package or add the required prov
                     dependent_packages.setdefault(dependent_pkg, set()).add(
