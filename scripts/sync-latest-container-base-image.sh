@@ -77,7 +77,7 @@ fi
 #
 if [[ ${1} -gt "$current_rawhide" ]]; then
     printf "ERROR: VERSION HIGHER THAN RAWHIDE"
-    exit(1)
+    exit 1
 fi
 
 minimal_build_name=$(koji -q latest-build --type=image f${1}-updates-candidate Fedora-Container-Minimal-Base | awk '{print $1}')
