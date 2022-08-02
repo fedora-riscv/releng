@@ -15,6 +15,7 @@ import koji
 import getpass
 import tempfile
 import urllib
+from datetime import datetime
 from bugzilla.rhbugzilla import RHBugzilla
 from xmlrpc.client import Fault
 from find_failures import get_failed_builds
@@ -203,6 +204,17 @@ def _iterate_query(querydata, bzclient):
         results += _iterate_query(querydata,bzclient)
     return results
 
+
+def _is_relevant_bugzilla(bug, epoch_datetime):
+    """We only care for bugs that are not yet closed or that were modified after
+    the given epoch"""
+    if bug.status != 'CLOSED':
+        return True
+    last_change_datetime = datetime.strptime(str(bug.last_change_time),
+                                             '%Y%m%dT%H:%M:%S')
+    return last_change_datetime > epoch_datetime
+
+
 if __name__ == '__main__':
     massrebuild = MASSREBUILDS[rebuildid]
 
@@ -213,7 +225,9 @@ if __name__ == '__main__':
                                    massrebuild['desttag'])
     print('Getting the list of filed bugs...')
     filed_bugs = get_filed_bugs(massrebuild['tracking_bug'])
-    filed_bugs_components = [bug.component for bug in filed_bugs]
+    epoch_datetime = datetime.fromisoformat(massrebuild['epoch'])
+    filed_bugs_components = [bug.component for bug in filed_bugs
+                             if _is_relevant_bugzilla(bug, epoch_datetime)]
     for build in failbuilds:
         task_id = build['task_id']
         component = build['package_name']
