@@ -855,6 +855,9 @@ ELN related work
 
 Add the new rawhide key to eln pungi config. For example, look at this `pungi eln config commit`_
 
+Change the trigger notification for DistroBuildSync to the new Rawhide version.
+For example, look at this `commit <https://gitlab.com/redhat/centos-stream/ci-cd/distrosync/distrobuildsync-config/-/commit/1497d9aea42cf00af646b4a0f9f9ed1a7f0a477f>`_.
+
 Branch new rawhide in Koschei
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
