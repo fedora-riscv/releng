@@ -121,21 +121,20 @@ def get_arguments(args):
 
 def user_access(session, username, namespace_name):
     """ Returns whether the specified username is listed in the maintainers
-    list of the specified package. """
+    list of the specified package and a set of all maintainers therein. """
     req = session.get(f"{dist_git_base}/api/0/{namespace_name}")
     project = req.json()
-    level = None
+    maintainers = set()
+    for acl in project["access_users"]:
+        maintainers.update(set(project["access_users"][acl]))
     if username == project["user"]["name"]:
         level = "main admin"
+    elif username in maintainers:
+        level = "maintainer"
     else:
-        maintainers = set()
-        for acl in project["access_users"]:
-            maintainers.update(set(project["access_users"][acl]))
+        level = None
 
-        if username in maintainers:
-            level = "maintainer"
-
-    return level
+    return level, maintainers
 
 
 def get_bugzilla_overrides(username, namespace, name):
@@ -354,11 +353,15 @@ def main(args):
     for username in sorted(usernames):
         _log.debug("Processing user: %s", username)
         for pkg in sorted(packages_per_user[username]):
-            level = user_access(session, username, pkg)
+            level, maintainers = user_access(session, username, pkg)
             namespace, name = pkg.split("/", 1)
             if level:
                 if args.report in ["all", "maintain"]:
                     print(f"{username} is {level} of {namespace}/{name}")
+                    if level == "main admin" and len(maintainers) > 1:
+                        maintainers_strs = (f"@{m}" for m in sorted(maintainers - {username}))
+                        maintainers_str = ", ".join(maintainers_strs)
+                        print(f"  {namespace}/{name} co-maintainers: {maintainers_str}")
                     if args.retire:
                         if level == "main admin":
                             orphan_package(session, namespace, name, username)
