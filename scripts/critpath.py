@@ -135,6 +135,13 @@ def parse_args():
     (args, extras) = parser.parse_known_args()
     return(args)
 
+def write_file(critpath, outpath):
+    with open(outpath, mode="w", encoding="utf-8") as outfh:
+        for packagename in sorted(critpath):
+            outfh.write(packagename + '\n')
+    package_count = len(critpath)
+    print(f"Wrote {package_count} items to {outpath}")
+
 def main():
     args = parse_args()
     release = args.release
@@ -177,18 +184,9 @@ def main():
             critpath.update([p.name for p in pkgs])
 
         del pkgs
-
         print()
 
-    # Write full list
-    with open(args.output, mode="w", encoding="utf-8") as outfh:
-        for packagename in sorted(critpath):
-            outfh.write(packagename + '\n')
-    if critpath == None:
-        package_count = 0
-    else:
-        package_count = len(critpath)
-    print(f"Wrote {package_count} items to {args.output}")
+    write_file(critpath, args.output)
 
 if __name__ == "__main__":
     try:
