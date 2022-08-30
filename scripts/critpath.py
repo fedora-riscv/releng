@@ -163,13 +163,8 @@ def main():
             if "/mnt/koji/compose/" not in args.url:
                 url = args.alturl
         print(f"Expanding critical path for {arch}")
-        pkgs = None
-
         pkgs = expand_dnf_critpath(release, url, arch)
-        if pkgs is None:
-            package_count = 0
-        else:
-            package_count = len(pkgs)
+        package_count = len(pkgs)
 
         print(f"{package_count} packages for {arch}")
 
