@@ -163,18 +163,12 @@ def main():
     # Do the critpath expansion for each arch
     critpath = set()
     for arch in check_arches+alternate_check_arches:
-        if arch in check_arches:
-            url=args.url
-        elif arch in alternate_check_arches:
+        url = args.url
+        if arch in alternate_check_arches:
             if args.noaltarch:
                 continue
-            else:
-                if "/mnt/koji/compose/" not in args.url:
-                    url = args.alturl
-                else:
-                    url = args.url
-        else:
-            raise Exception('Invalid architecture')
+            if "/mnt/koji/compose/" not in args.url:
+                url = args.alturl
         print(f"Expanding critical path for {arch}")
         pkgs = None
 
