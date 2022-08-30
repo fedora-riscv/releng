@@ -29,8 +29,8 @@ ALTERNATE_ARCHES=('ppc64le','s390x')
 FEDORA_BASEURL = 'http://dl.fedoraproject.org/pub/fedora/linux/'
 FEDORA_ALTERNATEURL = 'http://dl.fedoraproject.org/pub/fedora-secondary/'
 RELEASEPATH = {
-    'devel': 'development/rawhide/Everything/$basearch/os/',
-    'rawhide': 'development/rawhide/Everything/$basearch/os/'
+    'devel': 'development/rawhide',
+    'rawhide': 'development/rawhide'
 }
 UPDATEPATH = {
     'devel': '',
@@ -38,12 +38,12 @@ UPDATEPATH = {
 }
 
 for r in range(12,37,1):
-    RELEASEPATH[str(r)] = f'releases/{str(r)}/Everything/$basearch/os/'
+    RELEASEPATH[str(r)] = f'releases/{str(r)}'
     UPDATEPATH[str(r)] = f'updates/{str(r)}/$basearch/'
 
 # Branched Fedora goes here, update the number when Branched number
 # changes
-RELEASEPATH['branched'] = 'development/37/Everything/$basearch/os'
+RELEASEPATH['branched'] = 'development/37'
 UPDATEPATH['branched'] = ''
 
 def get_source(pkg):
@@ -52,7 +52,7 @@ def get_source(pkg):
 def nvr(p):
     return '-'.join([p.name, p.ver, p.rel])
 
-def expand_dnf_critpath(release, url, arch):
+def expand_dnf_critpath(url, arch):
     print(f"Resolving {arch} dependencies with DNF")
     base = dnf.Base()
 
@@ -75,7 +75,7 @@ def expand_dnf_critpath(release, url, arch):
 
     try:
         # add a new repo requires an id, a conf object, and a baseurl
-        repo_url = url + RELEASEPATH[release]
+        repo_url = url + "/Everything/$basearch/os"
 
         # make sure we don't load the system repo and get local data
         print(f"Basearch: {conf.basearch}")
@@ -123,9 +123,11 @@ def parse_args():
     parser.add_argument("-o", "--output", default="critpath.txt",
                       help="name of file to write critpath list (%(default)s)")
     parser.add_argument("-u", "--url", default=FEDORA_BASEURL,
-                      help="URL to Primary repos")
+                      help="URL to fedora/linux directory for primary arches")
     parser.add_argument("-r", "--alturl", default=FEDORA_ALTERNATEURL,
-                      help="URL to Alternate repos")
+                      help="URL to fedora-secondary directory for alternate arches")
+    parser.add_argument("-c", "--composeurl", required=False,
+                      help="URL to a complete (not arch split) compose, overrides -u and -r")
     parser.add_argument("--noaltarch", action='store_true', default=False,
                       help="Not to run for alternate architectures")
     (args, extras) = parser.parse_known_args()
@@ -147,23 +149,26 @@ def main():
     alternate_check_arches = args.altarches.split(',')
     package_count = 0
 
-    if args.url != FEDORA_BASEURL and "/mnt/koji/compose/" not in args.url:
-        RELEASEPATH[release] = RELEASEPATH[release].replace('development/','')
-        print(f"Using Base URL {args.url + RELEASEPATH[release]}")
+    if args.composeurl:
+        baseurl = args.composeurl
+        alturl = args.composeurl
     else:
-        print(f"Using Base URL {args.url}")
+        baseurl = args.url + RELEASEPATH[release]
+        alturl = args.alturl + RELEASEPATH[release]
+
+    print(f"Using Base URL {baseurl}")
+    print(f"Using alternate arch base URL {alturl}")
 
     # Do the critpath expansion for each arch
     critpath = set()
     for arch in check_arches+alternate_check_arches:
-        url = args.url
+        url = baseurl
         if arch in alternate_check_arches:
             if args.noaltarch:
                 continue
-            if "/mnt/koji/compose/" not in args.url:
-                url = args.alturl
+            url = alturl
         print(f"Expanding critical path for {arch}")
-        pkgs = expand_dnf_critpath(release, url, arch)
+        pkgs = expand_dnf_critpath(url, arch)
         package_count = len(pkgs)
 
         print(f"{package_count} packages for {arch}")
