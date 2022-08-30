@@ -71,10 +71,9 @@ def expand_dnf_critpath(release, url, arch):
         conf.arch = "armv7hl"
     else:
         conf.arch = arch
+    packages = set()
 
     try:
-        packages = set()
-
         # add a new repo requires an id, a conf object, and a baseurl
         repo_url = url + RELEASEPATH[release]
 
@@ -101,12 +100,6 @@ def expand_dnf_critpath(release, url, arch):
 
         return packages
 
-
-    except Exception as ex:
-        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
-        message = template.format(type(ex).__name__, ex.args)
-        print(message)
-        print("DNF failed to synchronize the repository and cannot proceed.")
     finally:
         base.close()
         del base
