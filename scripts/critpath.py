@@ -17,51 +17,54 @@ import shutil
 from tempfile import mkdtemp
 import dnf
 
+
 class SackError(Exception):
     pass
 
+
 # Set some constants
 # Old definition
-#CRITPATH_GROUPS = ['@core','@critical-path-base','@critical-path-gnome']
+# CRITPATH_GROUPS = ['@core','@critical-path-base','@critical-path-gnome']
 CRITPATH_GROUPS = [
-    '@core', '@critical-path-apps', '@critical-path-base',
-    '@critical-path-gnome', '@critical-path-kde', '@critical-path-lxde',
-    '@critical-path-xfce'
+    "@core",
+    "@critical-path-apps",
+    "@critical-path-base",
+    "@critical-path-gnome",
+    "@critical-path-kde",
+    "@critical-path-lxde",
+    "@critical-path-xfce",
 ]
-PRIMARY_ARCHES=('armhfp', 'aarch64', 'x86_64')
-ALTERNATE_ARCHES=('ppc64le','s390x')
-FEDORA_BASEURL = 'http://dl.fedoraproject.org/pub/fedora/linux/'
-FEDORA_ALTERNATEURL = 'http://dl.fedoraproject.org/pub/fedora-secondary/'
-RELEASEPATH = {
-    'devel': 'development/rawhide',
-    'rawhide': 'development/rawhide'
-}
-UPDATEPATH = {
-    'devel': '',
-    'rawhide': ''
-}
+PRIMARY_ARCHES = ("armhfp", "aarch64", "x86_64")
+ALTERNATE_ARCHES = ("ppc64le", "s390x")
+FEDORA_BASEURL = "http://dl.fedoraproject.org/pub/fedora/linux/"
+FEDORA_ALTERNATEURL = "http://dl.fedoraproject.org/pub/fedora-secondary/"
+RELEASEPATH = {"devel": "development/rawhide", "rawhide": "development/rawhide"}
+UPDATEPATH = {"devel": "", "rawhide": ""}
 
-for r in range(12,37,1):
-    RELEASEPATH[str(r)] = f'releases/{str(r)}'
-    UPDATEPATH[str(r)] = f'updates/{str(r)}/$basearch/'
+for r in range(12, 37, 1):
+    RELEASEPATH[str(r)] = f"releases/{str(r)}"
+    UPDATEPATH[str(r)] = f"updates/{str(r)}/$basearch/"
 
 # Branched Fedora goes here, update the number when Branched number
 # changes
-RELEASEPATH['branched'] = 'development/37'
-UPDATEPATH['branched'] = ''
+RELEASEPATH["branched"] = "development/37"
+UPDATEPATH["branched"] = ""
+
 
 def get_source(pkg):
-    return pkg.rsplit('-',2)[0]
+    return pkg.rsplit("-", 2)[0]
+
 
 def nvr(pkg):
-    return '-'.join([pkg.name, pkg.ver, pkg.rel])
+    return "-".join([pkg.name, pkg.ver, pkg.rel])
+
 
 def expand_dnf_critpath(url, arch):
     print(f"Resolving {arch} dependencies with DNF")
     base = dnf.Base()
 
-    temp_cache_dir = mkdtemp(suffix='-critpath')
-    temp_install_root = mkdtemp(suffix='-critpath-installroot')
+    temp_cache_dir = mkdtemp(suffix="-critpath")
+    temp_install_root = mkdtemp(suffix="-critpath-installroot")
 
     conf = base.conf
     # cache download data somewhere else
@@ -96,8 +99,8 @@ def expand_dnf_critpath(url, arch):
 
             # load up the comps data from configured repositories
             base.read_comps()
-            group = group.replace('@','')
-            base.group_install(group, ['mandatory', 'default', 'optional'], strict=False)
+            group = group.replace("@", "")
+            base.group_install(group, ["mandatory", "default", "optional"], strict=False)
             # resolve the groups marked in base object
             base.resolve()
             packages = packages.union(base.transaction.install_set)
@@ -116,43 +119,84 @@ def parse_args():
     releases = sorted(RELEASEPATH.keys())
     parser = argparse.ArgumentParser()
     mexcgroup = parser.add_mutually_exclusive_group()
-    parser.add_argument("release", choices=releases,
-                      help="The release to work on (a release number, 'branched', or 'rawhide')")
-    mexcgroup.add_argument("--nvr", action='store_true', default=False,
-                      help="output full NVR instead of just package name")
-    mexcgroup.add_argument("--srpm", action='store_true', default=False,
-                      help="Output source RPMS instead of binary RPMS (for pkgdb)")
-    parser.add_argument("-a", "--arches", default=','.join(PRIMARY_ARCHES),
-                      help="Primary arches to evaluate (%(default)s)")
-    parser.add_argument("-s", "--altarches", default=','.join(ALTERNATE_ARCHES),
-                      help="Alternate arches to evaluate (%(default)s)")
-    parser.add_argument("-o", "--output", default="critpath.txt",
-                      help="name of file to write critpath list (%(default)s)")
-    parser.add_argument("-u", "--url", default=FEDORA_BASEURL,
-                      help="URL to fedora/linux directory for primary arches")
-    parser.add_argument("-r", "--alturl", default=FEDORA_ALTERNATEURL,
-                      help="URL to fedora-secondary directory for alternate arches")
-    parser.add_argument("-c", "--composeurl", required=False,
-                      help="URL to a complete (not arch split) compose, overrides -u and -r")
-    parser.add_argument("--noaltarch", action='store_true', default=False,
-                      help="Not to run for alternate architectures")
+    parser.add_argument(
+        "release",
+        choices=releases,
+        help="The release to work on (a release number, 'branched', or 'rawhide')",
+    )
+    mexcgroup.add_argument(
+        "--nvr",
+        action="store_true",
+        default=False,
+        help="output full NVR instead of just package name",
+    )
+    mexcgroup.add_argument(
+        "--srpm",
+        action="store_true",
+        default=False,
+        help="Output source RPMS instead of binary RPMS (for pkgdb)",
+    )
+    parser.add_argument(
+        "-a",
+        "--arches",
+        default=",".join(PRIMARY_ARCHES),
+        help="Primary arches to evaluate (%(default)s)",
+    )
+    parser.add_argument(
+        "-s",
+        "--altarches",
+        default=",".join(ALTERNATE_ARCHES),
+        help="Alternate arches to evaluate (%(default)s)",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        default="critpath.txt",
+        help="name of file to write critpath list (%(default)s)",
+    )
+    parser.add_argument(
+        "-u",
+        "--url",
+        default=FEDORA_BASEURL,
+        help="URL to fedora/linux directory for primary arches",
+    )
+    parser.add_argument(
+        "-r",
+        "--alturl",
+        default=FEDORA_ALTERNATEURL,
+        help="URL to fedora-secondary directory for alternate arches",
+    )
+    parser.add_argument(
+        "-c",
+        "--composeurl",
+        required=False,
+        help="URL to a complete (not arch split) compose, overrides -u and -r",
+    )
+    parser.add_argument(
+        "--noaltarch",
+        action="store_true",
+        default=False,
+        help="Not to run for alternate architectures",
+    )
     return parser.parse_args()
+
 
 def write_file(critpath, outpath):
     with open(outpath, mode="w", encoding="utf-8") as outfh:
         for packagename in sorted(critpath):
-            outfh.write(packagename + '\n')
+            outfh.write(packagename + "\n")
     package_count = len(critpath)
     print(f"Wrote {package_count} items to {outpath}")
+
 
 def main():
     args = parse_args()
     release = args.release
-    check_arches = args.arches.split(',')
+    check_arches = args.arches.split(",")
     if not (release.isdigit() and int(release) < 37):
         # armhfp is gone on F37+
         check_arches.remove("armhfp")
-    alternate_check_arches = args.altarches.split(',')
+    alternate_check_arches = args.altarches.split(",")
     package_count = 0
 
     if args.composeurl:
@@ -167,7 +211,7 @@ def main():
 
     # Do the critpath expansion for each arch
     critpath = set()
-    for arch in check_arches+alternate_check_arches:
+    for arch in check_arches + alternate_check_arches:
         url = baseurl
         if arch in alternate_check_arches:
             if args.noaltarch:
@@ -190,6 +234,7 @@ def main():
         print()
 
     write_file(critpath, args.output)
+
 
 if __name__ == "__main__":
     try:
