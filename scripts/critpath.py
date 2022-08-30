@@ -110,8 +110,10 @@ def expand_dnf_critpath(url, arch):
 
 def parse_args():
     releases = sorted(RELEASEPATH.keys())
-    parser = argparse.ArgumentParser(usage = "%%(prog)s [options] [%s]" % '|'.join(releases))
+    parser = argparse.ArgumentParser()
     mexcgroup = parser.add_mutually_exclusive_group()
+    parser.add_argument("release", choices=releases,
+                      help="The release to work on (a release number, 'branched', or 'rawhide')")
     mexcgroup.add_argument("--nvr", action='store_true', default=False,
                       help="output full NVR instead of just package name")
     mexcgroup.add_argument("--srpm", action='store_true', default=False,
@@ -131,17 +133,11 @@ def parse_args():
     parser.add_argument("--noaltarch", action='store_true', default=False,
                       help="Not to run for alternate architectures")
     (args, extras) = parser.parse_known_args()
-
-    # Input & Sanity Validation
-    if (len(extras) != 1) or (extras[0] not in releases):
-        parser.error(f"must choose a release from the list: {releases}")
-
-    # Parse values
-    release = extras[0]
-    return(args, release)
+    return(args)
 
 def main():
-    (args, release) = parse_args()
+    args = parse_args()
+    release = args.release
     check_arches = args.arches.split(',')
     if not (release.isdigit() and int(release) < 37):
         # armhfp is gone on F37+
