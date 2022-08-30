@@ -198,10 +198,9 @@ if __name__ == '__main__':
         print()
 
     # Write full list
-    f = open(args.output, mode="w", encoding="utf-8")
-    for packagename in sorted(critpath):
-        f.write(packagename + '\n')
-    f.close()
+    with open(args.output, mode="w", encoding="utf-8") as outfh:
+        for packagename in sorted(critpath):
+            outfh.write(packagename + '\n')
     if critpath == None:
         package_count = 0
     else:
