@@ -197,3 +197,5 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         sys.stderr.write("Interrupted, exiting...\n")
         sys.exit(1)
+
+# vim: set textwidth=100 ts=8 et sw=4:
