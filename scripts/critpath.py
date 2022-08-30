@@ -17,8 +17,6 @@ import dnf
 class SackError(Exception):
     pass
 
-major_version = sys.version_info[0]
-
 # Set some constants
 # Old definition
 #critpath_groups = ['@core','@critical-path-base','@critical-path-gnome']
@@ -52,101 +50,8 @@ branched = '32'
 releasepath['branched'] = 'development/%s/Everything/$basearch/os' % branched
 updatepath['branched'] = ''
 
-# blacklists
-blacklist = [ 'tzdata' ]
-
 def get_source(pkg):
     return pkg.rsplit('-',2)[0]
-
-provides_cache = {}
-def resolve_deps(pkg, base):
-    deps = []
-    for prov in pkg.provides:
-        provides_cache[prov] = pkg.name
-    for req in pkg.requires:
-        if req in provides_cache:
-            deps.append(provides_cache[req])
-            continue
-        try:
-            po = base.returnPackageByDep(req)
-        except yum.Errors.YumBaseError:
-            print("ERROR: unresolved dep for %s of pkg %s" % (req[0],
-                  pkg.name))
-            raise
-        provides_cache[req] = po.name
-        deps.append(po.name)
-        for prov in po.provides:
-            provides_cache[prov] = po.name
-
-    return deps
-
-def expand_yum_critpath(my, start_list):
-    name_list = []
-    # Expand the start_list to a list of names
-    for name in start_list:
-        if name.startswith('@'):
-            print("expanding %s" % name)
-            count = 0
-            group = my.comps.return_group(name[1:])
-            for groupmem in group.mandatory_packages.keys() + group.default_packages.keys():
-                if groupmem not in name_list:
-                    name_list.append(groupmem)
-                    count += 1
-            print("%s packages added" % count)
-        else:
-            if name not in name_list:
-                name_list.append(name)
-    # Iterate over the name_list
-    count = 0
-    pkg_list = []
-    skipped_list = []
-    handled = []
-
-    while name_list:
-        count += 1
-        name = name_list.pop(0)
-        handled.append(name)
-        if name in blacklist:
-            continue
-        print("depsolving %4u done/%4u remaining (%s)" % (count, len(name_list), name))
-        p = my.pkgSack.searchNevra(name=name)
-        if not p:
-            print("WARNING: unresolved package name: %s" % name)
-            skipped_list.append(name)
-            continue
-        for pkg in p:
-            pkg_list.append(pkg)
-            for dep in resolve_deps(pkg, my):
-                if dep not in handled and dep not in skipped_list and dep not in name_list:
-                    print("    added %s" % dep)
-                    name_list.append(dep)
-    print("depsolving complete.")
-    print("%u packages in critical path" % (count))
-    print("%u rejected package names: %s" % (len(skipped_list),
-                                             " ".join(skipped_list)))
-    return pkg_list
-
-
-def setup_yum(url=None, release=None, arch=None):
-    my = yum.YumBase()
-    basearch = getBaseArch()
-    cachedir = mkdtemp(dir='/tmp', prefix='critpath-')
-    if arch is None:
-        arch = basearch
-    elif arch != basearch:
-        my.preconf.arch = fakearch[arch]
-    my.conf.cachedir = cachedir
-    my.conf.installroot = cachedir
-    my.repos.disableRepo('*')
-    if "/mnt/koji/compose/" not in args.url:
-        my.add_enable_repo('critpath-repo-%s' % arch, baseurls=[url+releasepath[release]])
-        print("adding critpath-repo-%s at %s" % (arch, url+releasepath[release]))
-        if updatepath[release]:
-            my.add_enable_repo('critpath-repo-updates-%s' % arch, baseurls=[url+updatepath[release]])
-    else:
-        my.add_enable_repo('critpath-repo-%s' % arch, baseurls=[url+'/$basearch/os/'])
-        print("adding critpath-repo-%s at %s" % (arch, url+'/$basearch/os/'))
-    return (my, cachedir)
 
 def nvr(p):
     return '-'.join([p.name, p.ver, p.rel])
@@ -210,18 +115,6 @@ def expand_dnf_critpath(release):
         shutil.rmtree(temp_cache_dir)
         shutil.rmtree(temp_install_root)
 
-def solves_with_dnf(release_version):
-    if release_version == 'branched':
-        return True
-    elif release_version == 'rawhide':
-        return True
-    elif release_version == 'devel':
-        return True
-    elif (int(release_version) > 26):
-        return True
-    else:
-        return False
-
 
 if __name__ == '__main__':
     # Option parsing
@@ -243,8 +136,6 @@ if __name__ == '__main__':
                       help="Output source RPMS instead of binary RPMS (for pkgdb)")
     parser.add_argument("--noaltarch", action='store_true', default=False,
                       help="Not to run for alternate architectures")
-    parser.add_argument("--dnf", action='store_true', default=False,
-                      help="Use DNF for dependency solving")
     args, extras = parser.parse_known_args()
 
     # Input & Sanity Validation
@@ -256,24 +147,6 @@ if __name__ == '__main__':
     check_arches = args.arches.split(',')
     alternate_check_arches = args.altarches.split(',')
     package_count = 0
-
-    using_dnf = False
-    if (args.dnf == True) or (major_version >= 3) or solves_with_dnf(release):
-        using_dnf = True
-
-    if not using_dnf:
-        import yum
-        from rpmUtils.arch import getBaseArch
-        if yum.__version_info__ < (3, 2, 24) and args.arches != getBaseArch():
-            print("WARNING: yum < 3.2.24 may be unable to depsolve other arches.")
-            print("Get a newer yum or run this on an actual %s system." % args.arches)
-            sys.exit(1)
-    else:
-        dnf_version = tuple(map(int, dnf.const.VERSION.split(".")))
-        if dnf_version < (2, 0, 0):
-            print("This script requires the DNF version 2.0 API.")
-            sys.exit(1)
-
 
     if args.nvr and args.srpm:
         print("ERROR: --nvr and --srpm are mutually exclusive")
@@ -301,17 +174,9 @@ if __name__ == '__main__':
         else:
             raise Exception('Invalid architecture')
         print("Expanding critical path for %s" % arch)
-        my = None
-        cachedir = None
         pkgs = None
 
-        if using_dnf:
-            pkgs = expand_dnf_critpath(release)
-        else:
-            print("Resolving %s dependencies with YUM" % arch)
-            (my, cachedir) = setup_yum(url = url, release=release, arch=arch)
-            pkgs = expand_yum_critpath(my, critpath_groups)
-
+        pkgs = expand_dnf_critpath(release)
         if pkgs is None:
             package_count = 0
         else:
@@ -328,13 +193,8 @@ if __name__ == '__main__':
 
         del pkgs
 
-        # deleting the cache dir has to happen after the above or
-        # massive errors occur
-        if not using_dnf:
-            del my
-            if cachedir.startswith("/tmp/"):
-                shutil.rmtree(cachedir)
         print()
+
     # Write full list
     f = open(args.output,"wb")
     for packagename in sorted(critpath):
