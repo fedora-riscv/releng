@@ -6,6 +6,10 @@
 # Authors: Will Woods <wwoods@redhat.com>
 #          Seth Vidal <skvidal@fedoraproject.org>
 #          Robert Marshall <rmarshall@redhat.com>
+#          Adam Williamson <awilliam@redhat.com>
+
+# this is a script, not a public module, we don't need docstrings
+# pylint: disable=missing-module-docstring,missing-class-docstring,missing-function-docstring
 
 import sys
 import argparse
