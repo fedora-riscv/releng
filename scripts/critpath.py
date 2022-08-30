@@ -49,8 +49,8 @@ UPDATEPATH['branched'] = ''
 def get_source(pkg):
     return pkg.rsplit('-',2)[0]
 
-def nvr(p):
-    return '-'.join([p.name, p.ver, p.rel])
+def nvr(pkg):
+    return '-'.join([pkg.name, pkg.ver, pkg.rel])
 
 def expand_dnf_critpath(url, arch):
     print(f"Resolving {arch} dependencies with DNF")
@@ -176,11 +176,11 @@ def main():
         print(f"{package_count} packages for {arch}")
 
         if args.nvr:
-            critpath.update([nvr(p) for p in pkgs])
+            critpath.update([nvr(pkg) for pkg in pkgs])
         elif args.srpm:
-            critpath.update([get_source(p.sourcerpm) for p in pkgs])
+            critpath.update([get_source(pkg.sourcerpm) for pkg in pkgs])
         else:
-            critpath.update([p.name for p in pkgs])
+            critpath.update([pkg.name for pkg in pkgs])
 
         del pkgs
         print()
