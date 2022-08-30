@@ -37,14 +37,13 @@ UPDATEPATH = {
     'rawhide': ''
 }
 
-for x in range(12,37,1):
-    r = str(x)
-    RELEASEPATH[r] = f'releases/{r}/Everything/$basearch/os/'
-    UPDATEPATH[r] = f'updates/{r}/$basearch/'
+for r in range(12,37,1):
+    RELEASEPATH[str(r)] = f'releases/{str(r)}/Everything/$basearch/os/'
+    UPDATEPATH[str(r)] = f'updates/{str(r)}/$basearch/'
 
-# Branched Fedora goes here
-branched = '37'
-RELEASEPATH['branched'] = f'development/{branched}/Everything/$basearch/os'
+# Branched Fedora goes here, update the number when Branched number
+# changes
+RELEASEPATH['branched'] = 'development/37/Everything/$basearch/os'
 UPDATEPATH['branched'] = ''
 
 def get_source(pkg):
