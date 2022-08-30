@@ -26,8 +26,6 @@ CRITPATH_GROUPS = [
 ]
 PRIMARY_ARCHES=('armhfp', 'aarch64', 'x86_64')
 ALTERNATE_ARCHES=('ppc64le','s390x')
-# There is not current a programmatic way to generate this list
-FAKEARCH = {'i386':'i686', 'x86_64':'x86_64', 'ppc64':'ppc64', 'ppc':'ppc64', 'armhfp':'armv7hl', 'aarch64':'aarch64', 'ppc64le':'ppc64le', 's390x':'s390x'}
 FEDORA_BASEURL = 'http://dl.fedoraproject.org/pub/fedora/linux/'
 FEDORA_ALTERNATEURL = 'http://dl.fedoraproject.org/pub/fedora-secondary/'
 RELEASEPATH = {
@@ -70,7 +68,10 @@ def expand_dnf_critpath(release, url, arch):
     conf.persistdir = temp_cache_dir
     conf.installroot = temp_install_root
     # dnf needs arches, not basearches to work
-    conf.arch = FAKEARCH[arch]
+    if arch == "armhfp":
+        conf.arch = "armv7hl"
+    else:
+        conf.arch = arch
 
     try:
         packages = set()
@@ -144,6 +145,9 @@ if __name__ == '__main__':
     # Parse values
     release = extras[0]
     check_arches = args.arches.split(',')
+    if not (release.isdigit() and int(release) < 37):
+        # armhfp is gone on F37+
+        check_arches.remove("armhfp")
     alternate_check_arches = args.altarches.split(',')
     package_count = 0
 
