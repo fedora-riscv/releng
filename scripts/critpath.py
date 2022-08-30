@@ -38,16 +38,19 @@ PRIMARY_ARCHES = ("armhfp", "aarch64", "x86_64")
 ALTERNATE_ARCHES = ("ppc64le", "s390x")
 FEDORA_BASEURL = "http://dl.fedoraproject.org/pub/fedora/linux/"
 FEDORA_ALTERNATEURL = "http://dl.fedoraproject.org/pub/fedora-secondary/"
-RELEASEPATH = {"devel": "development/rawhide", "rawhide": "development/rawhide"}
+RELEASEPATH = {
+    "devel": "development/rawhide/Everything/$basearch/os",
+    "rawhide": "development/rawhide/Everything/$basearch/os",
+}
 UPDATEPATH = {"devel": "", "rawhide": ""}
 
 for r in range(12, 37, 1):
-    RELEASEPATH[str(r)] = f"releases/{str(r)}"
-    UPDATEPATH[str(r)] = f"updates/{str(r)}/$basearch/"
+    RELEASEPATH[str(r)] = f"releases/{str(r)}/Everything/$basearch/os"
+    UPDATEPATH[str(r)] = f"updates/{str(r)}/Everything/$basearch"
 
 # Branched Fedora goes here, update the number when Branched number
 # changes
-RELEASEPATH["branched"] = "development/37"
+RELEASEPATH["branched"] = "development/37/Everything/$basearch/os"
 UPDATEPATH["branched"] = ""
 
 
@@ -59,7 +62,7 @@ def nvr(pkg):
     return "-".join([pkg.name, pkg.ver, pkg.rel])
 
 
-def expand_dnf_critpath(url, arch):
+def expand_dnf_critpath(urls, arch):
     print(f"Resolving {arch} dependencies with DNF")
     base = dnf.Base()
 
@@ -82,20 +85,24 @@ def expand_dnf_critpath(url, arch):
 
     try:
         # add a new repo requires an id, a conf object, and a baseurl
-        repo_url = url + "/Everything/$basearch/os"
-
         # make sure we don't load the system repo and get local data
         print(f"Basearch: {conf.basearch}")
         print(f"Arch:     {conf.arch}")
-        print(f"{arch} repo {repo_url}")
+        for url in urls:
+            print(f"Repo:     {url}")
 
         # mark all critpath groups in base object
         for group in CRITPATH_GROUPS:
             base.reset(repos=True, goal=True, sack=True)
-            base.repos.add_new_repo(arch, conf, baseurl=[repo_url])
+            repoids = []
+            for (num, url) in enumerate(urls):
+                repoid = arch + str(num)
+                repoids.append(repoid)
+                base.repos.add_new_repo(repoid, conf, baseurl=[url])
             base.fill_sack(load_system_repo=False)
-            if base.repos[arch].enabled is False:
-                raise SackError
+            for repoid in repoids:
+                if base.repos[repoid].enabled is False:
+                    raise SackError
 
             # load up the comps data from configured repositories
             base.read_comps()
@@ -199,28 +206,40 @@ def main():
     alternate_check_arches = args.altarches.split(",")
     package_count = 0
 
+    updateurl = None
+    updatealturl = None
     if args.composeurl:
-        baseurl = args.composeurl
-        alturl = args.composeurl
+        baseurl = args.composeurl + "/Everything/$basearch/os"
+        alturl = args.composeurl + "/Everything/$basearch/os"
     else:
         baseurl = args.url + RELEASEPATH[release]
         alturl = args.alturl + RELEASEPATH[release]
+        if UPDATEPATH[release]:
+            updateurl = args.url + UPDATEPATH[release]
+            updatealturl = args.alturl + UPDATEPATH[release]
 
     print(f"Using Base URL {baseurl}")
     print(f"Using alternate arch base URL {alturl}")
+    if updateurl:
+        print(f"Using update URL {updateurl}")
+    if updatealturl:
+        print(f"Using alternate arch update URL {updatealturl}")
 
     # Do the critpath expansion for each arch
     critpath = set()
     for arch in check_arches + alternate_check_arches:
-        url = baseurl
+        urls = [baseurl, updateurl]
         if arch in alternate_check_arches:
             if args.noaltarch:
                 continue
-            url = alturl
-        print(f"Expanding critical path for {arch}")
-        pkgs = expand_dnf_critpath(url, arch)
-        package_count = len(pkgs)
+            urls = [alturl, updatealturl]
+        # strip None update URLs when we're not using them
+        urls = [url for url in urls if url]
 
+        print(f"Expanding critical path for {arch}")
+        pkgs = expand_dnf_critpath(urls, arch)
+
+        package_count = len(pkgs)
         print(f"{package_count} packages for {arch}")
 
         if args.nvr:
