@@ -132,8 +132,7 @@ def parse_args():
                       help="URL to a complete (not arch split) compose, overrides -u and -r")
     parser.add_argument("--noaltarch", action='store_true', default=False,
                       help="Not to run for alternate architectures")
-    (args, extras) = parser.parse_known_args()
-    return(args)
+    return parser.parse_args()
 
 def write_file(critpath, outpath):
     with open(outpath, mode="w", encoding="utf-8") as outfh:
