@@ -7,7 +7,6 @@
 #          Seth Vidal <skvidal@fedoraproject.org>
 #          Robert Marshall <rmarshall@redhat.com>
 
-from __future__ import print_function
 import sys
 import argparse
 import shutil
@@ -42,12 +41,12 @@ updatepath = {
 
 for x in range(12,32,1):
     r = str(x)
-    releasepath[r] = 'releases/%s/Everything/$basearch/os/' % r
-    updatepath[r] = 'updates/%s/$basearch/' % r
+    releasepath[r] = f'releases/{r}/Everything/$basearch/os/'
+    updatepath[r] = f'updates/{r}/$basearch/'
 
 # Branched Fedora goes here
 branched = '32'
-releasepath['branched'] = 'development/%s/Everything/$basearch/os' % branched
+releasepath['branched'] = f'development/{branched}/Everything/$basearch/os'
 updatepath['branched'] = ''
 
 def get_source(pkg):
@@ -57,7 +56,7 @@ def nvr(p):
     return '-'.join([p.name, p.ver, p.rel])
 
 def expand_dnf_critpath(release):
-    print("Resolving %s dependencies with DNF" % arch)
+    print(f"Resolving {arch} dependencies with DNF")
     base = dnf.Base()
 
     temp_cache_dir = mkdtemp(suffix='-critpath')
@@ -80,9 +79,9 @@ def expand_dnf_critpath(release):
         repo_url = url + releasepath[release]
 
         # make sure we don't load the system repo and get local data
-        print("Basearch: %s" % conf.basearch)
-        print("Arch:     %s" % conf.arch)
-        print("%s repo %s" % (arch, repo_url))
+        print(f"Basearch: {conf.basearch}")
+        print(f"Arch:     {conf.arch}")
+        print(f"{arch} repo {repo_url}")
 
         # mark all critpath groups in base object
         for group in critpath_groups:
@@ -140,7 +139,7 @@ if __name__ == '__main__':
 
     # Input & Sanity Validation
     if (len(extras) != 1) or (extras[0] not in releases):
-        parser.error("must choose a release from the list: %s" % releases)
+        parser.error(f"must choose a release from the list: {releases}")
 
     # Parse values
     release = extras[0]
@@ -154,9 +153,9 @@ if __name__ == '__main__':
 
     if args.url != fedora_baseurl and "/mnt/koji/compose/" not in args.url:
         releasepath[release] = releasepath[release].replace('development/','')
-        print("Using Base URL %s" % (args.url + releasepath[release]))
+        print(f"Using Base URL {args.url + releasepath[release]}")
     else:
-        print("Using Base URL %s" % (args.url))
+        print(f"Using Base URL {args.url}")
 
     # Do the critpath expansion for each arch
     critpath = set()
@@ -173,7 +172,7 @@ if __name__ == '__main__':
                     url = args.url
         else:
             raise Exception('Invalid architecture')
-        print("Expanding critical path for %s" % arch)
+        print(f"Expanding critical path for {arch}")
         pkgs = None
 
         pkgs = expand_dnf_critpath(release)
@@ -182,7 +181,7 @@ if __name__ == '__main__':
         else:
             package_count = len(pkgs)
 
-        print("%u packages for %s" % (package_count, arch))
+        print(f"{package_count} packages for {arch}")
 
         if args.nvr:
             critpath.update([nvr(p).encode('utf8') for p in pkgs])
@@ -204,4 +203,4 @@ if __name__ == '__main__':
         package_count = 0
     else:
         package_count = len(critpath)
-    print("Wrote %u items to %s" % (package_count, args.output))
+    print(f"Wrote {package_count} items to {args.output}")
