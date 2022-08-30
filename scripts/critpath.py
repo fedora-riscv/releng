@@ -55,7 +55,7 @@ def get_source(pkg):
 def nvr(p):
     return '-'.join([p.name, p.ver, p.rel])
 
-def expand_dnf_critpath(release):
+def expand_dnf_critpath(release, url, arch):
     print(f"Resolving {arch} dependencies with DNF")
     base = dnf.Base()
 
@@ -175,7 +175,7 @@ if __name__ == '__main__':
         print(f"Expanding critical path for {arch}")
         pkgs = None
 
-        pkgs = expand_dnf_critpath(release)
+        pkgs = expand_dnf_critpath(release, url, arch)
         if pkgs is None:
             package_count = 0
         else:
