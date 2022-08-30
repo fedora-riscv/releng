@@ -18,36 +18,36 @@ class SackError(Exception):
 
 # Set some constants
 # Old definition
-#critpath_groups = ['@core','@critical-path-base','@critical-path-gnome']
-critpath_groups = [
+#CRITPATH_GROUPS = ['@core','@critical-path-base','@critical-path-gnome']
+CRITPATH_GROUPS = [
     '@core', '@critical-path-apps', '@critical-path-base',
     '@critical-path-gnome', '@critical-path-kde', '@critical-path-lxde',
     '@critical-path-xfce'
 ]
-primary_arches=('armhfp', 'aarch64', 'x86_64')
-alternate_arches=('ppc64le','s390x')
+PRIMARY_ARCHES=('armhfp', 'aarch64', 'x86_64')
+ALTERNATE_ARCHES=('ppc64le','s390x')
 # There is not current a programmatic way to generate this list
-fakearch = {'i386':'i686', 'x86_64':'x86_64', 'ppc64':'ppc64', 'ppc':'ppc64', 'armhfp':'armv7hl', 'aarch64':'aarch64', 'ppc64le':'ppc64le', 's390x':'s390x'}
-fedora_baseurl = 'http://dl.fedoraproject.org/pub/fedora/linux/'
-fedora_alternateurl = 'http://dl.fedoraproject.org/pub/fedora-secondary/'
-releasepath = {
+FAKEARCH = {'i386':'i686', 'x86_64':'x86_64', 'ppc64':'ppc64', 'ppc':'ppc64', 'armhfp':'armv7hl', 'aarch64':'aarch64', 'ppc64le':'ppc64le', 's390x':'s390x'}
+FEDORA_BASEURL = 'http://dl.fedoraproject.org/pub/fedora/linux/'
+FEDORA_ALTERNATEURL = 'http://dl.fedoraproject.org/pub/fedora-secondary/'
+RELEASEPATH = {
     'devel': 'development/rawhide/Everything/$basearch/os/',
     'rawhide': 'development/rawhide/Everything/$basearch/os/'
 }
-updatepath = {
+UPDATEPATH = {
     'devel': '',
     'rawhide': ''
 }
 
 for x in range(12,37,1):
     r = str(x)
-    releasepath[r] = f'releases/{r}/Everything/$basearch/os/'
-    updatepath[r] = f'updates/{r}/$basearch/'
+    RELEASEPATH[r] = f'releases/{r}/Everything/$basearch/os/'
+    UPDATEPATH[r] = f'updates/{r}/$basearch/'
 
 # Branched Fedora goes here
 branched = '37'
-releasepath['branched'] = f'development/{branched}/Everything/$basearch/os'
-updatepath['branched'] = ''
+RELEASEPATH['branched'] = f'development/{branched}/Everything/$basearch/os'
+UPDATEPATH['branched'] = ''
 
 def get_source(pkg):
     return pkg.rsplit('-',2)[0]
@@ -70,13 +70,13 @@ def expand_dnf_critpath(release, url, arch):
     conf.persistdir = temp_cache_dir
     conf.installroot = temp_install_root
     # dnf needs arches, not basearches to work
-    conf.arch = fakearch[arch]
+    conf.arch = FAKEARCH[arch]
 
     try:
         packages = set()
 
         # add a new repo requires an id, a conf object, and a baseurl
-        repo_url = url + releasepath[release]
+        repo_url = url + RELEASEPATH[release]
 
         # make sure we don't load the system repo and get local data
         print(f"Basearch: {conf.basearch}")
@@ -84,7 +84,7 @@ def expand_dnf_critpath(release, url, arch):
         print(f"{arch} repo {repo_url}")
 
         # mark all critpath groups in base object
-        for group in critpath_groups:
+        for group in CRITPATH_GROUPS:
             base.reset(repos=True, goal=True, sack=True)
             base.repos.add_new_repo(arch, conf, baseurl=[repo_url])
             base.fill_sack(load_system_repo=False)
@@ -117,19 +117,19 @@ def expand_dnf_critpath(release, url, arch):
 
 if __name__ == '__main__':
     # Option parsing
-    releases = sorted(releasepath.keys())
+    releases = sorted(RELEASEPATH.keys())
     parser = argparse.ArgumentParser(usage = "%%(prog)s [options] [%s]" % '|'.join(releases))
     parser.add_argument("--nvr", action='store_true', default=False,
                       help="output full NVR instead of just package name")
-    parser.add_argument("-a", "--arches", default=','.join(primary_arches),
+    parser.add_argument("-a", "--arches", default=','.join(PRIMARY_ARCHES),
                       help="Primary arches to evaluate (%(default)s)")
-    parser.add_argument("-s", "--altarches", default=','.join(alternate_arches),
+    parser.add_argument("-s", "--altarches", default=','.join(ALTERNATE_ARCHES),
                       help="Alternate arches to evaluate (%(default)s)")
     parser.add_argument("-o", "--output", default="critpath.txt",
                       help="name of file to write critpath list (%(default)s)")
-    parser.add_argument("-u", "--url", default=fedora_baseurl,
+    parser.add_argument("-u", "--url", default=FEDORA_BASEURL,
                       help="URL to Primary repos")
-    parser.add_argument("-r", "--alturl", default=fedora_alternateurl,
+    parser.add_argument("-r", "--alturl", default=FEDORA_ALTERNATEURL,
                       help="URL to Alternate repos")
     parser.add_argument("--srpm", action='store_true', default=False,
                       help="Output source RPMS instead of binary RPMS (for pkgdb)")
@@ -151,9 +151,9 @@ if __name__ == '__main__':
         print("ERROR: --nvr and --srpm are mutually exclusive")
         sys.exit(1)
 
-    if args.url != fedora_baseurl and "/mnt/koji/compose/" not in args.url:
-        releasepath[release] = releasepath[release].replace('development/','')
-        print(f"Using Base URL {args.url + releasepath[release]}")
+    if args.url != FEDORA_BASEURL and "/mnt/koji/compose/" not in args.url:
+        RELEASEPATH[release] = RELEASEPATH[release].replace('development/','')
+        print(f"Using Base URL {args.url + RELEASEPATH[release]}")
     else:
         print(f"Using Base URL {args.url}")
 
