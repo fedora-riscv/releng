@@ -115,12 +115,14 @@ def expand_dnf_critpath(release, url, arch):
         shutil.rmtree(temp_install_root)
 
 
-if __name__ == '__main__':
-    # Option parsing
+def parse_args():
     releases = sorted(RELEASEPATH.keys())
     parser = argparse.ArgumentParser(usage = "%%(prog)s [options] [%s]" % '|'.join(releases))
-    parser.add_argument("--nvr", action='store_true', default=False,
+    mexcgroup = parser.add_mutually_exclusive_group()
+    mexcgroup.add_argument("--nvr", action='store_true', default=False,
                       help="output full NVR instead of just package name")
+    mexcgroup.add_argument("--srpm", action='store_true', default=False,
+                      help="Output source RPMS instead of binary RPMS (for pkgdb)")
     parser.add_argument("-a", "--arches", default=','.join(PRIMARY_ARCHES),
                       help="Primary arches to evaluate (%(default)s)")
     parser.add_argument("-s", "--altarches", default=','.join(ALTERNATE_ARCHES),
@@ -131,11 +133,9 @@ if __name__ == '__main__':
                       help="URL to Primary repos")
     parser.add_argument("-r", "--alturl", default=FEDORA_ALTERNATEURL,
                       help="URL to Alternate repos")
-    parser.add_argument("--srpm", action='store_true', default=False,
-                      help="Output source RPMS instead of binary RPMS (for pkgdb)")
     parser.add_argument("--noaltarch", action='store_true', default=False,
                       help="Not to run for alternate architectures")
-    args, extras = parser.parse_known_args()
+    (args, extras) = parser.parse_known_args()
 
     # Input & Sanity Validation
     if (len(extras) != 1) or (extras[0] not in releases):
@@ -143,16 +143,16 @@ if __name__ == '__main__':
 
     # Parse values
     release = extras[0]
+    return(args, release)
+
+def main():
+    (args, release) = parse_args()
     check_arches = args.arches.split(',')
     if not (release.isdigit() and int(release) < 37):
         # armhfp is gone on F37+
         check_arches.remove("armhfp")
     alternate_check_arches = args.altarches.split(',')
     package_count = 0
-
-    if args.nvr and args.srpm:
-        print("ERROR: --nvr and --srpm are mutually exclusive")
-        sys.exit(1)
 
     if args.url != FEDORA_BASEURL and "/mnt/koji/compose/" not in args.url:
         RELEASEPATH[release] = RELEASEPATH[release].replace('development/','')
@@ -206,3 +206,10 @@ if __name__ == '__main__':
     else:
         package_count = len(critpath)
     print(f"Wrote {package_count} items to {args.output}")
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        sys.stderr.write("Interrupted, exiting...\n")
+        sys.exit(1)
