@@ -10,13 +10,18 @@
 # SPDX-License-Identifier: Unlicense
 
 import argparse
+import functools
 import os
+import shutil
+import subprocess
 import sys
 
 import requests
 
 # (name of SIG group, ACL, package name filter)
 POLICY = [
+    # Go SIG: https://pagure.io/fesco/fesco-docs/pull-request/68
+    ("go-sig", "commit", lambda x: x in go_packages()),
     # Rust SIG: https://pagure.io/fesco/fesco-docs/pull-request/66
     ("rust-sig", "commit", lambda x: x.startswith("rust-")),
 ]
@@ -24,6 +29,48 @@ POLICY = [
 PAGURE_DIST_GIT_DATA_URL = "https://src.fedoraproject.org/extras/pagure_bz.json"
 
 VALID_ACLS = ["ticket", "commit", "admin"]
+
+
+@functools.cache
+def go_packages() -> set[str]:
+    INSTALLROOT = "/tmp/dnf-sig-policy"
+
+    cmd = [
+        "dnf", "--quiet",
+        "--installroot", INSTALLROOT,
+        "--repo", "rawhide",
+        "--repo", "rawhide-source",
+        "--releasever", "rawhide",
+        "repoquery",
+        # query source package and binary package names,
+        # so BuildRequires and Requires can be differentiated
+        "--qf", "%{source_name} %{name}",
+        "--whatrequires", "golang",
+        "--whatrequires", "golang-bin",
+        "--whatrequires", "go-rpm-macros",
+    ]
+
+    ret = subprocess.run(cmd, stdout=subprocess.PIPE)
+    ret.check_returncode()
+
+    # remove temporary dnf cache
+    shutil.rmtree(INSTALLROOT)
+
+    # use a set for fast membership checks
+    packages = set()
+    for line in ret.stdout.decode().splitlines():
+        source_name, name = line.split(" ")
+
+        if source_name == "(none)":
+            # package is a source package:
+            # "%{name}" *is* the source name
+            packages.add(name)
+        else:
+            # package is a binary package:
+            # skip, only BuildRequires are covered by the policy
+            continue
+
+    return packages
 
 
 def get_package_data() -> dict[str, list[str]]:
