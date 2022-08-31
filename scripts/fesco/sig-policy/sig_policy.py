@@ -22,6 +22,8 @@ import requests
 POLICY = [
     # Go SIG: https://pagure.io/fesco/fesco-docs/pull-request/68
     ("go-sig", "commit", lambda x: x in go_packages()),
+    # R SIG: https://pagure.io/fesco/fesco-docs/pull-request/69
+    ("r-maint-sig", "commit", lambda x: x.startswith("R-") or x in r_packages()),
     # Rust SIG: https://pagure.io/fesco/fesco-docs/pull-request/66
     ("rust-sig", "commit", lambda x: x.startswith("rust-")),
 ]
@@ -69,6 +71,49 @@ def go_packages() -> set[str]:
             # package is a binary package:
             # skip, only BuildRequires are covered by the policy
             continue
+
+    return packages
+
+
+@functools.cache
+def r_packages() -> set[str]:
+    INSTALLROOT = "/tmp/dnf-sig-policy"
+
+    cmd = [
+        "dnf", "--quiet",
+        "--installroot", INSTALLROOT,
+        "--repo", "rawhide",
+        "--repo", "rawhide-source",
+        "--releasever", "rawhide",
+        "repoquery",
+        # query source package and binary package names,
+        # so BuildRequires and Requires can be differentiated
+        "--qf", "%{source_name} %{name}",
+        "--whatrequires", "libR.so",
+    ]
+
+    ret = subprocess.run(cmd, stdout=subprocess.PIPE)
+    ret.check_returncode()
+
+    # remove temporary dnf cache
+    shutil.rmtree(INSTALLROOT)
+
+    # use a set for fast membership checks
+    packages = set()
+    for line in ret.stdout.decode().splitlines():
+        source_name, name = line.split(" ")
+
+        if source_name == "(none)":
+            # package is a source package:
+            # skip, only Requires are covered by the policy
+            continue
+        else:
+            # package is a binary package:
+            # collect "%{source_name}"
+            packages.add(source_name)
+
+    # add "R" which does not link with "libR.so" itself
+    packages.add("R")
 
     return packages
 
