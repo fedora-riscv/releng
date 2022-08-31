@@ -44,7 +44,10 @@ RELEASEPATH = {
 }
 UPDATEPATH = {"devel": "", "rawhide": ""}
 
-for r in range(12, 37, 1):
+# the numbers here are "oldest active stable release" and "Branched
+# number (or Rawhide number if no Branched)"; Python ranges exclude
+# the top limiter so this is "all current stable releases"
+for r in range(35, 37, 1):
     RELEASEPATH[str(r)] = f"releases/{str(r)}/Everything/$basearch/os"
     UPDATEPATH[str(r)] = f"updates/{str(r)}/Everything/$basearch"
 
@@ -141,7 +144,7 @@ def parse_args():
         "--srpm",
         action="store_true",
         default=False,
-        help="Output source RPMS instead of binary RPMS (for pkgdb)",
+        help="Output source RPMS instead of binary RPMS (for uploading to PDC)",
     )
     parser.add_argument(
         "-a",
