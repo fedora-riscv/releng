@@ -89,7 +89,7 @@ def r_packages() -> set[str]:
         # query source package and binary package names,
         # so BuildRequires and Requires can be differentiated
         "--qf", "%{source_name} %{name}",
-        "--whatrequires", "libR.so",
+        "--whatrequires", "libR.so*",
     ]
 
     ret = subprocess.run(cmd, stdout=subprocess.PIPE)
