@@ -8,14 +8,16 @@ at the end of MONTH.
 Download the prerelease from our Get Fedora site:
 * Get Fedora N Beta Workstation: https://getfedora.org/workstation/download/
 * Get Fedora N Beta Server: https://getfedora.org/server/download/
-* Get Fedora N IoT: https://getfedora.org/iot/download/
+* Get Fedora N Beta IoT: https://getfedora.org/iot/download/
+* Get Fedora N Beta CoreOS: <LINK NEEDED>
+* Get Fedora N Beta Cloud: <LINK NEEDED>
 
 Or, check out one of our popular variants, including KDE Plasma, Xfce,
-and other desktop environments, as well as images for ARM devices:
+and other desktop environments:
 
 * Get Fedora N Beta Spins: https://spins.fedoraproject.org/prerelease
 * Get Fedora N Beta Labs: https://labs.fedoraproject.org/prerelease
-* Get Fedora N Beta ARM: https://arm.fedoraproject.org/prerelease
+
 
 ## Beta Release Highlights
 
