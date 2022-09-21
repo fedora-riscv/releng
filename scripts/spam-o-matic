@@ -59,6 +59,7 @@ def generateDnfBaseObject(distdir, treename, arch):
     dbo.conf.keepcache = False
     dbo.conf.metadata_expire = 0
     dbo.conf.cachedir = tempfile.mkdtemp()
+    dbo.conf.arch = arch
 
     dnfrepo = dnf.repo.Repo("{}-{}".format(treename, arch), dbo.conf)
     dnfrepo.name = "Fedora {} Tree - {}".format(treename, arch)
