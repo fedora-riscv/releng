@@ -13,6 +13,8 @@
 
 import sys
 import argparse
+from collections import defaultdict
+import json
 import shutil
 from tempfile import mkdtemp
 import dnf
@@ -84,7 +86,7 @@ def expand_dnf_critpath(urls, arch):
         conf.arch = "armv7hl"
     else:
         conf.arch = arch
-    packages = set()
+    packages = dict()
 
     try:
         # add a new repo requires an id, a conf object, and a baseurl
@@ -113,7 +115,7 @@ def expand_dnf_critpath(urls, arch):
             base.group_install(group, ["mandatory", "default", "optional"], strict=False)
             # resolve the groups marked in base object
             base.resolve()
-            packages = packages.union(base.transaction.install_set)
+            packages[group] = base.transaction.install_set
 
         return packages
 
@@ -162,7 +164,13 @@ def parse_args():
         "-o",
         "--output",
         default="critpath.txt",
-        help="name of file to write critpath list (%(default)s)",
+        help="name of file to write flat plaintext critpath list (%(default)s)",
+    )
+    parser.add_argument(
+        "-j",
+        "--jsonout",
+        default="critpath.json",
+        help="name of file to write grouped JSON critpath list (%(default)s)",
     )
     parser.add_argument(
         "-u",
@@ -191,11 +199,18 @@ def parse_args():
     return parser.parse_args()
 
 
-def write_file(critpath, outpath):
+def write_files(critpath, outpath, jsonout):
+    wrapped = {"rpm": critpath}
+    with open(jsonout, mode="w", encoding="utf-8") as jsonoutfh:
+        json.dump(wrapped, jsonoutfh, sort_keys=True, indent=4)
+    print(f"Wrote grouped critpath data to {jsonout}")
+    pkgs = set()
+    for grppkgs in critpath.values():
+        pkgs = pkgs.union(set(grppkgs))
     with open(outpath, mode="w", encoding="utf-8") as outfh:
-        for packagename in sorted(critpath):
+        for packagename in sorted(pkgs):
             outfh.write(packagename + "\n")
-    package_count = len(critpath)
+    package_count = len(pkgs)
     print(f"Wrote {package_count} items to {outpath}")
 
 
@@ -229,7 +244,7 @@ def main():
         print(f"Using alternate arch update URL {updatealturl}")
 
     # Do the critpath expansion for each arch
-    critpath = set()
+    critpath = defaultdict(set)
     for arch in check_arches + alternate_check_arches:
         urls = [baseurl, updateurl]
         if arch in alternate_check_arches:
@@ -240,22 +255,26 @@ def main():
         urls = [url for url in urls if url]
 
         print(f"Expanding critical path for {arch}")
-        pkgs = expand_dnf_critpath(urls, arch)
+        pkgdict = expand_dnf_critpath(urls, arch)
 
-        package_count = len(pkgs)
-        print(f"{package_count} packages for {arch}")
+        for (group, pkgs) in pkgdict.items():
+            package_count = len(pkgs)
+            print(f"{package_count} packages in {group} for {arch}")
 
-        if args.nvr:
-            critpath.update([nvr(pkg) for pkg in pkgs])
-        elif args.srpm:
-            critpath.update([get_source(pkg.sourcerpm) for pkg in pkgs])
-        else:
-            critpath.update([pkg.name for pkg in pkgs])
+            if args.nvr:
+                critpath[group].update([nvr(pkg) for pkg in pkgs])
+            elif args.srpm:
+                critpath[group].update([get_source(pkg.sourcerpm) for pkg in pkgs])
+            else:
+                critpath[group].update([pkg.name for pkg in pkgs])
 
-        del pkgs
+        del pkgdict
         print()
+    # Turn sets back into lists (so we can JSON-dump them)
+    for group in critpath:
+        critpath[group] = sorted(critpath[group])
 
-    write_file(critpath, args.output)
+    write_files(critpath, args.output, args.jsonout)
 
 
 if __name__ == "__main__":
