@@ -137,6 +137,8 @@ if [[ -n ${minimal_build_name} ]]; then
             registries=("registry.fedoraproject.org" "candidate-registry.fedoraproject.org" "quay.io/fedora")
             skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://registry.fedoraproject.org/fedora-minimal:${1}-${arch}
             skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://candidate-registry.fedoraproject.org/fedora-minimal:${1}-${arch}
+            skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://quay.io/fedora/fedora-minimal:${1}-${arch}
+
         else
             registries=("registry.stg.fedoraproject.org" "candidate-registry.stg.fedoraproject.org")
             skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://registry.stg.fedoraproject.org/fedora-minimal:${1}-${arch}
