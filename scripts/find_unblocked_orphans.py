@@ -482,8 +482,8 @@ class DepChecker:
                                 srpm_name,
                                 OrderedDict()
                             ).setdefault(pkg, set()).add(dep)
-                        for new_srpm_name in new_srpm_names:
-                            self.dep_chain[new_srpm_name].add(check_next)
+                    for new_srpm_name in new_srpm_names:
+                        self.dep_chain[new_srpm_name].add(check_next)
 
                     for srpm_name in new_srpm_names:
                         self.pagureinfo_queue.put(srpm_name)
