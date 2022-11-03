@@ -78,6 +78,15 @@ else
     registries=("registry.stg.fedoraproject.org" "candidate-registry.stg.fedoraproject.org")
 fi
 
+# Copy a local image to all necessary remote registries
+copy_image() {
+    local src=$1; shift
+    local name=$1; shift
+    for registry in ${registries[@]}; do
+        skopeo copy $src docker://${registry}/${name}
+    done
+}
+
 #
 # Version should not be higher than rawhide
 # Either there is a mistake or script is out of date
@@ -93,18 +102,9 @@ if [[ -n ${build_name} ]]; then
     pushd ${work_dir} &> /dev/null
     koji download-build --type=image  ${build_name}
     # Import the image
-    for arch in "${ARCHES[@]}"
-    do
+    for arch in "${ARCHES[@]}"; do
         xz -d ${build_name}.${arch}.tar.xz
-        # If ${stage} is a non-zero length string, then perform staging
-        if [[ -z "$stage" ]]; then
-            skopeo copy docker-archive:${build_name}.${arch}.tar docker://registry.fedoraproject.org/fedora:${1}-${arch}
-            skopeo copy docker-archive:${build_name}.${arch}.tar docker://candidate-registry.fedoraproject.org/fedora:${1}-${arch}
-            skopeo copy docker-archive:${build_name}.${arch}.tar docker://quay.io/fedora/fedora:${1}-${arch}
-        else
-            skopeo copy docker-archive:${build_name}.${arch}.tar docker://registry.stg.fedoraproject.org/fedora:${1}-${arch}
-            skopeo copy docker-archive:${build_name}.${arch}.tar docker://candidate-registry.stg.fedoraproject.org/fedora:${1}-${arch}
-        fi
+        copy_image docker-archive:${build_name}.${arch}.tar fedora:${1}-${arch}
     done
 
     popd &> /dev/null
@@ -133,21 +133,10 @@ if [[ -n ${minimal_build_name} ]]; then
     pushd ${work_dir} &> /dev/null
     koji download-build --type=image  ${minimal_build_name}
     # Import the image
-    for arch in "${ARCHES[@]}"
-    do
+    for arch in "${ARCHES[@]}"; do
         xz -d ${minimal_build_name}.${arch}.tar.xz
-        # If ${stage} is a non-zero length string, then perform staging
-        if [[ -z "$stage" ]]; then
-            skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://registry.fedoraproject.org/fedora-minimal:${1}-${arch}
-            skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://candidate-registry.fedoraproject.org/fedora-minimal:${1}-${arch}
-            skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://quay.io/fedora/fedora-minimal:${1}-${arch}
-
-        else
-            skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://registry.stg.fedoraproject.org/fedora-minimal:${1}-${arch}
-            skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://candidate-registry.stg.fedoraproject.org/fedora-minimal:${1}-${arch}
-            skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://quay.io/fedora/fedora-minimal:${1}-${arch}
-        fi
-     done
+        copy_image docker-archive:${minimal_build_name}.${arch}.tar fedora-minimal:${1}-${arch}
+    done
      popd &> /dev/null
 
      for registry in "${registries[@]}"
