@@ -64,6 +64,7 @@ fi
 #   Need fXX-updates-canddiate to get actual latest nightly
 #
 build_name=$(koji -q latest-build --type=image f${1}-updates-candidate Fedora-Container-Base | awk '{print $1}')
+minimal_build_name=$(koji -q latest-build --type=image f${1}-updates-candidate Fedora-Container-Minimal-Base | awk '{print $1}')
 
 if [[ ${1} -eq "$current_stable" ]]; then
     tagname="latest"
@@ -86,7 +87,6 @@ if [[ ${1} -gt "$current_rawhide" ]]; then
     exit 1
 fi
 
-minimal_build_name=$(koji -q latest-build --type=image f${1}-updates-candidate Fedora-Container-Minimal-Base | awk '{print $1}')
 if [[ -n ${build_name} ]]; then
     # Download the image
     work_dir=$(mktemp -d)
