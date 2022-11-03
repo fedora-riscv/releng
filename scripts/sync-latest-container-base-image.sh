@@ -87,6 +87,27 @@ copy_image() {
     done
 }
 
+# From already uploaded architecture-specific images, generate a manifest listed image
+# on all registries
+generate_manifest_list() {
+    local name=$1; shift
+    for registry in "${registries[@]}"
+    do
+        printf "Push manifest to ${registry}\n"
+        if [ -n "$tagname" ]
+        then
+            printf "tag is set: ${tagname}\n"
+            buildah rmi "${registry}/${name}:${tagname}" || true
+            buildah manifest create "${registry}/${name}:${tagname}" "${ARCHES[@]/#/docker://${registry}/${name}:${1}-}"
+            buildah manifest push "${registry}/${name}:${tagname}" "docker://${registry}/${name}:${tagname}" --all
+
+        fi
+        buildah rmi "${registry}/${name}:${1}" || true
+        buildah manifest create "${registry}/${name}:${1}" "${ARCHES[@]/#/docker://${registry}/fedora:${1}-}"
+        buildah manifest push "${registry}/${name}:${1}" "docker://${registry}/${name}:${1}" --all
+    done
+}
+
 #
 # Version should not be higher than rawhide
 # Either there is a mistake or script is out of date
@@ -109,21 +130,7 @@ if [[ -n ${build_name} ]]; then
 
     popd &> /dev/null
 
-    for registry in "${registries[@]}"
-    do
-        printf "Push manifest to ${registry}\n"
-        if [ -n "$tagname" ]
-        then
-            printf "tag is set: ${tagname}\n"
-            buildah rmi "${registry}/fedora:${tagname}" || true
-            buildah manifest create "${registry}/fedora:${tagname}" "${ARCHES[@]/#/docker://${registry}/fedora:${1}-}"
-            buildah manifest push "${registry}/fedora:${tagname}" "docker://${registry}/fedora:${tagname}" --all
-
-        fi
-        buildah rmi "${registry}/fedora:${1}" || true
-        buildah manifest create "${registry}/fedora:${1}" "${ARCHES[@]/#/docker://${registry}/fedora:${1}-}"
-        buildah manifest push "${registry}/fedora:${1}" "docker://${registry}/fedora:${1}" --all
-    done
+    generate_manifest_list fedora
     printf "Removing temporary directory\n"
     rm -rf $work_dir
 fi
@@ -137,24 +144,10 @@ if [[ -n ${minimal_build_name} ]]; then
         xz -d ${minimal_build_name}.${arch}.tar.xz
         copy_image docker-archive:${minimal_build_name}.${arch}.tar fedora-minimal:${1}-${arch}
     done
-     popd &> /dev/null
+    popd &> /dev/null
 
-     for registry in "${registries[@]}"
-     do
-         printf "Push manifest to ${registry}\n"
-         if [ -n "$tagname" ]
-         then
-             printf "tag is set: ${tagname}\n"
-             buildah rmi "${registry}/fedora-minimal:${tagname}" || true
-             buildah manifest create "${registry}/fedora-minimal:${tagname}" "${ARCHES[@]/#/docker://${registry}/fedora-minimal:${1}-}"
-             buildah manifest push "${registry}/fedora-minimal:${tagname}" "docker://${registry}/fedora-minimal:${tagname}" --all
-         fi
-         buildah rmi "${registry}/fedora-minimal:${1}" || true
-         buildah manifest create "${registry}/fedora-minimal:${1}" "${ARCHES[@]/#/docker://${registry}/fedora-minimal:${1}-}"
-         buildah manifest push "${registry}/fedora-minimal:${1}" "docker://${registry}/fedora-minimal:${1}" --all
-     done
+    generate_manifest_list fedora-minimal
 
-     printf "Removing temporary directory\n"
-     rm -rf $work_dir
-
+    printf "Removing temporary directory\n"
+    rm -rf $work_dir
 fi
