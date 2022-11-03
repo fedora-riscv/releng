@@ -71,6 +71,12 @@ fi
 if [[ ${1} -eq "$current_rawhide" ]]; then
     tagname="rawhide"
 fi
+if [[ -z "$stage" ]]; then
+    registries=("registry.fedoraproject.org" "candidate-registry.fedoraproject.org" "quay.io/fedora")
+else
+    registries=("registry.stg.fedoraproject.org" "candidate-registry.stg.fedoraproject.org")
+fi
+
 #
 # Version should not be higher than rawhide
 # Either there is a mistake or script is out of date
@@ -92,12 +98,10 @@ if [[ -n ${build_name} ]]; then
         xz -d ${build_name}.${arch}.tar.xz
         # If ${stage} is a non-zero length string, then perform staging
         if [[ -z "$stage" ]]; then
-            registries=("registry.fedoraproject.org" "candidate-registry.fedoraproject.org" "quay.io/fedora")
             skopeo copy docker-archive:${build_name}.${arch}.tar docker://registry.fedoraproject.org/fedora:${1}-${arch}
             skopeo copy docker-archive:${build_name}.${arch}.tar docker://candidate-registry.fedoraproject.org/fedora:${1}-${arch}
             skopeo copy docker-archive:${build_name}.${arch}.tar docker://quay.io/fedora/fedora:${1}-${arch}
         else
-            registries=("registry.stg.fedoraproject.org" "candidate-registry.stg.fedoraproject.org")
             skopeo copy docker-archive:${build_name}.${arch}.tar docker://registry.stg.fedoraproject.org/fedora:${1}-${arch}
             skopeo copy docker-archive:${build_name}.${arch}.tar docker://candidate-registry.stg.fedoraproject.org/fedora:${1}-${arch}
         fi
@@ -134,13 +138,11 @@ if [[ -n ${minimal_build_name} ]]; then
         xz -d ${minimal_build_name}.${arch}.tar.xz
         # If ${stage} is a non-zero length string, then perform staging
         if [[ -z "$stage" ]]; then
-            registries=("registry.fedoraproject.org" "candidate-registry.fedoraproject.org" "quay.io/fedora")
             skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://registry.fedoraproject.org/fedora-minimal:${1}-${arch}
             skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://candidate-registry.fedoraproject.org/fedora-minimal:${1}-${arch}
             skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://quay.io/fedora/fedora-minimal:${1}-${arch}
 
         else
-            registries=("registry.stg.fedoraproject.org" "candidate-registry.stg.fedoraproject.org")
             skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://registry.stg.fedoraproject.org/fedora-minimal:${1}-${arch}
             skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://candidate-registry.stg.fedoraproject.org/fedora-minimal:${1}-${arch}
             skopeo copy docker-archive:${minimal_build_name}.${arch}.tar docker://quay.io/fedora/fedora-minimal:${1}-${arch}
