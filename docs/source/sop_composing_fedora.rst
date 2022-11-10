@@ -296,6 +296,8 @@ Update silverblue refs
 
 Please update the refs as per the following commands on `bodhi-backend01.phx2.fedoraproject.org`
 
+Run the following commands from `/mnt/koji/compose/ostree/repo` and `/mnt/koji/ostree/repo/`
+
 ::
 
    $ sudo -u ftpsync ostree refs --create=fedora/31/x86_64/updates/silverblue  fedora/31/x86_64/silverblue
@@ -309,6 +311,12 @@ Please update the refs as per the following commands on `bodhi-backend01.phx2.fe
    $ sudo -u ftpsync ostree refs --alias --create=fedora/31/x86_64/silverblue  fedora/31/x86_64/updates/silverblue
    $ sudo -u ftpsync ostree refs --alias --create=fedora/31/aarch64/silverblue fedora/31/aarch64/updates/silverblue
    $ sudo -u ftpsync ostree refs --alias --create=fedora/31/ppc64le/silverblue fedora/31/ppc64le/updates/silverblue
+
+Run the following command only from `/mnt/koji/ostree/repo/`
+
+::
+
+   $ sudo ostree summary -u
 
 .. note::
    Before pushing the updates to fxx-updates, run the last branched compose so that both branched and rc composes have the same content.
