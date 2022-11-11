@@ -573,7 +573,7 @@ We need to sync the signed checksums to /pub/alt/stage/ by running the following
 
 ::
 
-   $ for dir in Everything Cloud CloudImages Docker Labs Server Spins Workstation WorkstationOstree metadata; do sudo -u ftpsync rsync -avhH /mnt/koji/compose/26/Fedora-26-20170328.0/compose/$dir/ /pub/alt/stage/26_Alpha-1.4/$dir/ --link-dest=/pub/fedora/linux/development/26/Everything/ --link-dest=/pub/alt/stage/26_Alpha-1.1/Everything/ --link-dest=/pub/alt/stage/26_Alpha-1.2/Everything/ --link-dest=/pub/alt/stage/26_Alpha-1.3/Everything --link-dest=/pub/alt/stage/26_Alpha-1.4/Everything; done
+   $ for dir in Everything Cloud Container Labs Server Spins Workstation Silverblue Kinoite metadata; do sudo -u ftpsync rsync -avhH /mnt/koji/compose/37/Fedora-37-20221105.0/compose/$dir/ /pub/alt/stage/37_RC-1.7/$dir/ --link-dest=/pub/fedora/linux/releases/37/Everything/ --link-dest=/pub/alt/stage/37_RC-1.2/Everything/ --link-dest=/pub/alt/stage/37_RC-1.3/Everything --link-dest=/pub/alt/stage/37_RC-1.4/Everything --link-dest=/pub/alt/stage/37_RC-1.5/Everything --link-dest=/pub/alt/stage/37_RC-1.6/Everything --link-dest=/pub/alt/stage/37_RC-1.7/Everything; done
 
 Move development to release folder with mirrormanager
 =====================================================
