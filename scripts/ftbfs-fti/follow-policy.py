@@ -33,7 +33,7 @@ def _bzdate_to_python(date):
     )
 
 
-def handle_orphaning(bug, tracker):
+def handle_orphaning(bug, tracker, comment_header):
     bz = bug.bugzilla
 
     history = bug.get_history_raw()["bugs"][0]["history"]
@@ -69,7 +69,7 @@ def handle_orphaning(bug, tracker):
     if not needinfos:
         print("Asking for the first needinfo")
         bzupdate = bz.build_update(
-            comment="""Hello,
+            comment=comment_header+"""
 
 This is the first reminder (step 3 from https://docs.fedoraproject.org/en-US/fesco/Fails_to_build_from_source_Fails_to_install/#_package_removal_for_long_standing_ftbfs_and_fti_bugs).
 
@@ -107,7 +107,7 @@ If you know about this problem and are planning on fixing it, please acknowledge
             if NOW - needinfo_after_week >= datetime.timedelta(weeks=3):
                 print("Asking for another needinfo")
                 bzupdate = bz.build_update(
-                    comment="""Hello,
+                    comment=comment_header+"""
 
 This is the second reminder (step 4 from https://docs.fedoraproject.org/en-US/fesco/Fails_to_build_from_source_Fails_to_install/#_package_removal_for_long_standing_ftbfs_and_fti_bugs).
 
@@ -424,9 +424,10 @@ You can pick it up at https://src.fedoraproject.org/rpms/{src} by clicking butto
         for src, b in current_ftis.items()
         if b.status == "NEW" and src not in orphaned
     }
+    comment_header = env.get_template("header.j2").render()
     for src, b in current_ftis.items():
         print(f"Checking {b.id} ({src})…")
-        handle_orphaning(b, ftibug)
+        handle_orphaning(b, ftibug, comment_header)
 
 
 if __name__ == "__main__":
