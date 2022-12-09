@@ -91,6 +91,7 @@ copy_image() {
 # on all registries
 generate_manifest_list() {
     local name=$1; shift
+    local version=$1; shift
     for registry in "${registries[@]}"
     do
         printf "Push manifest to ${registry}\n"
@@ -98,13 +99,13 @@ generate_manifest_list() {
         then
             printf "tag is set: ${tagname}\n"
             buildah rmi "${registry}/${name}:${tagname}" || true
-            buildah manifest create "${registry}/${name}:${tagname}" "${ARCHES[@]/#/docker://${registry}/${name}:${1}-}"
+            buildah manifest create "${registry}/${name}:${tagname}" "${ARCHES[@]/#/docker://${registry}/${name}:${version}-}"
             buildah manifest push "${registry}/${name}:${tagname}" "docker://${registry}/${name}:${tagname}" --all
 
         fi
-        buildah rmi "${registry}/${name}:${1}" || true
-        buildah manifest create "${registry}/${name}:${1}" "${ARCHES[@]/#/docker://${registry}/fedora:${1}-}"
-        buildah manifest push "${registry}/${name}:${1}" "docker://${registry}/${name}:${1}" --all
+        buildah rmi "${registry}/${name}:${version}" || true
+        buildah manifest create "${registry}/${name}:${version}" "${ARCHES[@]/#/docker://${registry}/fedora:${version}-}"
+        buildah manifest push "${registry}/${name}:${version}" "docker://${registry}/${name}:${version}" --all
     done
 }
 
@@ -130,7 +131,7 @@ if [[ -n ${build_name} ]]; then
 
     popd &> /dev/null
 
-    generate_manifest_list fedora
+    generate_manifest_list fedora ${1}
     printf "Removing temporary directory\n"
     rm -rf $work_dir
 fi
@@ -146,7 +147,7 @@ if [[ -n ${minimal_build_name} ]]; then
     done
     popd &> /dev/null
 
-    generate_manifest_list fedora-minimal
+    generate_manifest_list fedora-minimal ${1}
 
     printf "Removing temporary directory\n"
     rm -rf $work_dir
