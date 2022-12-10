@@ -14,6 +14,12 @@ import solv
 
 TEMPLATE_DIR = os.path.dirname(os.path.realpath(__file__))
 
+# If this file exists, it will be used for authentication.
+# If it does not exist, the default config file will be used.
+# This allows to easily run this script as a dedicated Bugzilla user.
+# See `man bugzilla` for what is supposed to be in that file.
+BUGZILLA_CONFIG = os.path.expanduser('~/.config/python-bugzilla/bugzillarc-fti')
+
 NOW = datetime.datetime.now(datetime.timezone.utc)
 TRACKERS = {
     "F32FailsToInstall": 1750909,
@@ -239,7 +245,9 @@ def follow_policy(release):
 
     ftbfs, fti = find_broken_packages(pool)
 
-    bz = bugzilla.Bugzilla("https://bugzilla.redhat.com")
+    bz_kwargs = {"configpaths": [BUGZILLA_CONFIG]} if os.path.exists(BUGZILLA_CONFIG) else {}
+    bz = bugzilla.Bugzilla("https://bugzilla.redhat.com", **bz_kwargs)
+
     # ftbfsbug = bz.getbug(f"F{release}FTBFS")
 
     ftibug = bz.getbug(f"F{release}FailsToInstall")
