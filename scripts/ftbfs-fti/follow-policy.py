@@ -76,7 +76,7 @@ def handle_orphaning(bug, tracker, reminder_template):
     if not needinfos:
         print("Asking for the first needinfo")
         bzupdate = bz.build_update(
-            comment=reminder_template.render(nth="first", step=3),
+            comment=reminder_template.render(nth="first", step=3, orphan_weeks=7),
             flags=[flag],
         )
     else:
@@ -110,7 +110,7 @@ def handle_orphaning(bug, tracker, reminder_template):
             if NOW - needinfo_after_week >= datetime.timedelta(weeks=3):
                 print("Asking for another needinfo")
                 bzupdate = bz.build_update(
-                    comment=reminder_template.render(nth="second", step=4),
+                    comment=reminder_template.render(nth="second", step=4, orphan_weeks=4),
                     flags=[flag],
                 )
             else:

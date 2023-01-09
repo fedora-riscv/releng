@@ -1,5 +1,22 @@
 {% include "header.j2" %}
 
-This is the {{ nth }} reminder (step {{ step }} from https://docs.fedoraproject.org/en-US/fesco/Fails_to_build_from_source_Fails_to_install/#_package_removal_for_long_standing_ftbfs_and_fti_bugs).
+This package fails to install and maintainers are advised to take one of the following actions:
 
-If you know about this problem and are planning on fixing it, please acknowledge so by setting the bug status to ASSIGNED. If you don't have time to maintain this package, consider orphaning it, so maintainers of dependent packages realize the problem.
+ - Fix this bug and close this bugzilla once the update makes it to the repository.
+   (The same script that posted this comment will eventually close this bugzilla
+   when the fixed package reaches the repository, so you don't have to worry about it.)
+
+or
+
+ - Move this bug to ASSIGNED if you plan on fixing this, but simply haven't done so yet.
+
+or
+
+ - Orphan the package if you no longer plan to maintain it.
+
+
+If you do not take one of these actions, the process at https://docs.fedoraproject.org/en-US/fesco/Fails_to_build_from_source_Fails_to_install/#_package_removal_for_long_standing_ftbfs_and_fti_bugs will continue.
+This package may be orphaned in {{ orphan_weeks }}+ weeks.
+This is the {{ nth }} reminder (step {{ step }}) from the policy.
+
+Don't hesitate to ask for help on devel@lists.fedoraproject.org if you are unsure how to fix this bug.
