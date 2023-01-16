@@ -19,11 +19,11 @@ import sys
 
 # Set some variables
 # Some of these could arguably be passed in as args.
-buildtag = 'f37-rebuild' # tag(s) to check
-target = 'f37'
-updates = 'f37-candidate'
+buildtag = 'f38-rebuild' # tag(s) to check
+target = 'f38'
+updates = 'f38-candidate'
 rawhide = 'rawhide' # Change to dist-f13 after we branch
-epoch = '2022-07-20 15:30:00.000000' # rebuild anything not built after this date
+epoch = '2023-01-18 10:30:00.000000' # rebuild anything not built after this date
 tobuild = {} # dict of owners to lists of packages needing to be built
 unbuilt = [] # raw list of unbuilt packages
 newbuilds = {}

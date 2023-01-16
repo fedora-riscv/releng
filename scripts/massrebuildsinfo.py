@@ -26,10 +26,10 @@ MASSREBUILDS = {
     #f39 ftbfs bug tracker: TBA
     "f38":{
             "buildtag": 'f38-rebuild',  # tag to build from
-            "epoch": '2022-07-20 17:30:00.000000',  # rebuild anything not built after this date
-            "module_mass_rebuild_epoch": '2022-07-20T22:30:00Z',
+            "epoch": '2023-01-18 10:30:00.000000',  # rebuild anything not built after this date
+            "module_mass_rebuild_epoch": '2023-02-07T10:30:00Z',
             # rebuild anything not built after this date for modules
-            "module_mass_branching_epoch": '2022-02-08T22:30:00Z',
+            "module_mass_branching_epoch": '2023-02-07T10:30:00Z',
             # rebuild anything not built after this date for modules
             "module_mass_rebuild_platform": "f38",
             # rebuild all modules that has build time dependency on this platform, this is used during mass rebuild time
