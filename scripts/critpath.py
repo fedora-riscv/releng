@@ -17,6 +17,7 @@ from collections import defaultdict
 import json
 import shutil
 from tempfile import mkdtemp
+from urllib.request import urlopen
 import dnf
 
 
@@ -38,25 +39,55 @@ CRITPATH_GROUPS = [
 ]
 PRIMARY_ARCHES = ("armhfp", "aarch64", "x86_64")
 ALTERNATE_ARCHES = ("ppc64le", "s390x")
+BODHI_RELEASEURL = "https://bodhi.fedoraproject.org/releases/?rows_per_page=500"
 FEDORA_BASEURL = "http://dl.fedoraproject.org/pub/fedora/linux/"
 FEDORA_ALTERNATEURL = "http://dl.fedoraproject.org/pub/fedora-secondary/"
-RELEASEPATH = {
-    "devel": "development/rawhide/Everything/$basearch/os",
-    "rawhide": "development/rawhide/Everything/$basearch/os",
-}
-UPDATEPATH = {"devel": "", "rawhide": ""}
+# used as a cache by get_bodhi_releases
+BODHIRELEASES = {}
 
-# the numbers here are "oldest active stable release" and "Branched
-# number (or Rawhide number if no Branched)"; Python ranges exclude
-# the top limiter so this is "all current stable releases"
-for r in range(35, 37, 1):
-    RELEASEPATH[str(r)] = f"releases/{str(r)}/Everything/$basearch/os"
-    UPDATEPATH[str(r)] = f"updates/{str(r)}/Everything/$basearch"
 
-# Branched Fedora goes here, update the number when Branched number
-# changes
-RELEASEPATH["branched"] = "development/37/Everything/$basearch/os"
-UPDATEPATH["branched"] = ""
+def get_bodhi_releases():
+    global BODHIRELEASES
+    if not BODHIRELEASES:
+        bodhijson = json.loads(urlopen(BODHI_RELEASEURL).read().decode("utf8"))["releases"]
+        devrels = {
+            int(rel['version']) for rel in bodhijson if rel['state'] == 'pending' and
+            rel['id_prefix'] == 'FEDORA' and rel["version"].isdigit()
+        }
+        if devrels:
+            BODHIRELEASES[str(max(devrels))] = "rawhide"
+        if len(devrels) > 1:
+            BODHIRELEASES[str(min(devrels))] = "branched"
+        stabrels = {
+            int(rel['version']) for rel in bodhijson if rel['state'] == 'current' and
+            rel['id_prefix'] == 'FEDORA' and rel["version"].isdigit()
+        }
+        for relnum in stabrels:
+            BODHIRELEASES[str(relnum)] = "stable"
+    return BODHIRELEASES
+
+
+def get_paths(release):
+    """This does a certain amount of fudging so we can refer to
+    Branched by its release number or "branched", and Rawhide by its
+    release number or "rawhide" or "devel".
+    """
+    relnums = get_bodhi_releases()
+    if relnums.get(release) == "stable":
+        return (
+            f"releases/{release}/Everything/$basearch/os",
+            f"updates/{release}/Everything/$basearch"
+        )
+    elif release in ("rawhide", "devel") or relnums.get(release) == "rawhide":
+        return ("development/rawhide/Everything/$basearch/os", "")
+    elif release == "branched" or relnums.get(release) == "branched":
+        if release == "branched":
+            try:
+                release = [relnum for relnum in relnums if relnums[relnum] == "branched"][0]
+            except IndexError:
+                raise ValueError("Cannot find a branched release.")
+        return (f"development/{release}/Everything/$basearch/os", "")
+    raise ValueError(f"Unrecognized release {release}.")
 
 
 def get_source(pkg):
@@ -128,13 +159,16 @@ def expand_dnf_critpath(urls, arch):
 
 
 def parse_args():
-    releases = sorted(RELEASEPATH.keys())
+    releases = sorted(get_bodhi_releases().keys())
+    releases.extend(["branched", "devel", "rawhide", "all"])
     parser = argparse.ArgumentParser()
     mexcgroup = parser.add_mutually_exclusive_group()
     parser.add_argument(
         "release",
         choices=releases,
-        help="The release to work on (a release number, 'branched', or 'rawhide')",
+        help="The release to work on (a release number, 'branched', 'rawhide', or 'all'). In "
+             "'all' mode, work on all current and pending releases, naming files in the format "
+             "expected by Bodhi).",
     )
     mexcgroup.add_argument(
         "--nvr",
@@ -164,13 +198,13 @@ def parse_args():
         "-o",
         "--output",
         default="critpath.txt",
-        help="name of file to write flat plaintext critpath list (%(default)s)",
+        help="name of file to write flat plaintext critpath list (ignored for 'all') (%(default)s)",
     )
     parser.add_argument(
         "-j",
         "--jsonout",
         default="critpath.json",
-        help="name of file to write grouped JSON critpath list (%(default)s)",
+        help="name of file to write grouped JSON critpath list (ignored for 'all') (%(default)s)",
     )
     parser.add_argument(
         "-u",
@@ -214,9 +248,7 @@ def write_files(critpath, outpath, jsonout):
     print(f"Wrote {package_count} items to {outpath}")
 
 
-def main():
-    args = parse_args()
-    release = args.release
+def generate_critpath(release, args, output, jsonout):
     check_arches = args.arches.split(",")
     if not (release.isdigit() and int(release) < 37):
         # armhfp is gone on F37+
@@ -230,11 +262,12 @@ def main():
         baseurl = args.composeurl + "/Everything/$basearch/os"
         alturl = args.composeurl + "/Everything/$basearch/os"
     else:
-        baseurl = args.url + RELEASEPATH[release]
-        alturl = args.alturl + RELEASEPATH[release]
-        if UPDATEPATH[release]:
-            updateurl = args.url + UPDATEPATH[release]
-            updatealturl = args.alturl + UPDATEPATH[release]
+        paths = get_paths(release)
+        baseurl = args.url + paths[0]
+        alturl = args.alturl + paths[0]
+        if paths[1]:
+            updateurl = args.url + paths[1]
+            updatealturl = args.alturl + paths[1]
 
     print(f"Using Base URL {baseurl}")
     print(f"Using alternate arch base URL {alturl}")
@@ -274,7 +307,25 @@ def main():
     for group in critpath:
         critpath[group] = sorted(critpath[group])
 
-    write_files(critpath, args.output, args.jsonout)
+    write_files(critpath, output, jsonout)
+
+
+def main():
+    args = parse_args()
+    release = args.release
+    if release == "all":
+        relnums = get_bodhi_releases()
+        for release in relnums:
+            print(f"Working on release {release}")
+            # the name expected by Bodhi is '[gitbranchname].json';
+            # for most releases this is 'f[relnum].json' but for
+            # Rawhide it is 'rawhide.json'
+            if relnums[release] == "rawhide":
+                generate_critpath(release, args, "rawhide.txt", "rawhide.json")
+            else:
+                generate_critpath(release, args, f"f{release}.txt", f"f{release}.json")
+    else:
+        generate_critpath(release, args, args.output, args.jsonout)
 
 
 if __name__ == "__main__":
