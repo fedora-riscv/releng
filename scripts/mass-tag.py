@@ -2,7 +2,7 @@
 #
 # mass-tag.py - A utility to tag rebuilt packages.
 #
-# Copyright (C) 2009-2013 Red Hat, Inc.
+# Copyright (C) 2009-2023 Red Hat, Inc.
 # SPDX-License-Identifier:      GPL-2.0+
 #
 # Authors:
@@ -14,6 +14,7 @@ import koji
 import os
 import operator
 import argparse
+import rpm
 
 # Set some variables
 # Some of these could arguably be passed in as args.
@@ -23,8 +24,7 @@ parser.add_argument('-s','--source',help='Tag holding the builds', required=True
 args = parser.parse_args()
 target = args.target # tag to tag into
 holdingtag = args.source # tag holding the rebuilds
-newbuilds = {} # dict of packages that have a newer build attempt
-tasks = {} # dict of new build task info
+newbuilds = {} # dict of packages that have a newer build in the target tag
 
 # Create a koji session
 koji_module = koji.get_profile_module("fedora")
@@ -43,53 +43,30 @@ pkgs = [pkg['package_name'] for pkg in pkgs if not pkg['blocked']]
 
 print('Checking %s builds...' % len(builds))
 
-# Get the task creation time from our builds
-kojisession.multicall = True
-for build in builds:
-    taskid = build['task_id']
-    kojisession.getTaskInfo(taskid)
-
-results = kojisession.multiCall()
-
-for build, [result] in zip (builds, results):
-    build['task_creation_time'] = result['create_time']
-
 # Use multicall
 kojisession.multicall = True
 
 # Loop over each build
 for build in builds:
-    id = build['package_id']
-    builddate = build['task_creation_time']
-
-    # Query to see if a build has already been attempted
-    kojisession.listBuilds(id, createdAfter=builddate)
+    # Get the latest tagged package in the target
+    kojisession.listTagged(target, latest=True, package=build['package_name'])
 
 # Get the results
 results = kojisession.multiCall()
 
-# For each build, get its request info
+# Find builds that are newer in the target tag
 kojisession.multicall = True
 for build, [result] in zip(builds, results):
     if not build['package_name'] in pkgs:
         continue
+
     for newbuild in result:
-        if newbuild['build_id'] == build['build_id']:
-            continue
-        newbuilds.setdefault(build['package_name'], []).append(newbuild)
-        # Skip tasks with task_id as None
-        if newbuild['task_id']:
-            kojisession.getTaskInfo(newbuild['task_id'],
-                                    request=True)
+        evr1 = (str(build['epoch'] or ''), build['version'], build['release'])
+        evr2 = (str(newbuild['epoch'] or ''), newbuild['version'], newbuild['release'])
+        if rpm.labelCompare(evr1, evr2) == -1:
+            newbuilds.setdefault(build['package_name'], []).append(newbuild)
 
 requests = kojisession.multiCall()
-
-# Populate the task info dict
-for [request] in requests:
-    try:
-        tasks[request['id']] = request
-    except:
-        continue
 
 # Loop through the results and tag if necessary
 kojisession.multicall = True
@@ -99,24 +76,15 @@ for build in builds:
     if not build['package_name'] in pkgs:
         print('Skipping %s, blocked in %s' % (build['package_name'], target))
         continue
-    newer = False
-    if build['package_name'] in newbuilds.keys():
-        for newbuild in newbuilds[build['package_name']]:
-            # Scrape the task info out of the tasks dict from the newbuild task ID
-            try:
-                if tasks[newbuild['task_id']]['request'][1] in (target, '%s-candidate' % target, 'rawhide', 'dist-rawhide') \
-                and newbuild['state'] == 1:
-                    print('Newer build found for %s.' % build['package_name'])
-                    newer = True
-                    break
-            except:
-                print('Skipping %s, no taskinfo.' % newbuild['nvr'])
-                continue
-    if not newer:
+
+    if build['package_name'] in newbuilds:
+        print('Newer build found for %s.' % build['package_name'])
+    else:
         print('Tagging %s into %s' % (build['nvr'], target))
         taglist.append(build['nvr'])
         kojisession.tagBuildBypass(target, build)
         pkgcount += 1
+
     if pkgcount == 1000:
         print('Tagging %s builds.' % pkgcount)
         results = kojisession.multiCall()
