@@ -26,15 +26,25 @@ class SackError(Exception):
 
 
 # Set some constants
-# Old definition
-# CRITPATH_GROUPS = ['@core','@critical-path-base','@critical-path-gnome']
+# **IMPORTANT**: before adding any group to this list, ensure the
+# corresponding decision context is in at least one policy in the
+# Greenwave configuration:
+# https://pagure.io/fedora-infra/ansible/blob/main/f/roles/openshift-apps/greenwave/templates/fedora.yaml
+# bad things will happen if any update is in a critical path group
+# with no corresponding greenwave policy. If no gating is required
+# for packages in the group, the context only needs to be added to
+# the "null" policies at the top of the file
 CRITPATH_GROUPS = [
     "@core",
     "@critical-path-apps",
     "@critical-path-base",
+    "@critical-path-deepin-desktop",
     "@critical-path-gnome",
     "@critical-path-kde",
     "@critical-path-lxde",
+    "@critical-path-lxqt",
+    "@critical-path-server",
+    "@critical-path-standard",
     "@critical-path-xfce",
 ]
 PRIMARY_ARCHES = ("armhfp", "aarch64", "x86_64")
