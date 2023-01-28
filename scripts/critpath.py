@@ -19,6 +19,7 @@ import shutil
 from tempfile import mkdtemp
 from urllib.request import urlopen
 import dnf
+import dnf.exceptions
 
 
 class SackError(Exception):
@@ -153,7 +154,12 @@ def expand_dnf_critpath(urls, arch):
             # load up the comps data from configured repositories
             base.read_comps()
             group = group.replace("@", "")
-            base.group_install(group, ["mandatory", "default", "optional"], strict=False)
+            try:
+                base.group_install(group, ["mandatory", "default", "optional"], strict=False)
+            except dnf.exceptions.CompsError as err:
+                if str(err).startswith("Group id") and str(err).endswith("does not exist."):
+                    print(f"Warning: group {group} does not exist for arch {conf.arch}")
+                    continue
             # resolve the groups marked in base object
             base.resolve()
             packages[group] = base.transaction.install_set
