@@ -104,7 +104,7 @@ generate_manifest_list() {
 
         fi
         buildah rmi "${registry}/${name}:${version}" || true
-        buildah manifest create "${registry}/${name}:${version}" "${ARCHES[@]/#/docker://${registry}/fedora:${version}-}"
+        buildah manifest create "${registry}/${name}:${version}" "${ARCHES[@]/#/docker://${registry}/${name}:${version}-}"
         buildah manifest push "${registry}/${name}:${version}" "docker://${registry}/${name}:${version}" --all
     done
 }
