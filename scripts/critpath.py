@@ -37,8 +37,11 @@ class SackError(Exception):
 # the "null" policies at the top of the file
 CRITPATH_GROUPS = [
     "@core",
+    "@critical-path-anaconda",
     "@critical-path-apps",
     "@critical-path-base",
+    "@critical-path-build",
+    "@critical-path-compose",
     "@critical-path-deepin-desktop",
     "@critical-path-gnome",
     "@critical-path-kde",
