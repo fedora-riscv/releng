@@ -63,7 +63,8 @@ class ReleaseMapper(object):
         else:
             # git branchname, koji tag, epel build tag
             self.mapping = (
-                ("rawhide", "f38", ""),
+                ("rawhide", "f39", ""),
+                ("f38", "f38", ""),
                 ("f37", "f37", ""),
                 ("f36", "f36", ""),
                 ("f35", "f35", ""),
