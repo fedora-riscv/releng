@@ -4,7 +4,21 @@ from __future__ import print_function
 import copy
 import sys
 
-from fedscm_admin import STANDARD_BRANCH_SLAS
+STANDARD_BRANCH_SLAS = {
+    'rawhide': {
+        'rawhide': '2222-01-01'
+    },
+    'stable': {
+        'rawhide': '2222-01-01'
+    },
+    'main': {
+        'rawhide': '2222-01-01'
+    },
+    'f38': {
+        'bug_fixes': '2024-11-14',
+        'security_fixes': '2024-11-14'
+    }
+}
 
 
 def prompt(message, force):
