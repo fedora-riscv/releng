@@ -41,7 +41,7 @@ fi
 # need to move the fedora:latest tag
 current_stable="37"
 # Define what is rawhide so we know to push that tag
-current_rawhide="38"
+current_rawhide="39"
 # Sanity checking
 # FIXME - Have to update this regex every time we drop a new Fedora Release
 if ! [[ "${1}" =~ [31|32|33|34|35|36|37|38|39] ]];
