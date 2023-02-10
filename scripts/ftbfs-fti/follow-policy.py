@@ -29,8 +29,9 @@ TRACKERS = {
     "F36FailsToInstall": 1992487,
     "F37FailsToInstall": 2045109,
     "F38FailsToInstall": 2117177,
+    "F39FailsToInstall": 2168845,
 }
-RAWHIDE = "38"
+RAWHIDE = "39"
 
 
 def _bzdate_to_python(date):
