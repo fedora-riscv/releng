@@ -44,7 +44,7 @@ current_stable="37"
 current_rawhide="38"
 # Sanity checking
 # FIXME - Have to update this regex every time we drop a new Fedora Release
-if ! [[ "${1}" =~ [31|32|33|34|35|36|37|38] ]];
+if ! [[ "${1}" =~ [31|32|33|34|35|36|37|38|39] ]];
 then
     printf "ERROR: FEDORA_RELEASE missing or invalid\n"
     f_help
