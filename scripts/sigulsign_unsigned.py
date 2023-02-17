@@ -70,6 +70,8 @@ KEYS = {
     'fedora-33': {'id': '9570ff31', 'v3': True},
     'fedora-34': {'id': '45719a39', 'v3': True},
     'fedora-37': {'id': '5323552a', 'v3': True},
+    'fedora-38': {'id': 'eb10b464', 'v3': True},
+    'fedora-39': {'id': '18B8e74c', 'v3': True},
     'fedora-infra': {'id': '47dd8ef9', 'v3': True},
     'fedora-10-testing': {'id': '0b86274e', 'v3': False},
     'epel-5': {'id': '217521f6', 'v3': False},
