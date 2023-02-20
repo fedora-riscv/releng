@@ -64,17 +64,22 @@ def get_failed_builds(kojisession, epoch, buildtag, desttag):
     desttag -- tag where to look for succesfully built packages
     """
     # Get a list of failed build tasks since our epoch
-    failtasks = sorted(kojisession.listBuilds(createdAfter=epoch, state=3),
-                       key=operator.itemgetter('task_id'))
+    failtasks = kojisession.listBuilds(createdAfter=epoch, state=3)
+    realfailtasks = []
+    for failtask in failtasks:
+        if failtask['task_id'] is not None:
+            realfailtasks.append(failtask)
 
+    failtasks = sorted(realfailtasks,key=operator.itemgetter('task_id'))
     # Get a list of successful builds tagged
     goodbuilds = kojisession.listTagged(buildtag, latest=True)
 
     # Get a list of successful builds after the epoch in our dest tag
     destbuilds = kojisession.listTagged(desttag, latest=True, inherit=True)
     for build in destbuilds:
-        if build['creation_time'] > epoch:
-            goodbuilds.append(build)
+        if build['creation_time'] is not None:
+            if build['creation_time'] > epoch:
+                goodbuilds.append(build)
 
     pkgs = kojisession.listPackages(desttag, inherited=True)
 
@@ -92,7 +97,6 @@ def get_failed_builds(kojisession, epoch, buildtag, desttag):
     kojisession.multicall = True
     for build in failbuilds:
         kojisession.getTaskInfo(build['task_id'], request=True)
-
     taskinfos = kojisession.multiCall()
     for build, [taskinfo] in zip(failbuilds, taskinfos):
         build['taskinfo'] = taskinfo
