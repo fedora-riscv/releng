@@ -24,23 +24,23 @@ PKG_SKIP_LIST = [
 # keep this sorted new -> old
 MASSREBUILDS = {
     "f39":{
-     		"buildtag": 'f39rebuild',  # tag to build from
+     		"buildtag": 'f39-rebuild',  # tag to build from
             "epoch": '2023-01-18 10:30:00.000000',  # rebuild anything not built after this date
             "module_mass_rebuild_epoch": '2023-02-07T10:30:00Z',
             # rebuild anything not built after this date for modules
             "module_mass_branching_epoch": '2023-02-07T10:30:00Z',
             # rebuild anything not built after this date for modules
-            "module_mass_rebuild_platform": "f39,
+            "module_mass_rebuild_platform": "f39",
             # rebuild all modules that has build time dependency on this platform, this is used during mass rebuild time
-            "module_mass_branching_platform": "f39,
+            "module_mass_branching_platform": "f39",
             # rebuild all modules that has run time dependency on this platform, this is used during mass branching time
-            "targets": ['f39candidate', 'rawhide', 'f39],
+            "targets": ['f39candidate', 'rawhide', 'f39'],
             # build targets to check for existing builds to skip rebuild
             "target": 'f39rebuild',  # target to build into
-            "desttag": 'f39  # Tag where fixed builds go
+            "desttag": 'f39',  # Tag where fixed builds go
             "product": "Fedora",  # for BZ product field
             "version": "rawhide",  # for BZ version field, rawhide before branching or xx after branching
-            "rawhide_version": "39,  # for next version calculation and other comments
+            "rawhide_version": "39",  # for next version calculation and other comments
             "tracking_bug": "2168842",  # Tracking bug for mass build failures
             "wikipage": "https://fedoraproject.org/wiki/Fedora_38_Mass_Rebuild",
             "pkg_skip_list": PKG_SKIP_LIST,  # packages to skip in rebuild
