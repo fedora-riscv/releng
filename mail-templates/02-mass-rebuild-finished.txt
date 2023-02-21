@@ -18,7 +18,7 @@ that need to be addressed by the package maintainers. FTBFS bugs will be
 filed shortly. Please be sure to let releng know if you see any bugs in
 the reporting. You can contact releng in #fedora-releng on libera.chat,
 by dropping an email to our list [2], joining #releng:fedoraproject.org
-on Matrix, or filing an issue in pagure [3]
+on Matrix, or filing an issue in pagure [3].
 
 Regards,
 Fedora Release Engineering

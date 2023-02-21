@@ -24,7 +24,7 @@ close enough to completion that a majority of its functionality can be
 tested'. All tracking bugs should be on ON_QA state or later to reflect
 this.
 
-Regards
+Regards,
 Fedora Release Engineering
 
 [1] https://fedorapeople.org/groups/schedule/f-fN/f-fN-key-tasks.html

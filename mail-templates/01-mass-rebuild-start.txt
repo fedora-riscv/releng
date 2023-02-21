@@ -29,7 +29,6 @@ This email template is also in https://pagure.io/releng if you wish to
 propose improvements or changes to it.
 
 Regards,
-
 Fedora Release Engineering
 
 [1] https://fedorapeople.org/groups/schedule/f-fN/f-fN-key-tasks.html

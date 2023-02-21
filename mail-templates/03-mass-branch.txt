@@ -21,4 +21,7 @@ Two things to remember:
 
 Thanks for understanding.
 
+Regards,
+Fedora Release Engineering
+
 [1] https://fedorapeople.org/groups/schedule/f-fN/f-fN-key-tasks.html

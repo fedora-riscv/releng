@@ -37,4 +37,4 @@ the Fedora QA team via the test@lists.fedoraproject.org mailing list or
 in #fedora-qa on Libera Chat or the #qa:fedoraproject.org Matrix room.
 
 Regards,
-Fedora Release Engineering.
+Fedora Release Engineering
