@@ -18,7 +18,7 @@ ARCHES=("x86_64" "aarch64" "ppc64le")
 # need to move the fedora:latest tag
 current_stable="37"
 # Define what is rawhide so we know to push that tag
-current_rawhide="38"
+current_rawhide="39"
 
 ostree_base_images=(silverblue kinoite)
 
