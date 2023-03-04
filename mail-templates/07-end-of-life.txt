@@ -1,19 +1,22 @@
 Hello all,
 
-Fedora fN will go end of life for updates and support on YYYY-MM-DD
+Fedora Linux fN will go end of life for updates and support on
+YYYY-MM-DD.
 No more updates of any kind, including security updates or security
-announcements, will be available for Fedora fN after the said date. All
-the updates of Fedora fN being pushed to stable will be stopped as well.
+announcements, will be available for Fedora Linux fN after the said
+date. All the updates of Fedora Linux fN being pushed to stable will be
+stopped as well.
 
-Fedora fN+1 will continue to receive updates until approximately one
-month after the release of Fedora fN+2. The maintenance schedule of
-Fedora releases is documented on the Fedora Project wiki [0]. The
-fedora Project wiki also contains instructions [1] on how to upgrade
-from a previous release of Fedora to a version receiving updates.
+Fedora Linux fN+1 will continue to receive updates until approximately
+one month after the release of Fedora Linux fN+2. The maintenance
+schedule of Fedora Linux releases is documented on the Fedora Project
+wiki [1]. The Fedora Project wiki also contains instructions[2] on how to
+upgrade from a previous release of Fedora Linux to a version receiving
+updates.
 
 Regards,
 Fedora Release Engineering
 
-[0]https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle#Maintenance_Schedule
-[1]https://fedoraproject.org/wiki/Upgrading?rd=DistributionUpgrades
+[1]https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle#Maintenance_Schedule
+[2]https://fedoraproject.org/wiki/Upgrading?rd=DistributionUpgrades
 

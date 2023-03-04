@@ -1,22 +1,22 @@
-Fedora Linux N Beta Released
+Fedora Linux fN Beta Released
 ------------------------------------------
 
-The Fedora Project is pleased to announce the immediate availability
-of Fedora N Beta, the next step towards our planned Fedora N release
-at the end of MONTH.
+The Fedora Project is pleased to announce the immediate availability of
+Fedora Linux fN Beta, the next step towards our planned Fedora Linux fN
+release at the end of MONTH.
 
 Download the prerelease from our Get Fedora site:
-* Get Fedora N Beta Workstation: https://getfedora.org/workstation/download/
-* Get Fedora N Beta Server: https://getfedora.org/server/download/
-* Get Fedora N Beta IoT: https://getfedora.org/iot/download/
-* Get Fedora N Beta CoreOS: <LINK NEEDED>
-* Get Fedora N Beta Cloud: <LINK NEEDED>
+* Get Fedora Linux fN Beta Workstation: https://getfedora.org/workstation/download/
+* Get Fedora Linux fN Beta Server: https://getfedora.org/server/download/
+* Get Fedora Linux fN Beta IoT: https://getfedora.org/iot/download/
+* Get Fedora Linux fN Beta CoreOS: <LINK NEEDED>
+* Get Fedora Linux fN Beta Cloud: <LINK NEEDED>
 
 Or, check out one of our popular variants, including KDE Plasma, Xfce,
 and other desktop environments:
 
-* Get Fedora N Beta Spins: https://spins.fedoraproject.org/prerelease
-* Get Fedora N Beta Labs: https://labs.fedoraproject.org/prerelease
+* Get Fedora Linux fN Beta Spins: https://spins.fedoraproject.org/prerelease
+* Get Fedora Linux fN Beta Labs: https://labs.fedoraproject.org/prerelease
 
 
 ## Beta Release Highlights
@@ -25,7 +25,7 @@ and other desktop environments:
 
 For more details about the release, read the full announcement at
 
-* https://fedoramagazine.org/announcing-fedora-N-beta/
+* https://fedoramagazine.org/announcing-fedora-fN-beta/
 
 or look for the prerelease pages in the download sections at
 

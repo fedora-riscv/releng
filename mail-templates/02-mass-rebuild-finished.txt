@@ -1,7 +1,8 @@
 Hi all,
 
-Per the Fedora N schedule[1] we started a mass rebuild for Fedora
-N on MMM DD, YYYY. We did a mass rebuild for Fedora N for:
+Per the Fedora Linux fN schedule [1] we started a mass rebuild for
+Fedora Linux fN on YYYY-MM-DD. We did a mass rebuild for Fedora
+Linux fN for:
 
 <list changes that need mass rebuild here>
 https://fedoraproject.org/wiki/Changes/NAME
@@ -16,13 +17,13 @@ X builds have been tagged into fN, there is currently Y failed
 builds that need to be addressed by the package maintainers. FTBFS bugs
 will be filed shortly. Please be sure to let releng know if you see any
 bugs in the reporting. You can contact releng in #fedora-releng on
-libera.chat, by dropping an email to our list[2], joining 
-#releng:fedoraproject.org on Matrix, or filing an issue in pagure[3] 
+libera.chat, by dropping an email to our list [2], joining 
+#releng:fedoraproject.org on Matrix, or filing an issue in pagure [3] 
 
 Regards,
 Fedora Release Engineering
 
-[1] https://fedorapeople.org/groups/schedule/f-N/f-N-key-tasks.html
+[1] https://fedorapeople.org/groups/schedule/f-fN/f-fN-key-tasks.html
 [2] https://lists.fedoraproject.org/admin/lists/rel-eng.lists.fedoraproject.org/
 [3] https://pagure.io/releng/
 

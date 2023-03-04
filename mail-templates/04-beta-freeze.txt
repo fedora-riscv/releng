@@ -1,33 +1,33 @@
 Hi all,
 
-Today's an important day on the Fedora N schedule[1], with several
-significant cut-offs. First of all, today is the Bodhi updates-testing
-activation point [2]. That means that from now all Fedora N packages must
-be submitted to updates-testing and pass the relevant
-requirements[3] before they will be marked as 'stable' and moved to
-the fedora repository.
+Today's an important day on the Fedora Linux fN schedule [1], with
+several significant cut-offs. First of all, today is the Bodhi
+updates-testing activation point [2]. That means that from now all
+Fedora Linux fN packages must be submitted to updates-testing and pass
+the relevant requirements [3] before they will be marked as 'stable' and
+moved to the Fedora Repository.
 
-Today is also the Beta freeze[4]. This means that only packages which
-fix accepted blocker or freeze exception bugs[5][6] will be marked as
+Today is also the Beta freeze [4]. This means that only packages which
+fix accepted blocker or freeze exception bugs [5][6] will be marked as
 'stable' and included in the Beta composes. Other builds will remain
 in updates-testing until the Beta release is approved, at which point
 the Beta freeze is lifted and packages can move to 'stable' as usual
 until the Final freeze.
 
-Today is also the Software String freeze[7], which means that strings
+Today is also the Software String freeze [7], which means that strings
 marked for translation in Fedora-translated projects should not now be
-changed for Fedora N.
+changed for Fedora Linux fN.
 
-Finally, today is the 'completion deadline' Change Checkpoint[8],
-meaning that Fedora N Changes must now be 'feature complete or close
-enough to completion that a majority of its functionality can be
+Finally, today is the 'completion deadline' Change Checkpoint [8],
+meaning that Fedora Linux fN Changes must now be 'feature complete or
+close enough to completion that a majority of its functionality can be
 tested'. All tracking bugs should be on ON_QA state or later to
 reflect this.
 
 Regards
 Fedora Release Engineering
 
-[1] https://fedorapeople.org/groups/schedule/f-N/f-N-key-tasks.html
+[1] https://fedorapeople.org/groups/schedule/f-fN/f-fN-key-tasks.html
 [2] https://fedoraproject.org/wiki/Updates_Policy#Bodhi_enabling
 [3] https://fedoraproject.org/wiki/Updates_Policy#Branched_release
 [4] https://fedoraproject.org/wiki/Milestone_freezes
