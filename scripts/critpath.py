@@ -65,7 +65,7 @@ def get_bodhi_releases():
     if not BODHIRELEASES:
         bodhijson = json.loads(urlopen(BODHI_RELEASEURL).read().decode("utf8"))["releases"]
         devrels = {
-            int(rel['version']) for rel in bodhijson if rel['state'] == 'pending' and
+            int(rel['version']) for rel in bodhijson if rel['state'] in ('pending', 'frozen') and
             rel['id_prefix'] == 'FEDORA' and rel["version"].isdigit()
         }
         if devrels:
