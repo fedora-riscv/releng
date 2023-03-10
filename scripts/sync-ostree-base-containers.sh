@@ -138,7 +138,7 @@ EOF
     runv buildah manifest push --all "${imgtag}" ${target}
     # If we have an alias, synchronize that
     if test -n "${aliased_name}"; then
-        runv skopeo copy docker://${target} docker://${canonical_registry}/${aliased_name}
+        runv skopeo copy ${target} docker://${canonical_registry}/${aliased_name}
     fi
     # And handle secondary registries
     echo "Copying to secondary registries"
