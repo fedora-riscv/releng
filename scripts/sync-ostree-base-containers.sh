@@ -57,6 +57,10 @@ arch_to_goarch() {
     esac
 }
 
+work_tmpdir=$(mktemp -d -p /var/tmp --suffix=.sync-ostree)
+trap "{ rm -rf $work_tmpdir }" EXIT
+cd "${work_tmpdir}"
+
 for name in "${ostree_base_images[@]}"; do
     echo "Processing: ${name}"
     # The base name component, e.g. "fedora-silverblue"
@@ -72,8 +76,8 @@ for name in "${ostree_base_images[@]}"; do
         aliased_name=${imgname}:${tagname}
     fi
 
-    work_dir=$(mktemp -d -p /var/tmp --suffix=.sync-ostree)
-    pushd ${work_dir} &> /dev/null
+    mkdir $name
+    pushd $name &> /dev/null
     # Note that this command will use the current architecture
     arch=$(arch)
     if ! runv skopeo inspect -n docker://${primary_imgtag} > inspect.json; then
@@ -146,7 +150,7 @@ EOF
     done
     echo "done synchronizing ${name}"
     popd
-    rm "${work_dir}" -rf
+    rm "${name}" -rf
 done
 
 echo "done"
