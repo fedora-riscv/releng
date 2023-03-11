@@ -58,7 +58,10 @@ arch_to_goarch() {
 }
 
 work_tmpdir=$(mktemp -d -p /var/tmp --suffix=.sync-ostree)
-trap "{ rm -rf $work_tmpdir }" EXIT
+cleanup() {
+    rm -rf "${work_tmpdir}"
+}
+trap cleanup EXIT
 cd "${work_tmpdir}"
 
 for name in "${ostree_base_images[@]}"; do
