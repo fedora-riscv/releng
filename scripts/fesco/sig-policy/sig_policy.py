@@ -20,6 +20,8 @@ from fedrq.backends.base import RepoqueryBase
 
 # (namespace, name of SIG group, ACL, package name filter)
 POLICY = [
+    # Flatpak SIG: https://pagure.io/fesco/fesco-docs/pull-request/72
+    ("flatpaks", "flatpak-sig", "commit", lambda x: x),
     # Go SIG: https://pagure.io/fesco/fesco-docs/pull-request/68
     ("rpms", "go-sig", "commit", lambda x: x in go_packages()),
     # R SIG: https://pagure.io/fesco/fesco-docs/pull-request/69
