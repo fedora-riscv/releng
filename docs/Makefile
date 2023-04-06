@@ -54,6 +54,11 @@ html:
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 
+html_zh:
+	$(SPHINXBUILD) -b html -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source_zh $(BUILDDIR)/html_zh
+	@echo
+	@echo "Build finished. The Chinese HTML pages are in $(BUILDDIR)/html_zh."
+
 dirhtml:
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml
 	@echo
