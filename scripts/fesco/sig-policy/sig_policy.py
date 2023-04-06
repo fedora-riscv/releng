@@ -12,11 +12,11 @@
 import argparse
 import functools
 import os
-import shutil
-import subprocess
 import sys
 
+import fedrq.config
 import requests
+from fedrq.backends.base import RepoqueryBase
 
 # (name of SIG group, ACL, package name filter)
 POLICY = [
@@ -34,83 +34,34 @@ VALID_ACLS = ["ticket", "commit", "admin"]
 
 
 @functools.cache
+def get_rq() -> RepoqueryBase:
+    """
+    Return a RepoqueryBase object with the rawhide buildroot repositories
+    """
+    return fedrq.config.get_config().get_rq("rawhide", "@buildroot")
+
+
+@functools.cache
 def go_packages() -> set[str]:
-    INSTALLROOT = "/tmp/dnf-sig-policy"
-
-    cmd = [
-        "dnf", "--quiet",
-        "--installroot", INSTALLROOT,
-        "--repo", "rawhide",
-        "--repo", "rawhide-source",
-        "--releasever", "rawhide",
-        "repoquery",
-        # query source package and binary package names,
-        # so BuildRequires and Requires can be differentiated
-        "--qf", "%{source_name} %{name}",
-        "--whatrequires", "golang",
-        "--whatrequires", "golang-bin",
-        "--whatrequires", "go-rpm-macros",
-    ]
-
-    ret = subprocess.run(cmd, stdout=subprocess.PIPE)
-    ret.check_returncode()
-
-    # remove temporary dnf cache
-    shutil.rmtree(INSTALLROOT)
-
-    # use a set for fast membership checks
-    packages = set()
-    for line in ret.stdout.decode().splitlines():
-        source_name, name = line.split(" ")
-
-        if source_name == "(none)":
-            # package is a source package:
-            # "%{name}" *is* the source name
-            packages.add(name)
-        else:
-            # package is a binary package:
-            # skip, only BuildRequires are covered by the policy
-            continue
-
+    rq = get_rq()
+    query = rq.query(
+            requires=rq.query(name=["golang", "golang-bin", "go-rpm-macros"]),
+            # Only BuildRequires are covered by the policy
+            arch="src",
+    )
+    packages = {package.name for package in query}
     return packages
 
 
 @functools.cache
 def r_packages() -> set[str]:
-    INSTALLROOT = "/tmp/dnf-sig-policy"
-
-    cmd = [
-        "dnf", "--quiet",
-        "--installroot", INSTALLROOT,
-        "--repo", "rawhide",
-        "--repo", "rawhide-source",
-        "--releasever", "rawhide",
-        "repoquery",
-        # query source package and binary package names,
-        # so BuildRequires and Requires can be differentiated
-        "--qf", "%{source_name} %{name}",
-        "--whatrequires", "libR.so*",
-    ]
-
-    ret = subprocess.run(cmd, stdout=subprocess.PIPE)
-    ret.check_returncode()
-
-    # remove temporary dnf cache
-    shutil.rmtree(INSTALLROOT)
-
-    # use a set for fast membership checks
-    packages = set()
-    for line in ret.stdout.decode().splitlines():
-        source_name, name = line.split(" ")
-
-        if source_name == "(none)":
-            # package is a source package:
-            # skip, only Requires are covered by the policy
-            continue
-        else:
-            # package is a binary package:
-            # collect "%{source_name}"
-            packages.add(source_name)
+    rq = get_rq()
+    query = rq.query(
+        requires__glob="libR.so*",
+        # Only Requires are covered by the policy
+        arch__neq="src",
+    )
+    packages = {package.source_name for package in query}
 
     # add "R" which does not link with "libR.so" itself
     packages.add("R")
