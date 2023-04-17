@@ -1,52 +1,31 @@
 .. SPDX-License-Identifier:    CC-BY-SA-3.0
 
 
-======================================
-Adding a package to a Release Artifact
-======================================
+========================
+将软件包添加到发布工件中
+========================
 
-Description
-===========
-In the event that a Fedora contributor would like to have a package added to an
-Artifact of a Compose (such as an installer ISO image, a liveCD, Cloud Image,
-Vagrant, Docker, etc.) that is slated for Release, the following procedures must
-be followed due to the interdependence of different components within the distro
-layout.
+说明
+====
+如果Fedora贡献者希望将一个软件包添加到计划发布的Compose工件（如安装程序ISO映像、liveCD、云镜像、Vagrant、Docker等）中，由于发行版之间不同组件的相互依赖性，必须遵循以下过程。
 
-Background
-----------
-First, some information on where this all comes from and how things fit
-together.
+背景
+----
+首先，提供一些信息，说明这一切是从哪里来的，以及是如何结合在一起的。
 
-There is the concept of the "Install Tree" which is the collection of packages
-available at install time. This is a vast sub-set of the whole of the Fedora
-Package Collection and it is the pool of possible packages that is available to
-end users who choose to customize their install from the `Anaconda`_ installer.
-It is also the pool of possible packages that is available to the
-`fedora-kickstarts`_ kickstart files that are used to generate various components
-of the compose via `pungi`_ which then produces the Release Artifacts.
+有一个“安装树”的概念，它是安装时可用的软件包的集合。这是整个Fedora软件包集合的一个庞大子集，也是终端用户选择从 `Anaconda`_ 安装程序中自定义安装时可以使用的最可能的软件包池。
+它也是 `fedora-kickstarts`_ 用于通过 `pungi`_ 生产compose的各种组件然后生成发布工件的启动文件可以使用的最可能的软件包池。
 
-The Install Tree itself is defined by the `comps`_ groups so in order to add a
-net new package to one of the Release Artifacts, the package must be placed in
-an appropriate `comps`_ xml file. For more information on what specifically
-defines the "appropriate `comps_` xml file" and what kinds of approvals or
-review might be needed for adding new packages, please see `this HowTo`_.
+安装树本身是由 `comps`_ 组定义的，因此为了将一个全新的软件包添加到其中一个发布工件中，必须将该包放置在适当的 `comps`_ xml文件中。有关“适当的 `comps`_ _xml文件”的具体定义以及添加新包可能需要什么样的批准或审查的更多信息，请参阅 `本指南`_ 。
 
-Action
-======
+操作
+====
 
-We will need to edit the comps file specific to the Fedora release we would like
-to target. For example, if we were to target Fedora 25 we would edit
-``comps-f25.xml.in`` found within the `comps`_ git repository and this should be
-modified based on the `How to edit comps`_ procedure.
+我们需要编辑特定于我们的目标Fedora版本的comps文件。例如，如果我们以Fedora 25为目标，我们将编辑 `comps`_ git存储库中的 ``comps-f25.xml.in`` ，这应该根据 `如何编辑comps过程`_ 进行修改。
 
-If the package that was added is a part of a pre-existing comps group that is
-already used in the target Release Artifact's `fedora-kickstarts`_ kickstart file
-then we are done.
+如果添加的包是预先存在的comps组的一部分，该comps组已经在目标发布工件的 `fedora-kickstarts`_ 启动文件中使用，那么我们就完成了。
 
-However, if there is a new comps group added then we need to include that new
-comps group in the respective `fedora-kickstarts`_ kickstart file similar to the
-following.
+然而，如果添加了一个新的comps组，那么我们需要在相应的 `fedora-kickstarts`_ kickstart文件中包含这一新的comp组，类似于下面的文件。
 
 ::
 
@@ -54,22 +33,17 @@ following.
     @mynewcompsgroup
 
 
-Next we will need to tell `pungi`_ Variants data about the new group and it's
-relationship to the corresponding `Variant`_. This information is held in the
-`Fedora Pungi Configs`_ `pagure`_ git forge repository. The file needed to be
-edited is ``variants-fedora.xml`` and can be viewed from a web browser `here`_.
+接下来，我们需要告诉 `pungi`_ Variants关于新组的数据以及它与相应 `Variant`_ 的关系。这些信息保存在 `Fedora Pungi Configs`_ `pagure`_ git forge存储库中。需要编辑的文件是 ``variants-fedora.xml`` ，可以在 `web浏览器`_ 中查看。
 
-Once this has been completed, we're all done.
+这些都完成就可以了。
 
-Verification
-============
+验证
+====
 
-Verify that the next compose is successful and that the change made didn't cause
-any issues. This can be done from the `Fedora Product Definition Center`_ which
-is a central store of information about Composes and their resulting artifacts.
+请验证下一个compose是否成功以及所做的更改是否没有导致任何问题。这可以从 `Fedora Product Definition Center`_ 完成，该中心是关于Composes及其生成工件的信息的中央存储区。
 
-Consider Before Running
-=======================
+运行之前请考虑
+==============
 .. Create a list of things to keep in mind when performing action.
 
 .. _pagure: https://pagure.io/
@@ -78,11 +52,11 @@ Consider Before Running
 .. _Anaconda: https://fedoraproject.org/wiki/Anaconda
 .. _Fedora Pungi Configs: https://pagure.io/pungi-fedora
 .. _fedora-kickstarts: https://pagure.io/fedora-kickstarts
-.. _here: https://pagure.io/pungi-fedora/blob/master/f/variants-fedora.xml
+.. _web浏览器: https://pagure.io/pungi-fedora/blob/master/f/variants-fedora.xml
 .. _Fedora Product Definition Center: https://pdc.fedoraproject.org/compose/
-.. _this HowTo:
+.. _本指南:
     https://fedoraproject.org/wiki/How_to_use_and_edit_comps.xml_for_package_groups
 .. _Variant:
     https://sgallagh.wordpress.com/2016/03/18/sausage-factory-multiple-edition-handling-in-fedora/
-.. _How to edit comps:
+.. _如何编辑comps过程:
     https://fedoraproject.org/wiki/How_to_use_and_edit_comps.xml_for_package_groups#How_to_edit_comps

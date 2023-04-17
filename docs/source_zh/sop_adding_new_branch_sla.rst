@@ -1,24 +1,21 @@
 .. SPDX-License-Identifier:    CC-BY-SA-3.0
 
 
-======================
-Adding New Branch SLAs
-======================
+================
+添加新的分支SLAs
+================
 
-Description
-===========
+说明
+====
 
-In the ArbitraryBranching model, packagers can choose whatever SLAs they want
-for the branches of their packages, but they must choose from a subset of
-pre-defined SLAs stored in PDC, maintained by releng.
+在ArbitraryBranching模型中，打包者可以为其包的分支选择他们想要的任何SLA，但他们必须从PDC中存储的预定义SLA的子集中进行选择，该子集由reling维护。
 
-This SOP describes the steps necessary for a release engineer to create a new SLA.
+本SOP描述了发布工程师创建新SLA所需的步骤。
 
-Action
-======
+操作
+====
 
-Adding a new SLA is simple.  It involves running a script in the releng repo, with an authorized token.
-There is a token available on `pdc-backend01` in the `/etc/pdc.d/` directory.
+添加新的SLA很简单。它包括使用授权令牌运行releng仓库中的一个脚本。 `pdc-backend01` 上的 `/etc/pdc.d/` 目录中有一个可用的令牌。
 
 
 ::
@@ -27,9 +24,7 @@ There is a token available on `pdc-backend01` in the `/etc/pdc.d/` directory.
     Name of the SLA:  wild_and_cavalier
     Description of the SLA:  Anything goes!  This branch may rebase at any time.  No stability guarantees provided.
 
-Verification
-============
+验证
+====
 
-Verifying that the SLA is present is simple:  visit the `appropriate PDC
-endpoint <https://pdc.fedoraproject.org/rest_api/v1/component-branch-slas/>`_
-and verify that your newly-added SLA is present.
+验证SLA是否存在很简单：访问 `对应的PDC端点 <https://pdc.fedoraproject.org/rest_api/v1/component-branch-slas/>`_ 并验证您新添加的SLA是否存在。
