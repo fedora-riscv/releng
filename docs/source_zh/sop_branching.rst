@@ -1,44 +1,38 @@
 .. SPDX-License-Identifier:    CC-BY-SA-3.0
 
 
-=========
-Branching
-=========
+====
+分支
+====
 
-Description
-===========
-This SOP covers how to make git and pkgdb branches for packages, either for
-new packages that have passed review, or for existing packages that need a new
-branch (e.g. EPEL). Release Engineering has written a script to automate this
-process.
+说明
+====
+本SOP涵盖了如何为包建立git和pkgdb分支，无论是针对已通过审查的新包，还是针对需要新分支的现有包（例如EPEL）。Release Engineering已经编写了一个脚本来自动化这个过程。
 
-Normal Action (automated)
-=========================
+正常操作（自动）
+================
 
-#. On your local system (not on an infrastructure hosted system), be sure you
-   have the following packages installed:
-
+#. 在本地系统上（而不是在承载基础设施的系统上），请确保安装了以下软件包：
    * python-bugzilla
    * python-configobj
    * python-fedora
 
-#. Run "bugzilla login" and successfully receive an Authorization cookie.
+#. 运行 "bugzilla login" 并成功接收授权cookie。
 
-#. Clone the fedora-infrastructure tools repository:
+#. 克隆 the fedora-infrastructure 工具仓库：
     ::
 
         git clone https://pagure.io/releng.git
 
-#. In scripts/process-git-requests, run "process-git-requests". Answer the
-   prompts.
+#. 在scripts/process-git-requests 中，运行“process-git-requests”。
 
-Manual Action
-=============
+手动操作
+========
 
-Creating a new branch for an existing package
----------------------------------------------
+为已经存在的一个包创建新分支
+----------------------------
 
-#. ssh into ``pkgs.fedoraproject.org``
+#. ssh 连接 ``pkgs.fedoraproject.org``
 
 #. ``pkgdb-client edit -u $YOURUSERNAME -b $NEWBRANCH --master=devel $NAMEOFPACKAGE``
 

@@ -1,36 +1,28 @@
 .. SPDX-License-Identifier:    CC-BY-SA-3.0
 
 
-======================
-Adding Side Build Tags
-======================
+================
+添加侧边构建标签
+================
 
-Description
-===========
-Bigger Features can take a while to stabilize and land or need a large number
-of packages to be built against each other, this is easiest served by having a
-separate build tag for the development work.  This SOP will describe the steps
-necessary to prepare the new build target.
+定义
+====
+更大的功能可能需要一段时间才能稳定和落地，或者需要大量的软件包来相互构建，这最容易通过为开发工作提供单独的构建标签来实现。本SOP将描述准备新构建目标所需的步骤。
 
-Action
-======
-Engineers should be aware that adding side build targets incurs extra
-newRepo tasks in the koji.
+操作
+====
+工程师们应该意识到，添加侧边构建目标会在koji中产生额外的newRepo任务。
 
-Research Tag
-------------
+研究标签
+--------
 
-#. Verify whether a tag already exists.
+#. 验证标签是否已经存在。
 
-   The typical tag format is *PRODUCT*-*DESCRIPTOR*. The *DESCRIPTOR* should
-   be something brief that clearly shows why the tag exists.
+   典型的标签格式是 *PRODUCT*-*DESCRIPTOR* 。 *DESCRIPTOR* 应该是一些简短的内容，清楚地显示标签存在的原因。
 
    .. note::
 
-      Don't think too hard about what makes a good descriptor.  The
-      descriptor for the XFCE version 4.8 side-build target was *xfce48*.
-      KDE often simply uses *kde* as its descriptor.  Use best judgement and
-      if in doubt ask in IRC on ``#fedora-releng``.
+      不要太在意什么是一个好的描述符。XFCE 4.8版本侧边构建目标的描述符是 *xfce48* 。KDE通常只是简单地使用 *kde* 作为描述符。做出最佳判断，如果有疑问，请在 ``#fedora-releng`` 的IRC中提问。
 
    .. admonition:: EPEL6
 
@@ -51,13 +43,9 @@ Research Tag
          $ koji taginfo f28-kde
 
    .. note::
-      If the tag already exists, continue searching for an available tag
-      by appending ``-2`` and incrementing the number by one until an
-      available tag is found.  For example, if ``f28-kde`` already exists
-      then search for ``f28-kde-2``, ``f28-kde-3``, and so on until a
-      suitable tag is found.
+      如果标签已经存在，则通过追加 ``-2`` 并将数字递增一来继续搜索可用标签，直到找到可用标签为止。例如，如果 ``f28-kde`` 已经存在，则搜索 ``f28-kde-2`` 、 ``f28-kde-3`` 等，直到找到合适的标签。
 
-#. Determine the appropriate architectures.
+#. 确定合适的体系结构。
 
    .. admonition:: EPEL6
 
@@ -77,14 +65,12 @@ Research Tag
 
          $ koji taginfo f28-build
 
-Create Side Build Target
-------------------------
+创建侧边构建目标
+----------------
 
-#. Create the proper tag.
+#. 创建正确的标签
 
-   Note the slightly different syntax depending on
-   which product needs the side-build target and the comma delimited list of
-   architectures based on the information from a previous step.
+   请注意，语法略有不同，这取决于哪种产品需要侧边构建目标和基于前一步信息的逗号分隔的体系结构列表。
 
 
    .. admonition:: EPEL6
@@ -105,7 +91,7 @@ Create Side Build Target
 
          $ koji add-tag f28-kde --parent=f28-build --arches=armv7hl,i686,x86_64,aarch64,ppc64,ppc64le,s390x
 
-#. Create the target.
+#. 创建目标
 
    .. admonition:: EPEL6
 
@@ -125,8 +111,7 @@ Create Side Build Target
 
          $ koji add-target f28-kde f28-kde
 
-#. Find the taskID for the newRepo task associated with the newly created
-   target.
+#. 查找与新创建的目标相关联的newRepo任务的taskID
 
    ::
 
@@ -135,7 +120,7 @@ Create Side Build Target
       25101143 15   kojira               OPEN     noarch     newRepo (f28-kde)
 
 
-#. Ensure the newRepo task is being run across all architectures.
+#. 确保newRepo任务正在所有体系结构中运行
 
    ::
 
@@ -151,70 +136,58 @@ Create Side Build Target
       25101148 createrepo (x86_64): open (buildvm-aarch64-21.arm.fedoraproject.org)
       
 
-#. Request Package Auto-Signing for New Tag
+#. 请求新标签的包自动签名
 
-   File a ticket in `pagure infrastructure`_ requesting the new tag be enabled
-   for package auto-signing.
+   在 `pagure基础设施`_ 中提交一个票据请求为软件包自动签名启用新标签。
 
-#. Update the Pagure Issue
+#. 更新Pagure发布
 
-   Update the issue according to the following template which assumes a side
-   target was made for KDE under Fedora 28.
-   *TAG_NAME* has been created:
+   根据以下模板更新发布，该模板假设在Fedora 28下为KDE创建了一个侧边目标。 *TAG_NAME* 已创建：
 
       $ koji add-tag f28-kde --parent=f28-build --arches=armv7hl,i686,x86_64,aarch64,ppc64,ppc64le,s390x
 
       $ koji add-target f28-kde f28-kde
 
-      You can do builds with:
+      您可以使用以下内容进行构建：
       
       $ fedpkg build --target=f28-kde
 
-      Let us know when you are done and we will move all the builds into
-      f28.
+      完成后请告知我们，我们将把所有构建转移到f28中。
 
 
-Cleanup
-=======
-Fedora Release Engineering is responsible for merging the packages from the
-side-build target and tag back into the main tag. The requestor will update
-the original ticket when ready for the procedure outlined below.
+清理
+====
+Fedora Release Engineering负责将侧边构建目标和标签中的包合并回主标签中。申请者将在准备好进行以下程序时更新原始票证。
 
-#. Remove the target
+#. 移除目标
 
    ::
 
       $ koji remove-target <SIDE_TAG_NAME>
 
-#. Merge side build back to main target.
+#. 合并侧边构建至主目标
 
-   Get the latest checkout from `Fedora Release Engineering Repository`_
-   and run the `mass-tag.py` from the scripts directory.
+   从 `Fedora Release Engineering Repository`_ 获取最新的checkout并从脚本目录运行 `mass-tag.py` 。
 
    ::
 
       $ ./mass-tag.py --source <SIDE_TAG_NAME> --target <MAIN_TAG_NAME> > mass_tag.txt
 
    .. note::
-      The *MAIN_TAG_NAME* for Fedora is typically the pending subtag, e.g.
-      ``f28-pending`` when bodhi is not managing updates. After bodhi is
-      enabled and managing updates then merge into ``f28-updates-candidate``.
+      Fedora的 *MAIN_TAG_NAME* 通常是挂起的子标签，例如当bodhi不管理更新时的 ``f28-pending`` 。启用bodhi并管理更新之后合并到 ``f28-updates-candidate`` 中。
 
-#. Paste Output to the Original Ticket
+#. 将输出粘贴到原始票证中
 
-   Paste the output from mass-tag.py into the pagure/releng ticket to show
-   what packages were merged and what packages need rebuilding for those who
-   work on the buildroot.
+   将mass-tag.py的输出粘贴到pagure/reling票证中，以显示哪些包被合并，以及哪些包需要为那些在buildroot上工作的人重建。
 
-Tags are **never** removed.
+标签 **永远** 不会被删除。
 
-Consider Before Running
-=======================
+运行之前请考虑
+==============
 
-* Is the amount of work to be done worth the cost of newRepo tasks.
-* If there is only a small number of packages  overrides may be better.
-* Is there a mass-rebuild going on? no side tags are allowed while a mass
-  rebuild is underway
+* 要做的工作量是否值得newRepo任务的成本。
+* 如果只有少量的包，重写可能会更好。
+* 是否正在进行大规模重建？大规模重建过程中不允许使用侧边标签
 
-.. _pagure infrastructure: https://pagure.io/fedora-infrastructure/issues
+.. _pagure基础设施: https://pagure.io/fedora-infrastructure/issues
 .. _Fedora Release Engineering Repository: https://pagure.io/releng/

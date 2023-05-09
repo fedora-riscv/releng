@@ -2,23 +2,23 @@
 
 
 ===========================
-Bodhi Activation Point
+Bodhi 激活点
 ===========================
 
-Description
+说明
 ===========
 .. Put a description of the task here.
 
-Bodhi must be activated after two weeks of `Mass Branching`_ at 14:00 UTC.
+Bodhi必须在14:00 UTC的 `Mass Branching`_ 两周后激活。
 
-Action
+操作
 ======
 .. Describe the action and provide examples
 
-Making koji changes
+koji 变更
 ^^^^^^^^^^^^^^^^^^^
 
-Make the following koji tag changes
+对koji标签作出以下更改
 
 ::
 
@@ -32,37 +32,36 @@ Make the following koji tag changes
   $ koji add-tag-inheritance f33-override f33-updates
   $ koji edit-tag --perm=admin f33
 
-Update bodhi rpm release
+更新 bodhi rpm 版本
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Set the bodhi rpm to release to not to automatically create the update and also bodhi knows to compose the updates
+将 bodhi rpm 设置为release而不是自动创建更新，并且Bodhi知道如何组合更新。
 
 ::
 
   $ bodhi releases edit --name "F33" --stable-tag f33-updates --testing-repository updates-testing --package-manager dnf --no-create-automatic-updates --composed-by-bodhi
 
-Add the modular release
+添加 modular 版本
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Run the following command on your own workstation to add the modular release
+在您自己的工作站上运行以下命令以添加 modular 版本
 
 ::
 
   $ bodhi releases create --name F33M --long-name "Fedora 33 Modular" --id-prefix FEDORA-MODULAR --version 33 --branch f33m --dist-tag f33-modular --stable-tag f33-modular-updates --testing-tag f33-modular-updates-testing --candidate-tag f33-modular-updates-candidate --pending-stable-tag f33-modular-updates-pending --pending-testing-tag f33-modular-updates-testing-pending --pending-signing-tag f33-modular-signing-pending --override-tag f33-modular-override --state pending --user mohanboddu
 
-.. warning:: Due to a `bug <https://github.com/fedora-infra/bodhi/issues/2177>`_ in Bodhi, it is
-    critical that Bodhi processes be restarted any time ``bodhi releases create`` or
-    ``bodhi releases edit`` are used.
+.. warning:: 由于Bodhi中的一个 `bug <https://github.com/fedora-infra/bodhi/issues/2177>`_ ，在使用 ``bodhi releases create`` 或
+    ``bodhi releases edit`` 的任何时候都必须重新启动Bodhi进程
 
-.. note:: Add the container and flatpak releases if they weren't already added to bodhi
+.. note:: 如果容器和flatpak版本尚未添加到bodhi中，请添加它们
 
-Ansible Changes
+Ansible 变更
 ===============
 
-Update vars
+更新变量
 ^^^^^^^^^^^
 
-Update the *FedoraBranchedBodhi* and *RelEngFrozen* vars in infra ansible
+更新infra ansible中的 *FedoraBranchedBodhi* 和 *RelEngFrozen* 变量
 
 ::
 
@@ -84,11 +83,11 @@ Update the *FedoraBranchedBodhi* and *RelEngFrozen* vars in infra ansible
   -RelEngFrozen: False
   +RelEngFrozen: True
 
-Update Greenwave Policy
+更新 Greenwave 策略
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Now edit the Greenwave policy to configure a policy for the new release by editing
-``roles/openshift-apps/greenwave/templates/configmap.yml`` in the Infrastructure Ansible repository.
+现在编辑 Greenwave 策略，通过在Infrastructure Ansible存储库中编辑
+``roles/openshift-apps/greenwave/templates/configmap.yml`` 来为新版本配置策略。
 
 :: 
 
@@ -133,10 +132,10 @@ Now edit the Greenwave policy to configure a policy for the new release by editi
     - fedora-31
     - fedora-30
 
-Update Robosignatory Config
+更新 Robosignatory 配置
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Update the robosignatory config in the infra ansible repo as following
+如下更新infra ansible存储库中的 robosignatory 配置
 
 ::
 
@@ -156,7 +155,7 @@ Update the robosignatory config in the infra ansible repo as following
               keyid = "{{ (env == 'production')|ternary('9570ff31', 'd300e724') }}"
               type = "modular"
 
-Run the playbooks
+运行 playbook
 ^^^^^^^^^^^^^^^^^
 
 ::
@@ -167,16 +166,14 @@ Run the playbooks
     $ rbac-playbook groups/releng-compose.yml
     $ rbac-playbook manual/autosign.yml
 
-Greenwave runs in OpenShift (as implied by the playbook paths), and so the change will not be live
-right away when the playbook finishes. You can monitor
-https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/policies to wait for the new
-policy to appear (it should take a few minutes).
+Greenwave 在 OpenShift 中运行(正如playbook路径所暗示的)，因此当playbook完成时，更改不会立即生效。您可以监视
+https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/policies 以等待新策略出现 (这应该需要几分钟时间)。
 
-Restart bodhi services
+重新启动bodhi服务
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Restart bodhi services to understand the bodhi new release on bodhi-backend01
-(Look at warning in https://docs.pagure.org/releng/sop_bodhi_activation.html#action and the bug is https://github.com/fedora-infra/bodhi/issues/2177)
+重新启动 bodhi 服务以了解 bodhi-backend01 上的bodhi新版本
+(查看 https://docs.pagure.org/releng/sop_bodhi_activation.html#action 中的警告，错误为 https://github.com/fedora-infra/bodhi/issues/2177)
 
 ::
 
@@ -184,11 +181,11 @@ Restart bodhi services to understand the bodhi new release on bodhi-backend01
   $ sudo systemctl restart fm-consumer@config
   $ sudo systemctl restart koji-sync-listener
 
-Send Announcement
+发送公告
 ^^^^^^^^^^^^^^^^^
 
-Email **devel-announce** and **test-announce** lists about Bodhi Activation. 
-Please find the body of the email below:
+关于Bodhi激活的电子邮件 **devel-announce** 和 **test-announce** 列表。
+请在下面找到电子邮件的正文：
 
 ::
 
@@ -214,33 +211,31 @@ Please find the body of the email below:
   [7] https://fedoraproject.org/wiki/ReleaseEngineering/StringFreezePolicy 
   [8] https://fedoraproject.org/wiki/Changes/Policy
 
-Verification
+验证
 ============
 .. Provide a method to verify that the action completed as expected (success)
 
-Compare koji tagging structure with older release
+对比 koji 标签结构与旧版本
 
 ::
 
   $ koji list-tag-inheritance <branched_release> --reverse
   $ koji list-tag-inheritance <latest_stable_release> --reverse
 
-Compare the bodhi release with older release
+对比 bodhi 版本与旧版本
 
 ::
 
   $ bodhi releases info <branched_release>
   $ bodhi releases info <latest_stable_release>
 
-Check for other variants like modular, container and flatpaks
+检查其他变体，如 modular, 容器和 flatpaks
 
-Consider Before Running
+运行之前请考虑
 =======================
 .. Create a list of things to keep in mind when performing action.
 
-No considerations at this time. The docs git repository is simply a static
-html hosting space and we can just re-render the docs and push to it again if
-necessary.
+此时没有其他考虑。文档git存储库仅是静态HTML托管空间，如果有必要，我们可以重新呈现文档并再次推送到存储库。
 
 .. _Mass Branching: https://docs.pagure.org/releng/sop_mass_branching.html 
 

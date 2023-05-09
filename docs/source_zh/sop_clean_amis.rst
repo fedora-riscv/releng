@@ -1,67 +1,46 @@
 .. SPDX-License-Identifier:    CC-BY-SA-3.0
 
 ==================
-Clean AMIs Process
+清理AMIs过程
 ==================
 
-Description
+说明
 ===========
 
-The Fedora AMIs are uploaded on a daily basis to Amazon Web Services. Over time
-the number of AMIs piles up and have to be removed manually. Manual removal comes
-with it's own set of issues where missing to delete the AMIs is a viable issue.
+Fedora AMI每天都会上传到亚马逊网络服务。随着时间的推移，AMI的数量不断增加，必须手动移除。手动删除会带来一系列问题，其中错过删除AMI是一个可能出现的问题。
 
-The goal of the script is to automate the process and continue regular removal of
-the AMIs. The report of the script is pushed to a `Pagure repo`_
+脚本的目标是使过程自动化，并继续定期删除AMI。脚本的报告被推送到 `Pagure repo`_ 。
 
-Action
+操作
 ======
 
-There is a script in the `Fedora RelEng repo`_ named ``clean-amis.py`` under
-the ``scripts`` directory.
+`Fedora RelEng repo`_ 中的 ``scripts`` 目录下有一个名为 ``clean-amis.py`` 的脚本。
 
-The script runs as a cron job within the Fedora Infrastructure to delete
-the old AMIs. The permission of the selected AMIs are changed to private.
-This is to make sure that if someone from the community raises an issue
-we have the option to get the AMI back to public.
-After 10 days, if no complaints are raised the AMIs are deleted permanently.
+该脚本在Fedora基础设施中作为定时作业运行，以删除旧的AMI。所选AMI的权限将更改为私有权限。这是为了确保如果社区中有人提出问题，我们可以选择将AMI重新公开。10天后，如果没有提出任何投诉，AMI将被永久删除。
 
-The complete process can be divided in couple of parts:
+整个过程可以分为几个部分：
 
-- Fetching the data from datagrepper.
-  Based on the `--days` param, the script starts fetching the fedmsg messages
-  from datagrepper for the specified timeframe i.e. for lasts `n` days, where
-  `n` is the value of `--days` param. The queried fedmsg
-  topic `fedimg.image.upload`.
+- 从datagrepper获取数据。基于 `--days` 参数，脚本开始从datagrepper获取指定时间段的fedmsg消息，即持续n天，其中n是 `--days` 参数的值。查询的fedmsg主题 `fedimg.image.upload`。
 
-- Selection of the AMIs:
-  After the AMIs are parsed from datagrepper. The AMIs are filtered to remove
-  Beta, Two-week Atomic Host and GA released AMIs.
-  Composes with `compose_type` set to `nightly` are picked up for deletion.
-  Composes which contain date in the `compose label` are also picked up for
-  deletion.
-  GA composes also have the compose_type set to production. So to distinguish
-  then we filter them if the compose_label have date in them. The GA
-  composes dont have date whereas they have the version in format of X.Y
+- AMI的选择：在从datagrepper解析AMI之后。对AMI进行过滤，以去除Beta、Two-week Atomic Host和GA发布的AMI。 `compose_type` 设置为 `nightly` 的compose将被选中以进行删除。
+  在 `compose label` 中包含日期的compose也会被选中以进行删除。
+  GA composes还将compose_type设置为production。因此，为了区分，如果compose_label中有日期，我们会对它们进行过滤。GAcomposes没有日期，而他们有X.Y格式的版本号。
 
-- Updated permissions of AMIs
-  The permissions of the selected AMIs are changed to private.
+- 更新AMI的权限。选定AMI的权限更改为私有权限。
 
-- Deletion of AMIs
-  After 10 days, the private AMIs are deleted.
+- 删除AMI。
+  10天后，将删除私有AMI。
 
-In order to change the permissions of the AMIs use the command given below, add
-`--dry-run` argument test the command works. Adding `--dry-run` argument will
-print the AMIs to console.
+为了更改AMI的权限，请使用下面给出的命令，添加
+`--dry-run` 参数以测试该命令是否有效。添加 `--dry-run` 参数将把AMI打印到控制台。
 
 ::
 
    AWS_ACCESS_KEY={{ ec2_image_delete_access_key_id }} AWS_SECRET_ACCESS_KEY={{ ec2_image_delete_access_key }} PAGURE_ACCESS_TOKEN={{ ami_purge_report_api_key }} ./clean-amis.py --change-perms --days 7 --permswaitperiod 5
 
 
-In order to delete the AMIs whose launch permissions have been removed, add
-`--dry-run` argument test the command works. Adding `--dry-run` argument will
-print the AMIs to console.
+为了删除其启动权限已被删除的AMI，请添加
+`--dry-run` 参数以测试命令是否有效。添加 `--dry-run` 参数将把AMI打印到控制台。
 
 ::
 

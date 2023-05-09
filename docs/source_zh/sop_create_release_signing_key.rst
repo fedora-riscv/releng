@@ -2,25 +2,19 @@
 
 
 ==========================
-Create Release Signing Key
+创建发布签名密钥
 ==========================
 
-Description
+说明
 ===========
-At the beginning of each release under development a new package signing key
-is created for it.  This key is used to prove the authenticity of packages
-built by Fedora and distributed by Fedora.  This key will be used to sign
-all packages for the public test and final releases.
+在每个正在开发的版本开始时，都会为其创建一个新的包签名密钥。该密钥用于证明Fedora构建和分发的包的真实性。此密钥将用于为公开测试和最终发布的所有包签名。
 
-Action
+操作
 ======
 
 Sigul
 -----
-Sigul is the signing server which holds our keys.  In order to make use of a
-new key, the key will have to be created and access to the key will have to be
-granted.  The ``new-key``, ``grant-key-access``, and ``change-passphrase``
-commands are used.
+Sigul是保存我们密钥的签名服务器。为了使用新密钥，必须创建密钥，并且必须授予对该密钥的访问权限。使用 ``new-key`` , ``grant-key-access`` ，和 ``change-passphrase`` 命令。
 
 ::
 
@@ -57,11 +51,10 @@ commands are used.
     options:
       -h, --help  show this help message and exit
 
-For example if we wanted to create the Fedora 23 signing key, we would do the
-following:
+例如，如果我们想创建Fedora 23签名密钥，我们将执行以下操作：
 
-#. Log into a system configured to run sigul client.
-#. Create the key using a strong passphrase when prompted
+#. 登录到配置为运行sigul客户端的系统。
+#. 在提示时使用强密码短语创建密钥
 
    ::
 
@@ -70,7 +63,7 @@ following:
                 --gnupg-name-comment 23 \
                 --gnupg-name-email fedora-23-primary@fedoraproject.org fedora-23
 
-   For EPEL
+   对于EPEL
 
    ::
 
@@ -79,78 +72,68 @@ following:
                 --gnupg-name-comment 7 \
                 --gnupg-name-email epel@fedoraproject.org epel-7
 
-#. Wait a while for entropy.  This can take several minutes.
-#. For Fedora, also create the IMA signing key
+#. 等一下熵。这可能需要几分钟时间。
+#. 对于Fedora，还要创建IMA签名密钥
 
    ::
 
         $ sigul new-key --key-admin ausil --key-type ECC fedora-23-ima
 
-#. Grant key access to Fedora Account holders who will be signing packages and
-   protect it with a temporary a passphrase.  For example, ``CHANGEME.``. Do the
-   same with the -ima key for Fedora.
+#. 将密钥访问权限授予将对包进行签名的Fedora帐户持有者，并使用临时密码短语对其进行保护。例如， ``CHANGEME.``。对Fedora的-ima密钥也执行同样的操作。
 
    ::
 
         $ sigul grant-key-access fedora-23 kevin
 
 .. note::
-    **IMPORTANT:** Grant the access to autopen user as it's required for robosignatory autosigning and then restart robosignatory service
+    **重要事项：** 授予自动签名用户访问权限，因为这是自动签名所需的，然后重新启动自动签名服务
 
-#. Provide the key name and temporary passphrase to signers. If they don't
-   respond, revoke access until they are ready to change their passphrase.
-   Signers can change their passphrase using the ``change-passphrase`` command:
+#. 向签名者提供密钥名称和临时密码短语。如果他们没有响应，则撤销访问权限，直到他们准备好更改密码短语为止。签名者可以使用 ``change-passphrase`` 命令更改他们的密码：
 
    ::
 
         $ sigul change-passphrase fedora-23
 
-#. When your sigul cert expires, you will need to run:
+#. 当您的sigul证书到期时，您将需要运行：
 
    ::
 
         certutil -d ~/.sigul -D -n sigul-client-cert
 
-   to remove the old cert, then
+   要删除旧证书，则
 
    ::
 
         sigul_setup_client
 
-   to add a new one.
+   来添加一个新的。
 
 fedora-repos
 ------------
-The fedora-repos package houses a copy of the public key information.  This
-is used by rpm to verify the signature on files encountered.  Currently the
-fedora-repos package has a single key file named after the version of the
-key and the arch the key is for.  To continue our example, the file would be
-named ``RPM-GPG-KEY-fedora-27-primary`` which is the primary arch key for
-Fedora 27.  To create this file, use the ``get-public-key`` command from sigul:
+fedora-repos软件包中包含一份公钥信息。rpm使用它来验证遇到的文件上的签名。目前，fedora-repos软件包有一个单独的密钥文件，以密钥的版本和密钥所在的arch命名。
+为了继续我们的示例，该文件将命名为 ``RPM-GPG-KEY-fedora-27-primary`` ，这是Fedora 27的主要arch密钥。要创建此文件，请使用sigul中的 ``get-public-key`` 命令：
 
 ::
 
     $ sigul get-public-key fedora-27 > RPM-GPG-KEY-fedora-27-primary
 
-Add this file to the repo and update the archmap file for the new release.
+将此文件添加到repo中，并为新版本更新archmap文件。
 
 ::
 
     $ git add RPM-GPG-KEY-fedora-27-primary
 
-Then make a new fedora-repos build for rawhide (``FIXME: this should be its own SOP``)
+然后为rawhide (``FIXME: this should be its own SOP``)制作一个新的fedora-repos构建
 
 getfedora.org
 -------------
-getfedora.org/keys lists information about all of our keys.  We need to
-let the websites team know we have created a new key so that they can add it to the
-list.
+getfedora.org/keys列出了关于我们所有密钥的信息。我们需要让网站团队知道我们已经创建了一个新的密钥，以便他们可以将其添加到列表中。
 
-We do this by filing an issues in their pagure instance
+我们通过在他们的pagure实例
 https://pagure.io/fedora-websites/
-we should point them at this SOP
+中提交问题来做到这一点，我们应该将他们指向这个SOP
 
-Web team SOP
+网络团队SOP
 ^^^^^^^^^^^^
 
 ::
@@ -173,24 +156,18 @@ Web team SOP
 
 sigulsign_unsigned
 ------------------
-``sigulsign_unsigned.py`` is the script Release Engineers use to sign content in
-koji.  This script has a hardcoded list of keys and aliases to the keys that
-needs to be updated when we create new keys.
+``sigulsign_unsigned.py`` 是发布工程师用来在koji中对内容签名的脚本。这个脚本有一个硬编码的密钥和密钥别名列表，在创建新密钥时需要更新这些密钥和别名。
 
-Add the key details to the ``KEYS`` dictionary near the top of the
-``sigulsign_unsigned.py`` script.  It lives in Release Engineering's git repo
-at ``ssh://git@pagure.io/releng.git`` in the ``scripts`` directory. You
-will need to know the key ID to insert the correct information:
+将关键细节添加到 ``sigulsign_unsigned.py`` 脚本顶部附近的 ``KEYS`` 字典中。它在位于 ``ssh://git@pagure.io/releng.git`` 的Release Engineering git仓库中的 ``scripts`` 目录中。
+您需要知道密钥ID才能插入正确的信息：
 
 ::
 
     $ gpg <key block from sigul get-public-key>
 
-Public Keyservers
+公钥服务器
 -----------------
-We upload the key to the public key servers when we create the keys.  To do
-this, we need to get the ascii key block from sigul, determine the key ID,
-import they key into our local keyring, and then upload it to the key servers.
+我们在创建密钥时将密钥上传到公钥服务器。要做到这一点，我们需要从sigul获取ascii密钥块，确定密钥ID，将他们的密钥导入我们的本地密钥环，然后将其上传到密钥服务器。
 
 ::
 
@@ -201,8 +178,7 @@ import they key into our local keyring, and then upload it to the key servers.
 
 pungi-fedora
 ------------
-The nightly compose configs come from the pungi-fedora project on https://pagure.io
-We need to create a pull request to pull in the new key.
+夜间compose配置来自 https://pagure.io 上的pungi-fedora项目。我们需要创建一个pull request来拉取新密钥。
 
 ::
 
@@ -217,15 +193,10 @@ We need to create a pull request to pull in the new key.
 
 Koji
 ----
-Koji has a garbage collection utility that will find builds that meet criteria
-to be removed to save space.  Part of that criteria has to do with whether or
-not the build has been signed with a key.  If the collection utility doesn't
-know about a key it will ignore the build.  Thus as we create new keys we need
-to inform the utility of these keys or else builds can pile up.  The
-configuration for the garbage collection lives within ansible.
+Koji有一个垃圾收集程序，它可以找到符合删除标准的构建，以节省空间。部分标准与构建是否已使用密钥进行签名有关。
+如果收集程序不知道某个密钥，它将忽略构建。因此，当我们创建新的密钥时，我们需要通知这些密钥的实用性，否则构建可能会堆积起来。垃圾收集程序的配置位于ansible中。
 
-On a clone of the infrastructure ansible git repo edit the
-roles/koji_hub/templates/koji-gc.conf.j2 file:
+在基础设施ansible git仓库的克隆上，编辑roles/koji_hub/templates/koji-gc.conf.j2文件：
 
 ::
 
@@ -258,23 +229,17 @@ roles/koji_hub/templates/koji-gc.conf.j2 file:
          sig fedora-epel-6 && age < 12 weeks :: keep
          sig fedora-epel-7 && age < 12 weeks :: keep
 
-In this case the fedora-epel key was added to the list of key aliases, then
-referenced in the list of unprotected_keys, and finally a policy was created
-for how long to keep builds signed with this key.
+在这种情况下，fedora-epel密钥被添加到密钥别名列表中，然后在未受保护的_keys列表中被引用，最后创建了一个策略，用于保持使用该密钥签名的构建的时间。
 
-Once you've made your change commit and push.  The buildsystem will pick up
-this change the next time puppet refreshes.
+一旦你做出了commit和push改动。构建系统将在下次刷新时接受此更改。
 
-Verification
+验证
 ============
-We can verify that the key was created in sigul, the correct users have access
-to the key, the key was added to the fedora-release package, that the website
-was updated with the right key, that sigulsign_unsigned was properly updated,
-and that the key was successfully updated to the public key servers.
+我们可以验证该密钥是在sigul中创建的，正确的用户可以访问该密钥，该密钥已添加到fedora发布包中，网站已使用正确的密钥更新，sigulsign_unsigned已正确更新，并且该密钥已成功更新到公钥服务器。
 
 sigul
 -----
-Use the ``list-keys`` command to verify that the key was indeed added to sigul:
+使用 ``list-keys`` 命令验证密钥是否确实添加到了sigul中：
 
 ::
 
@@ -286,10 +251,9 @@ Use the ``list-keys`` command to verify that the key was indeed added to sigul:
     fedora-12
     fedora-13
 
-Our new key should be on the list.  This command expects **your**
-administrative password.
+我们的新钥匙应该在名单上。此命令需要 **your** 管理密码。
 
-Use the ``list-key-users`` command to verify all the signers have access:
+使用 ``list-key-users`` 命令验证所有签名者是否具有访问权限：
 
 ::
 
@@ -298,12 +262,11 @@ Use the ``list-key-users`` command to verify all the signers have access:
         jkeating
         jwboyer
 
-This command expects **your** key passphrase for the key in question.
+此命令需要 **your** 密钥短语作为有问题的密钥。
 
 fedora-release
 --------------
-To verify that the key was added to this package correctly, download the latest
-build from koji and run rpm2cpio on it, then run gpg on the key file:
+要验证密钥是否已正确添加到此软件包，请从koji下载最新版本并在其上运行rpm2cpio，然后在密钥文件上运行gpg：
 
 ::
 
@@ -488,28 +451,26 @@ build from koji and run rpm2cpio on it, then run gpg on the key file:
     uid           Fedora 27 (27) <fedora-27@fedoraproject.org>
         pub  4096R/E8E40FDE 2010-01-19 Fedora (13) <fedora@fedoraproject.org>
 
-You may wish to do this in a tempoary directory to make cleaning it up easy.
+您可能希望在临时目录中执行此操作，以便轻松清理。
 
 getfedora.org
 -----------------
-One can simply browse to https://getfedora.org/keys to verify that the key
-has been uploaded.
+您可以简单地浏览到 https://getfedora.org/keys 以验证密钥是否已上传。
 
 sigulsign_unsigned
 ------------------
-The best way to test whether or not the key has been added correctly is to
-sign a package using the key, like our newly built fedora-repos package.
+测试密钥添加是否正确的最佳方法是使用密钥对包进行签名，就像我们新建的fedora repo包一样。
 
 ::
 
     $ ./sigulsign_unsigned.py fedora-13 fedora-release-13-0.3
     Passphrase for fedora-13:
 
-The command should exit cleanly.
+命令应该干净地退出。
 
-Public key servers
+公钥服务器
 ------------------
-One can use the <code>search-keys</code> command from gpg to locate the key on the public server:
+可以使用gpg中的 <code>search-keys</code> 命令在公共服务器上查找密钥：
 
 ::
 
@@ -521,12 +482,12 @@ One can use the <code>search-keys</code> command from gpg to locate the key on t
 
 Koji
 ----
-Log into koji02.phx2.fedoraproject.org by way of bastion.fedoraproject.org.
+通过bastion.fedoraproject.org登录到koji02.phx2.fedoraproject.org。
 
-Verify that ``/etc/koji-gc/koji-gc.conf`` has the new key in it.
+验证 ``/etc/koji-gc/koji-gc.conf`` 中是否有新密钥。
 
-Consider Before Running
+运行之前请考虑
 =======================
 
-Nothing at this time.
+目前什么都没有。
 

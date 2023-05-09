@@ -1,80 +1,48 @@
 .. SPDX-License-Identifier:    CC-BY-SA-3.0
 
 ================================
-Adjust EOLs and SLs on branches
+调整分支上的EOL和SL
 ================================
 
-.. note:: This SOP is about adjust EOLs and SLs on so-called "arbitrary"
-   branches.  Unretiring a package *also* involves changing the EOL on a
-   branch, but you won't find information on that here.  See the unretirement
-   SOP for more info there.
+.. note:: 本SOP是关于调整所谓“任意”分支上的EOL和SL。撤消包 *还* 需要更改分支上的EOL，但您在此处找不到有关这方面的信息。有关更多信息请参阅取消退役SOP。
 
-Description
+说明
 ===========
 
-With "arbitrary branching", modules can include streams for an RPM that are not
-directly associated with a Fedora release.  Modules *themselves* can have
-branches not directly associated with a Fedora release.  For instance, our
-`python3` module has a `3.6` branch.  The SLs on that module branch all go EOL
-on 2018-06-01. **@torsava**, one of the `python3 module maintainers
-<https://src.fedoraproject.org/modules/python3k>`_, may request that this
-branch have its EOL extended until 2018-12-01.
+通过“任意分支”，模块可以包含与Fedora版本没有直接关联的RPM流。模块 *本身* 可以具有与Fedora版本没有直接关联的分支。例如，我们的
+`python3` 模块有一个 `3.6` 分支。该模块分支上的SL将于2018-06-01全部下线。 **@torsava** ， `python3模块维护者
+<https://src.fedoraproject.org/modules/python3k>`_ 之一, 可能会请求将该分支的EOL扩展到2018-12-01。
 
-When a maintainer wants to change EOL on a rpm, module, or container branch,
-they need to file a `releng ticket <https://pagure.io/releng/issues>`_
-requesting it.  They have no way to do it on their own.  Releng must review the
-request, and then process it.
+当维护人员想要更改rpm、模块或容器分支的EOL时，他们需要提交一个 `releng ticket <https://pagure.io/releng/issues>`_
+来请求。他们没有办法独自完成。Releng必须审查请求，然后进行处理。
 
-Policy
+政策
 ======
 
-Here are some *policy* guidelines to help you (releng) make decisions about these tickets
+以下是一些 *政策* 指南，可以帮助您（releng）对这些工单做出决定
 
-- Clarify.  Does the maintainer want the EOL lengthed for an rpm?  Or for a
-  module?  Or for a container?  If they just say "increase the EOL for `httpd`,
-  please", it is not clear which thing they're really talking about.
+- 澄清维修人员是否希望EOL延长一转/分？还是模块？还是集装箱？如果他们只是说“请增加 `httpd` 的EOL”，那么他们到底在说什么还不清楚。
 
-- Expect that maintainers generally know *when* their EOL should go until.  You
-  don't need to go and research upstream mailing lists to figure out what makes
-  sense.  Politely asking the maintainer for some background information on
-  *why* the EOL should be changed is good to record in the ticket for
-  posterity.  Bonus points if they can provide references to upstream
-  discussions that make the request make sense.
+- 通常来说维护者会知道他们的软件包 *何时* 应该结束生命周期。你不需要去研究上游邮件列表以确定哪个时间点最合适。
+  礼貌地向维护者询问更改 EOL 的背景信息，并将记录保存在工单中，是好的做法，这样对于后人来说也很有价值。如果维护者能够提供上游讨论的参考资料，以便更好地理解请求的合理性，则更加优秀。
 
-- EOLs should *almost always* only be extended into the future.  Shortening an
-  EOL should only be done with care.  There might be modules out there that
-  depend on an rpm branch with a conflicting EOL of their own.  If a *shorter*
-  EOL is requested for an rpm branch, you should verify that no modules that
-  depend on it have a conflicting EOL.  If a *shorter* EOL is requested for a
-  module branch, you should verify that no other modules require it that have a
-  conflicting EOL.
+- EOL *几乎总是* 只能向将来延长，缩短EOL应该谨慎进行。可能存在依赖于其自己 EOL 产生冲突的 rpm 分支的模块。如果要请求缩短 rpm 分支 EOL，应验证没有依赖它的有冲突 EOL 的模块。如果要请求缩短模块分支的EOL，您应验证没有其他模块需要它们并且有冲突的EOL。
 
-- EOLs should not be arbitrary dates.  At Flock 2017, we `decided on using two
-  standard dates <https://pagure.io/fedrepo_req/issue/100>`_ for EOLs to help
-  make things less crazy.  You should use December 1st or June 1st of any given
-  year for all EOL dates.
+- EOL不应为任意日期。在Flock 2017上，我们 `决定使用两个标准的EOL日期 <https://pagure.io/fedrepo_req/issue/100>`_ 以使事情变得更合理。您应该使用任何一年的12月1日或6月1日作为所有EOL日期。
 
-- Many branches will *often* have multiple SLs all with the *same* EOL.  I.e.,
-  the branch is fully supported until such time as it is totally retired.
-  There is no gray area.  However, it is *possible* to have branches with
-  piecemeal SLs and EOLs.  A branch may support `bug_fixes` until time X but
-  will further support `security_fixes` until time Y.  This is nicely flexible
-  for the maintainers, but also introduces complexity.  If a maintainer
-  requests piecemeal SL EOLs, ask to make sure they really want this kind of
-  complexity.
+- 许多分支 *通常* 会有多个SL，这些SL在EOL方面都是 *一样* 的。 即，该分支在完全退役之前都得到了充分支持，没有灰色地带。但是， *可能* 会有分支具有零散的SL和EOL。一个分支可能支持 `bug_fixes` 直到时间 X，但将进一步支持 `security_fixes` 直到时间 Y。
+  这对于维护者来说非常灵活，但也引入了复杂性。如果维护者请求零散的SL EOL，请询问以确保他们确实需要这种复杂性。
 
-Action
+操作
 ======
 
-We have a script in the releng repo::
+我们在 releng repo中有一个脚本::
 
     $ PYTHONPATH=scripts/pdc python3 scripts/pdc/adjust-eol.py -h
 
-.. note:: Run it with `python3`.  It imports `fedrepo_req` which is python3 by default.
-   Installing `python2` dependencies should be possible when needed.
+.. note:: 和 `python3`一起运行。它默认情况下导入python3的 `fedrepo_req`。需要时可以安装python2依赖项。
 
-Here is an example of using it to increase the SL of the `3.6` branch of the
-`python3` module (not the rpm branch)::
+以下是使用它来增加 `python3` 模块 `3.6` 分支 (而不是rpm分支)的SL的示例::
 
     $ PYTHONPATH=scripts/pdc python3 scripts/pdc/adjust-eol.py \
         fedora \

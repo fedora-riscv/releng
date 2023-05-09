@@ -1,32 +1,29 @@
 .. SPDX-License-Identifier:    CC-BY-SA-3.0
 
 
-===========
-End Of Life
-===========
+================
+生命周期结束
+================
 
-Description
+说明
 ===========
-Each release of Fedora is maintained as laid out in the `maintenance schedule`_.
-At the conclusion of the maintenance period, a Fedora release enters ``end of life`` status.
-This procedure describes the tasks necessary to move a release to that status.
+Fedora的每个版本都按照 `维护时间表`_ 中的规定进行维护。在维护期结束时，Fedora版本进入 ``end of life`` 状态。此过程描述了将发布移动到该状态所需的任务。
 
-Actions
+操作
 =======
 
-Set date
+设置日期
 --------
-* Releng responsibilities:
-    * Follow guidelines of `maintenance schedule`_
-    * Take into account any infrastructure or other supporting project resource
-      contention
-    * Announce the closure of the release to the package maintainers.
+* Releng责任:
+    * 遵循 `维护时间表`_
+    * 考虑任何基础设施或其他支持项目的资源竞争
+    * 向软件包维护人员宣布发布的结束。
 
-Reminder announcement
+提醒公告
 ---------------------
-Send an email to devel@, devel-announce@, test-announce@, announce@ lists as remainder about the release EOL.
+发送电子邮件至 devel@, devel-announce@, test-announce@, announce@ 列出关于发布EOL的剩余部分。
 
-Announcement Content
+公告内容
 ^^^^^^^^^^^^^^^^^^^^
 ::
 
@@ -50,9 +47,9 @@ Announcement Content
   [1]https://fedoraproject.org/wiki/Upgrading?rd=DistributionUpgrades
 
 
-Koji tasks
+Koji任务
 ----------
-* Disable builds by removing targets
+* 通过删除目标禁用构建
 
 ::
 
@@ -65,32 +62,29 @@ Koji tasks
   $ koji remove-target f31-rebuild
   $ koji remote-target <side-targets> #any side targets that are still around
 
-* Purge from disk the signed copies of rpms that are signed with the EOL'd
-  release key.
-  To acheive this, add the release key to **koji_cleanup_signed.py** script in `releng`_ repo and the script on compose-branched01.iad2.fedoraproject.org
+* 从磁盘中清除使用EOL发布密钥签名的rpms的签名副本。要实现这一点，请将发布密钥添加到 `releng`_ 仓库中的 **koji_cleanup_signed.py** 脚本和 compose-branched01.iad2.fedoraproject.org 上的脚本中
 
 ::
 
   ./scripts/koji_cleanup_signed.py
 
-PDC tasks
+PDC任务
 ---------
-* Set PDC **active** value for the release to **False**
+* 将版本的PDC **活跃** 值设置为 **False**
 
 ::
 
   curl -u: -H 'Authorization: Token <token>' -H 'Accept: application/json' -H 'Content-Type:application/json' -X PATCH -d '{"active":"false"}' https://pdc.fedoraproject.org/rest_api/v1/releases/fedora-31/
 
-* Set the EOL dates in PDC for all the components to the release EOL date if they are not already set.
-  Run the following script from `releng`_ repo
+* 如果尚未设置，则在PDC中将所有组件的EOL日期设置为发布EOL日期。从 `releng`_ 仓库运行以下脚本
 
 ::
 
   python scripts/pdc/adjust-eol-all.py <token> f31 2020-11-24
 
-Bodhi tasks
+Bodhi任务
 -----------
-* Run the following bodhi commands to set the releases state to **archived**
+* 运行以下bodhi命令将版本状态设置为 **archived**
 
 ::
 
@@ -100,21 +94,20 @@ Bodhi tasks
   $ bodhi releases edit --name "F31F" --state archived
 
 .. warning::
-  Due to a `bug <https://github.com/fedora-infra/bodhi/issues/2177>`_ in Bodhi, it is
-  critical that Bodhi processes be restarted any time ``bodhi releases create`` or
-  ``bodhi releases edit`` are used.
+  由于Bodhi中的一个 `bug <https://github.com/fedora-infra/bodhi/issues/2177>`_ ，在使用 ``bodhi releases create`` 或
+  ``bodhi releases edit`` 的任何时候都必须重新启动Bodhi进程。
 
-* On bodhi-backend01.iad2.fedoraproject.org, run the following commands
+* 在 bodhi-backend01.iad2.fedoraproject.org 上，运行以下命令
 
 ::
 
   $ sudo systemctl restart fm-consumer@config.service
   $ sudo systemctl restart bodhi-celery.service
 
-Fedora Infra Ansible Changes
+Fedora Infra Ansible 更改
 ----------------------------
 
-* We need to make changes to bodhi, koji, mbs, releng, autosign roles in ansible repo.
+* 我们需要对ansible repo中的bodhi、koji、mbs、reling和autosign角色进行更改。
 
 .. code-block:: diff
 
@@ -395,7 +388,7 @@ Fedora Infra Ansible Changes
               [[consumer_config.koji_instances.primary.tags]]
               from = "f33-rebuild"
 
-* Run the associated playbooks on *batcave*
+* 在 *batcave* 上运行相关的playbook
 
 ::
 
@@ -407,20 +400,20 @@ Fedora Infra Ansible Changes
   $ sudo ansible-playbook /srv/web/infra/ansible/playbooks/manual/autosign.yml
   $ sudo ansible-playbook /srv/web/infra/ansible/playbooks/openshift-apps/bodhi.yml
 
-MBS Platform Retirement
+MBS平台退役
 -----------------------
-* To retire the platform in mbs, run the following command on mbs-backend01.iad2.fedoraproject.org
+* 要在mbs中退役该平台，请在 mbs-backend01.iad2.fedoraproject.org 上运行以下命令
 
 ::
 
   $ sudo mbs-manager retire platform:f31
 
-Final announcement
+最终公告
 ------------------
 
-* Send the final announcement to devel@, devel-announce@, test-announce@, announce@ lists
+* 将最终公告发送到 devel@, devel-announce@, test-announce@, announce@ lists
 
-Announcement content
+公告内容
 ^^^^^^^^^^^^^^^^^^^^
 ::
 
@@ -441,15 +434,14 @@ Announcement content
   [0] https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle#Maintenance_Schedule
   [1] https://docs.fedoraproject.org/en-US/quick-docs/dnf-system-upgrade/
 
-Update eol wiki page
+更新eol wiki页面
 ^^^^^^^^^^^^^^^^^^^^
 
-https://fedoraproject.org/wiki/End_of_life update with release and number of
-days.
+https://fedoraproject.org/wiki/End_of_life 更新版本和天数。
 
-Move the EOL release to archive
+将EOL版本移动到archive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-#. log into to bodhi-backend01 and become root
+#. 登录到 bodhi-backend01 并成为root用户
 
     ::
 
@@ -457,25 +449,25 @@ Move the EOL release to archive
       $ sudo su
       $ su - ftpsync  
   
-#. then change into the releases directory.
+#. 然后切换到版本目录。
 
     ::
 
       $ cd /pub/fedora/linux/releases
 
-#. check to see that the target directory doesnt already exist.
+#. 检查目标目录是否不存在。
 
     ::
 
       $ ls /pub/archive/fedora/linux/releases/
   
-#. do a recursive rsync to update any changes in the trees since the previous copy.
+#. 执行递归rsync以更新自上一次复制以来树中的任何更改。
 
     ::
 
       $ rsync -avAXSHP ./35/ /pub/archive/fedora/linux/releases/35/
   
-#. we now do the updates and updates/testing in similar ways.
+#. 我们现在以类似的方式进行更新和更新/测试。
 
     ::
 
@@ -484,16 +476,16 @@ Move the EOL release to archive
       $ cd testing
       $ rsync -avAXSHP 35/ /pub/archive/fedora/linux/updates/testing/35/
   
-#. do the same with fedora-secondary.
-#. announce to the mirror list this has been done and that in 2 weeks you will move the old trees to archives.
-#. in two weeks, log into mm-backend01 and run the archive script
+#. fedora-secondary也是如此。
+#. 向镜像列表宣布这已经完成，两周后你将把旧的树移到archives。
+#. 两周后，登录 mm-backend01 并运行归档脚本。
 
     ::
 
       $ sudo -u mirrormanager mm2_move-to-archive --originalCategory="Fedora Linux" --archiveCategory="Fedora Archive" --directoryRe='/35/Everything'
 
-#. if there are problems, the postgres DB may have issues and so you need to get a DBA to update the backend to fix items.
-#. wait an hour or so then you can remove the files from the main tree.
+#. 如果出现问题，postgres数据库可能会出现问题，因此您需要找一个DBA来更新后端以修复项目。
+#. 等待一个小时左右，然后可以从主目录树中删除这些文件。
 
     ::
 
@@ -513,13 +505,13 @@ Move the EOL release to archive
       $ ln ../20/README .
 
 
-Consider Before Running
+运行之前请考虑
 =======================
-* Resource contention in infrastructure, such as outages
-* Extenuating circumstances for specific planned updates, if any
-* Send the reminder announcement, if it isn't sent already
+* 基础架构中的资源争用，如停机
+* 特定计划更新的情有可原的情况（如有）
+* 发送提醒公告（如果尚未发送）
 
-.. _maintenance schedule:
+.. _维护时间表:
     https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle#Maintenance_Schedule
 .. _End of Life Process:
     https://fedoraproject.org/wiki/BugZappers/HouseKeeping#End_of_Life_.28EOL.29

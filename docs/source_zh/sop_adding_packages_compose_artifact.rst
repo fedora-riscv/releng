@@ -14,16 +14,16 @@
 首先，提供一些信息，说明这一切是从哪里来的，以及是如何结合在一起的。
 
 有一个“安装树”的概念，它是安装时可用的软件包的集合。这是整个Fedora软件包集合的一个庞大子集，也是终端用户选择从 `Anaconda`_ 安装程序中自定义安装时可以使用的最可能的软件包池。
-它也是 `fedora-kickstarts`_ 用于通过 `pungi`_ 生产compose的各种组件然后生成发布工件的启动文件可以使用的最可能的软件包池。
+它也是 `fedora-kickstarts`_ 用于通过 `pungi`_ 生产compose的各种组件然后生成发布工件的kickstart文件可以使用的最可能的软件包池。
 
 安装树本身是由 `comps`_ 组定义的，因此为了将一个全新的软件包添加到其中一个发布工件中，必须将该包放置在适当的 `comps`_ xml文件中。有关“适当的 `comps`_ _xml文件”的具体定义以及添加新包可能需要什么样的批准或审查的更多信息，请参阅 `本指南`_ 。
 
 操作
 ====
 
-我们需要编辑特定于我们的目标Fedora版本的comps文件。例如，如果我们以Fedora 25为目标，我们将编辑 `comps`_ git存储库中的 ``comps-f25.xml.in`` ，这应该根据 `如何编辑comps过程`_ 进行修改。
+我们需要编辑特定于我们的目标Fedora版本的comps文件。例如，如果我们以Fedora 25为目标，我们将编辑 `comps`_ git仓库中的 ``comps-f25.xml.in`` ，这应该根据 `如何编辑comps过程`_ 进行修改。
 
-如果添加的包是预先存在的comps组的一部分，该comps组已经在目标发布工件的 `fedora-kickstarts`_ 启动文件中使用，那么我们就完成了。
+如果添加的包是预先存在的comps组的一部分，该comps组已经在目标发布工件的 `fedora-kickstarts`_ kickstart文件中使用，那么我们就完成了。
 
 然而，如果添加了一个新的comps组，那么我们需要在相应的 `fedora-kickstarts`_ kickstart文件中包含这一新的comp组，类似于下面的文件。
 
@@ -33,7 +33,7 @@
     @mynewcompsgroup
 
 
-接下来，我们需要告诉 `pungi`_ Variants关于新组的数据以及它与相应 `Variant`_ 的关系。这些信息保存在 `Fedora Pungi Configs`_ `pagure`_ git forge存储库中。需要编辑的文件是 ``variants-fedora.xml`` ，可以在 `web浏览器`_ 中查看。
+接下来，我们需要告诉 `pungi`_ Variants关于新组的数据以及它与相应 `Variant`_ 的关系。这些信息保存在 `Fedora Pungi Configs`_ `pagure`_ git forge仓库中。需要编辑的文件是 ``variants-fedora.xml`` ，可以在 `web浏览器`_ 中查看。
 
 这些都完成就可以了。
 

@@ -2,89 +2,75 @@
 
 
 ============
-Mass Rebuild
+批量重建
 ============
 
-Description
+说明
 ===========
 
-Periodically we do mass rebuilds of rawhide during the development cycle. This
-SOP will outline the steps necessary to do this.
+在开发周期中，我们会定期对rawhide进行批量重建。本SOP将概述执行此操作所需的步骤。
 
-Assumptions
+假设
 ===========
-This assumes that the mass rebuild has already been approved and scheduled via
-release engineering and FESCo. Coordinate with infrastructure as well for any
-needed koji updates.
+假设批量重建已经通过版本工程和FESCo获得批准并安排好了时间。协调基础设施团队以进行必要的Koji更新。
 
-This also assumes that the mass rebuild does not need to be done in dependency
-order, and that the mass rebuild does not involve a ABI change.
+还假设批量重建不需要按依赖顺序进行，并且批量重建不涉及ABI更改。
 
-Considerations
+注意事项
 ==============
 
-* The most important thing to keep in mind while doing a mass rebuild is to
-  communicate clearly what actions are being performed and the status of the
-  rebuild.
-* Check in on scripts frequently to avoid a long stalled command from adding
-  significant delays in completing the rebuild.
-* Check with secondary arches, whether they up-to-date enough with primary,
-  create rebuild tag and target when they are. It will then take care of
-  rebuilds of the arch specific packages in appropriate kojis.
+* 在进行批量重建时，最重要的是要清楚地传达正在执行的操作和重建的状态。
+* 检查脚本的进度频率以避免长时间停滞的命令导致批量重建延迟完成。
+* 与次要架构进行沟通，确认它们是否与主要架构保持足够的更新状态，当次要架构更新时，创建重建标签和目标。然后它将负责在适当的kojis中重建架构特定的软件包。
 
-Actions
+操作
 =======
 
-Preparatory Steps
+准备步骤
 -----------------
-The following steps may be completed in the weeks leading up to the
-scheduled mass rebuild.
+以下步骤可能会在计划的批量重建之前的几周内完成。
 
-#. Create the Mass Rebuild Pagure Issue
+#. 创建批量重建 Pagure Issue
 
-    Create an issue on the `Release Engineering issues page`_ that
-    points at the schedule for the current release.
+    在 `Release Engineering issues page`_ 上创建一个issue，指向当前发布的时间表。
 
-    See `the Fedora 27 mass rebuild issue example`_.
+    参阅 `the Fedora 27 mass rebuild issue example`_.
    
-#. Set up the Mass Rebuild Wiki Page
+#. 设置批量重建的 Wiki 页面
 
-    The mass rebuild wiki page should answer the following questions for
-    maintainers:
+    批量重建wiki页面应为维护人员回答以下问题：
 
-    * Why the mass rebuild is happening
-    * How to opt out of the mass rebuild
+    * 为什么要进行批量重建
+    * 如何选择退出批量重建
 
     .. note::
    
-        See `the Fedora 26 Wiki example`_.
+        请参阅 `the Fedora 26 Wiki example`_.
 
-#. Send out the Mass Rebuild Notice
+#. 发出批量重建通知
 
-    Send out the same information posted on the wiki to the
-    `devel-announce@lists.fedoraproject.org` mailing list.
+    将发布在wiki上的相同信息发送到
+    `devel-announce@lists.fedoraproject.org` 邮件列表。
 
     .. note::
 
-         See `the Fedora 26 e-mail example`_.
+         请参阅 `the Fedora 26 e-mail example`_.
 
-#. Create a Tag to Contain the Mass Rebuild
+#. 创建包含批量重建的标签
 
-    Mass rebuilds require their own tag to contain all related builds. The
-    example assumes we are doing a rebuild for Fedora 26.
+    批量重建需要自己的标签来包含所有相关的构建。该示例假设我们正在为Fedora 26进行重建。
 
     ::
 
         $ koji add-tag f26-rebuild --parent f26
 
-#. Request Package Auto-Signing for New Mass-Rebuild Tag
+#. 为新的批量重建标签请求包自动签名
 
-    File a ticket with `Fedora Infrastructure`_ requesting the new
-    mass-rebuild tag be enabled for package auto-signing.
+    向 `Fedora Infrastructure`_ 提交工单，请求为包自动签名启用新的批量重建标签。
 
-#. Create the Koji Target for the Mass Rebuild
+#. 为批量重建创建Koji标签
 
-    Using the same `f26-rebuild` tag created in the previous example:
+    使用上一示例中相同的 `f26-rebuild` 标签：
 
     ::
 
@@ -93,15 +79,13 @@ scheduled mass rebuild.
     .. note::
 
         **koji add-target** *target-name* *buildroot-tag* *destination-tag*
-        describes the syntax format above. If the *destination-tag* is not
-        specified then it will be the same as the *target-name*.
+        描述了上面的语法格式。如果没有指定 *destination-tag* ，那么它将与 *target-name* 相同。
 
 
-#. Update Scripts
+#. 更新脚本
 
-    The mass rebuild depends on four main scripts from the
-    `releng git repository`_. Each one requires some changes in variables
-    for each new mass rebuild cycle.
+    批量重建依赖于
+    `releng git repository`_ 中的四个主要脚本。每一个都需要对每个新的批量重建周期的变量进行一些更改。
 
     * mass-rebuild.py
         * buildtag
@@ -120,115 +104,104 @@ scheduled mass rebuild.
         * updates
         * epoch
 
-Change the following items:
+更改以下项目：
 
-* the build tag, holding tag, and target tag should be updated to reflect the
-  Fedora release you're building for
-* the ``epoch`` should be updated to the point at which all features that
-  the mass rebuild is for have landed in the build system (and a newRepo task
-  completed with those features)
-* the comment which is inserted into spec changelogs
+* build标签、holding标签和target标签应该更新，以反映您正在为之构建的Fedora版本
+* 应该将 ``epoch`` 更新到所有目标功能在构建系统中均已完成 (并已完成与这些功能相关的 newRepo 任务)的时间点。
+* 插入到spec更改日志中的注释
 
 
-Starting the Mass Rebuild
+开始批量重建
 -------------------------
-The ``mass-rebuild.py`` script takes care of:
+``mass-rebuild.py`` 脚本负责：
 
-* Discovering available packages in koji
-* Trimming out packages which have already been rebuilt
-* Checking out packages from git
-* Bumping the spec file
-* Committing the change
-* git tagging the change
-* Submitting the build request to Koji
+* 发现 koji 中的可用包
+* 裁剪掉已经重新构建过的软件包。
+* 从 Git 检出软件包
+* 提升 spec 文件版本号
+* 提交更改
+* git 标记更改
+* 将构建请求提交到 Koji
 
 
-#. Connect to the mass-rebuild Machine
+#. 连接到 mass-rebuild 机器
 
     ::
 
         $ ssh branched-composer.phx2.fedoraproject.org
 
 
-#. Start a terminal multiplexer
+#. 启动一个终端复用器
 
     ::
 
         $ tmux
 
-#. Clone or checkout the latest copy of the `releng git repository`_.
+#. 克隆或下载 `releng git repository`_ 的最新副本。
 
-#. Run the mass-rebuild.py script from *releng/scripts*
+#. 从 *releng/scripts* 目录下运行 mass-rebuild.py 脚本
 
     ::
 
         $ cd path/to/releng_repo/scripts
         $ ./mass-rebuild.py 2>&1 | tee ~/massbuild.out
 
-Monitoring Mass Rebuilds
+监控批量重建
 ------------------------
-The community has a very high interest in the status of rebuilds and many
-maintainers will want to know if their build failed right away. The
-``find-failures.py`` and ``need-rebuild.py`` scripts are designed to update
-publicly available URLs for stakeholders to monitor.
+社区非常关心重建的状态，许多维护者希望能够立即知道他们的构建是否失败。 
+``find-failures.py`` 和 ``need-rebuild.py`` 脚本旨在更新供利益相关者监视的公共可用URL。
 
-#. Connect to a Compose Machine
+#. 连接到Compose Machine
 
     ::
 
         $ ssh compose-x86-02.phx2.fedoraproject.org
 
-#. Start a terminal multiplexer
+#. 启动一个终端复用器
 
     ::
 
         $ tmux
 
-#. Clone or checkout the latest copy of the `releng git repository`_
+#. 克隆或检出 `releng git repository`_ 的最新副本
 
-#. Set Up the Rebuild Failures Notification Web Site
-    The ``find_failures.py`` script discovers attempted builds that have
-    failed. It lists those failed builds and sorts them by package owner.
+#. 设置重新构建失败通知网站
+    ``find_failures.py`` 脚本可以发现构建失败的尝试。它会列出这些失败的构建并按软件包所有者排序。
 
     ::
 
         $ while true; do ./find_failures.py > f26-failures.html && cp f26-failures.html /mnt/koji/mass-rebuild/f26-failures.html; sleep 600; done
 
-#. Start a second pane in the terminal emulator
+#. 在终端仿真器中启动第二个窗格
 
-#. Set up the Site for Packages that Need Rebuilt
-    The ``need-rebuild.py`` script discovers packages that have not yet been
-    rebuilt and generates an html file listing them sorted by package owner.
-    This gives external stakeholders a rough idea of how much work is
-    remaining in the mass rebuild.
+#. 设置需要重建软件包的站点
+    ``need-rebuild.py`` 脚本可以发现还未重建的软件包，并生成一个html文件，按软件包所有者排序列出它们。这可以让外部利益相关者大致了解大规模重新构建中还有多少工作需要完成。
 
     ::
 
         $ while true; do ./need-rebuild.py > f26-need-rebuild.html && cp f26-need-rebuild.html /mnt/koji/mass-rebuild/f26-need-rebuild.html; sleep 600; done
 
-Post Mass Rebuild Tasks
+大规模重新构建后的任务
 -----------------------
-Once the mass rebuild script completes, and all the pending builds have
-finished, the builds will need to be tagged.  The ``mass-tag.py`` script will
-accomplish this task.  The script will:
+一旦批量重建脚本完成，并且所有挂起的构建都已完成，则需要对这些构建进行标记。 ``mass-tag.py`` 脚本将完成此任务。脚本将：
 
-* Discover completed builds
-* Trim out builds that are older than the latest build for a given package
-* Tag remaining builds into their final destination (without generating email)
+* 发现已完成的构建
+* 为给定包裁剪比最新版本旧的版本
+* 将剩余构建标记到其最终目的地 (不生成电子邮件)
 
-#. Clone or checkout the latest copy of the `releng git repository`_
+#. 克隆或检出 `releng git repository`_ 的最新副本
 
-#. Run the ``mass-tag.py`` script (requires koji kerberos authentication)
+#. 运行 ``mass-tag.py`` 脚本 (需要 koji kerberos 身份验证)
 
     ::
 
         $ cd path/to/releng_repo/scripts
         $ ./mass-tag.py --source f36-rebuild --target f36
 
-#. Send the final notification to the
-   *devel-announce@lists.fedoraproject.org* list
+#. 将最终通知发送到
+   *devel-announce@lists.fedoraproject.org* 列表
 
-    The contents should look something like this `example email`_.
+    内容应该类似于 `example email`_.
 
 .. _the Fedora 26 Wiki example: https://fedoraproject.org/wiki/Fedora_26_Mass_Rebuild
 .. _the Fedora 26 e-mail example: https://lists.fedoraproject.org/archives/list/devel-announce@lists.fedoraproject.org/message/QAMEEWUG7ND5E7LQYXQSQLRUDQPSBINA/

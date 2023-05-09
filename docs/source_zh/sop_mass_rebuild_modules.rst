@@ -2,37 +2,34 @@
 
 
 =======================
-Mass Rebuild of Modules
+模块的批量重建
 =======================
 
-Description
+说明
 ===========
 
-Periodically we do mass rebuilds of modules in rawhide during the development cycle. This
-SOP will outline the steps necessary to do this.
+在开发周期中，我们定期对rawhide模块进行大规模的重建。本SOP将概述执行此操作所需的步骤。
 
-Assumptions
+假设
 ===========
-This assumes that the mass rebuild has already been approved and scheduled via
-release engineering and FESCo. Coordinate with infrastructure as well for any
-needed updates.
+假设批量重建已经通过发布工程和FESCo获得批准和安排，并且与基础设施协调，以进行任何必要的更新。
 
-Considerations
+注意事项
 ==============
 
-* The most important thing to keep in mind while doing a mass rebuild is to communicate clearly what actions are being performed and the status of the rebuild.
-* Check in on scripts frequently to avoid a long stalled command from adding significant delays in completing the rebuild.
+* 在执行批量重建时，最重要的一点就是要清楚地传达正在执行的操作以及重建的状态。
+* 经常检查脚本，以避免长时间停止的命令在完成重建过程中造成严重延迟。
 
-Actions
+操作
 =======
 
-Preparatory Steps
+准备步骤
 -----------------
-The following steps should be completed after the `mass rebuild of packages`_ is done.
+在完成 `软件包的批量重建`_ 后，应完成以下步骤。
 
-#. Update Scripts
+#. 更新脚本
 
-The mass rebuild depends on two main scripts from the `releng git repository`_. Each one requires some changes in variables for each new mass rebuild cycle.
+大规模重建依赖于 `releng git repository`_ 中的两个主要脚本。每个脚本在新的批量重建周期中都需要对一些变量进行更改。
 
     * *mass-rebuild-modules.py*
         * rebuildid
@@ -40,21 +37,21 @@ The mass rebuild depends on two main scripts from the `releng git repository`_. 
         * module_mass_rebuild_epoch
         * module_mass_rebuild_platform
 
-Change the following items:
+更改以下项目：
 
-* the ``rebuildid`` to match the release for which you are mass rebuilding modules as per in massrebuildsinfo.py
-* ``module_mass_rebuild_epoch`` mostly will be the epoch of mass rebuild of packages
-* ``module_mass_rebuild_platform`` should be the rawhide module platform
+* 在massrebuildsinfo.py中， ``rebuildid`` 需要匹配您正在大规模重新构建的模块的发行版
+* ``module_mass_rebuild_epoch`` 大多数情况下将是软件包大规模重新构建的 epoch
+* ``module_mass_rebuild_platform`` 应为 rawhide 模块平台
 
 
-Starting the Mass Rebuild of Modules
+开始模块的批量重建
 ------------------------------------
-The ``mass-rebuild-modules.py`` script takes care of:
+``mass-rebuild-modules.py`` 脚本负责：
 
-* Discovering available available modules from PDC
-* Find the module info from mbs and check if a module build is submitted after the epoch date
-* Checking out modules from dist-git
-* Switching to appropriate stream
+* 从PDC中发现可用模块
+* 从mbs中找到模块信息，并检查是否在epoch日期之后提交了模块构建
+* 从 dist-git 检出模块
+* 切换到适当的 stream
 * Find modulemd file
 * Use libmodulemd to determine if this module stream applies to this platform version
 * If needs rebuilding, committing the change
@@ -101,4 +98,4 @@ Once the module mass rebuild is done, send an email to the devel-announce@ list
 
 .. _releng git repository: https://pagure.io/releng
 .. _process: https://pagure.io/fedora-infrastructure/issue/8048#comment-587789
-.. _mass rebuild of packages: https://docs.pagure.org/releng/sop_mass_rebuild_packages.html
+.. _软件包的批量重建: https://docs.pagure.org/releng/sop_mass_rebuild_packages.html
