@@ -2,36 +2,31 @@
 
 
 ==================
-Package Unblocking
+解封软件包
 ==================
 
-Description
+说明
 ===========
-Packages are sometimes unblocked from Fedora, usually when a package had been
-orphaned and now has a new owner.  When this happens, release engineering
-needs to "unblock" the package from koji tags.
+软件包有时会从 Fedora 中解封，通常是在软件包被孤立并且现在有了新的所有者时。发生这种情况时，发布工程需要从 koji 标签中“解锁”包。
 
-Action
+操作
 ======
 
-Find Unblock requests
+查找解封请求
 ---------------------
 
-Unblock requests are usually reported in the `rel-eng issue tracker`_.
+解封请求通常在 `rel-eng issue tracker`_ 中报告。
 
-Perform the unblocking
+执行解封
 ----------------------
 
-First assign the ticket to yourself to show, that you are handling the request.
+首先将工单分配给自己以显示您正在处理请求。
 
-Discover proper place to unblock
+发现解封的适当位置
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-The ticket should tell you which Fedora releases to unblock the package in.
-Typically it'll say "Fedora 13" or "F14".  This means we need to unblock it at
-that Fedora level and all future tags.  However depending on where the package
-was blocked we may have to do our unblock action at a different Fedora level.
+工单应该告诉你解锁哪个 Fedora 版本的软件包。通常它会说“Fedora 13”或“F14”。这意味着我们需要在 Fedora 级别和所有未来的标签上解锁它。但是，根据软件包被阻塞的位置，我们可能必须在不同的 Fedora 级别执行解封操作。
 
-To discover where a package is blocked, use the ``list-pkgs`` method of koji.
+若要发现包被阻塞的位置，请使用 koji 的 ``list-pkgs`` 方法。
 
 ::
 
@@ -52,7 +47,7 @@ To discover where a package is blocked, use the ``list-pkgs`` method of koji.
       --ts=TIMESTAMP     query at timestamp
       --repo=REPO#       query at event for a repo
 
-For example if we wanted to see where python-psco was blocked we would do:
+例如，如果我们想看看python-psco在哪里被阻塞，我们会这样做：
 
 ::
 
@@ -64,16 +59,12 @@ For example if we wanted to see where python-psco was blocked we would do:
     python-psyco            olpc2-trial3                             shahms      
     ...
 
-Here we can see that it was blocked at dist-f14.  If we got a request that was
-to unblock it before f14, we can simply use the dist-f14 target to unblock.
-However if they want it unblocked after f14, we would use the earliest
-dist-f?? tag the user wants, such as  dist-f15 if the user asked for it to be
-unblocked in Fedora 15+
+在这里我们可以看到它在 dist-f14 被阻塞了。如果我们收到请求要求在 f14 之前解封，我们可以简单地使用 dist-f14 目标来解封。但是，如果他们希望在 f14 之后解锁，我们会使用用户要求的最早的 dist-f？？标签，例如如果用户要求在 Fedora 15+ 中解封它，则会使用 dist-f15
 
-Performing the unblock
+正在执行解封
 ^^^^^^^^^^^^^^^^^^^^^^
 
-To unblock a package for a tag, use the ``unblock-pkg`` method of Koji.
+若要解封一个标签的包，请使用 Koji 的 ``unblock-pkg`` 方法。
 
 ::
 
@@ -84,24 +75,24 @@ To unblock a package for a tag, use the ``unblock-pkg`` method of Koji.
     Options:
       -h, --help  show this help message and exit
 
-For example, if we were asked to unblock python-psyco in F14 we would issue:
+例如，如果我们被要求在 F14 中解封 python-psyco，我们将发出：
 
 ::
 
     $ koji unblock-pkg dist-f14 python-psyco
 
-Now the ticket can be closed.
+现在可以关闭工单了。
 
-Verification
+验证
 ============
-To verify that the package was successfully unblocked use the ``list-pkgs``
-koji command:
+要验证包是否已成功解除阻塞，请使用 ``list-pkgs``
+koji 命令：
 
 ::
 
     $ koji list-pkgs --package python-psyco --show-blocked
 
-We should see the package listed as not blocked at dist-f14 or above:
+我们应该看到在 dist-f14 或更高版本处列出的包未被阻塞：
 
 
 ::
@@ -115,13 +106,11 @@ We should see the package listed as not blocked at dist-f14 or above:
     python-psyco                   f8-final                                 jkeating       
     ...
 
-We should not see it listed as blocked in dist-f14 or any later Fedora tags.
+我们不应该看到它在 dist-f14 或任何后来的 Fedora 标签中被列为阻塞。
 
-Consider Before Running
+运行之前请考虑
 =======================
-* Watch the next day's rawhide/branched/whatever report for a slew of broken
-  deps related to the package.  We may have to re-block the package in order
-  to fix the deps.
+* 观看第二天的 rawhide/branched/任何报告，了解与软件包相关的损坏。我们可能必须重新阻塞软件包才能修复deps。
 
 .. _rel-eng issue tracker:
     https://pagure.io/releng/issues

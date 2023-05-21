@@ -2,31 +2,25 @@
 
 
 ===========================
-Promoting Container Content
+推广容器内容
 ===========================
 
-Description
+说明
 ===========
-Even though the promotion of content is aimed to be fully automated, sometimes
-there is the need or desire to promote content from the candidate registry to
-the stable registry. Below is how to accomplish this using `skopeo`_.
+尽管内容的推广旨在实现完全自动化，但有时需要或希望将候选的注册表中的内容升级到稳定的注册表中。以下是使用 `skopeo`_ 完成此操作的方法。
 
-Action
+操作
 ======
 
-This action should be performed on ``compose-x86-01.phx2.fedoraproject.org`` by
-an user who is a member of the ``sysadmin-releng`` `FAS`_ Group.
+此操作应由 ``compose-x86-01.phx2.fedoraproject.org`` `FAS`_ 组成员的用户在
+``sysadmin-releng`` 上执行。
 
-The container image should be provided by the requester, they will have the
-information from their container build in the `Fedora Layered Image Build
-System`_. It will have a name resembling
-``candidate-registry.fedoraproject.org/f26/foo:0.1-1.f26container``.
+容器映像应由请求者提供，他们将在 `Fedora Layered Image Build
+System`_ 中获得来自其容器构建的信息。它将有一个类似于
+``candidate-registry.fedoraproject.org/f26/foo:0.1-1.f26container`` 的名称。
 
-Sync content between the candidate registry and production registry, effectively
-"promoting it". Substitute the ``$IMAGE_NAME`` in the following example with
-whatever the actual image name is that is provided. (This would be everything
-after ``candidate-registry.fedoraproject.org``, so using the above example then
-``$IMAGE_NAME`` would be ``f26/foo:0.1-1.f26container``.)
+同步候选注册表和生产注册表之间的内容，实现“推广”。请在下面的示例中使用实际的镜像名称替换 ``$IMAGE_NAME`` 。（即 ``candidate-registry.fedoraproject.org`` 后面的所有内容，所以使用上面的示例，则
+``$IMAGE_NAME`` 将是 ``f26/foo:0.1-1.f26container`` 。）
 
 ::
 
@@ -36,19 +30,17 @@ after ``candidate-registry.fedoraproject.org``, so using the above example then
         docker://candidate-registry.fedoraproject.org/$IMAGE_NAME \
         docker://registry.fedoraproject.org/$IMAGE_NAME
 
-Verification
+验证
 ============
 
-In order to verify, we need to inspect the stable registry, again with `skopeo`_
-to ensure the image metadata exists.
+为了验证，我们需要检查稳定的注册表，再次使用 `skopeo`_
+以确保图像元数据存在。
 
 ::
 
     $ skopeo inspect docker://registry.fedoraproject.org/$IMAGE_NAME
 
-In this JSON output you will see a list element titled ``RepoTags`` and in there
-should be the ``$VERSION-$RELEASE`` listed there, following our example above
-this entry would be ``0.1-1.f26container``.
+在此 JSON 输出中，您将看到一个名为 ``RepoTags`` 的列表元素，其中应该列出 ``$VERSION-$RELEASE`` ，按照上面的示例，此条目将是 ``0.1-1.f26container`` 。
 
 .. _skopeo: https://github.com/projectatomic/skopeo
 .. _FAS: https://admin.fedoraproject.org/accounts/

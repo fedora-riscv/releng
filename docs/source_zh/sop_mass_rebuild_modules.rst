@@ -52,29 +52,29 @@
 * 从mbs中找到模块信息，并检查是否在epoch日期之后提交了模块构建
 * 从 dist-git 检出模块
 * 切换到适当的 stream
-* Find modulemd file
-* Use libmodulemd to determine if this module stream applies to this platform version
-* If needs rebuilding, committing the change
-* Push the commit
-* Submitting the build request through mbs
+* 查找 modulemd 文件
+* 使用 libmodulemd 确定此模块流是否适用于此平台版本
+* 如果需要重建，则提交更改
+* 推送提交
+* 通过 mbs 提交构建请求
 
 
-#. Connect to the mass-rebuild Machine
+#. 连接到负责批量重构的机器
 
     ::
 
         $ ssh compose-branched01.iad2.fedoraproject.org
 
 
-#. Start a terminal multiplexer
+#. 启动终端多路复用器
 
     ::
 
         $ tmux
 
-#. Clone or checkout the latest copy of the `releng git repository`_.
+#. 克隆或签出 `releng git repository`_ 的最新副本。
 
-#. Run the `mass-rebuild-modules.py` script from *releng/scripts*
+#. 从 *releng/scripts* 运行 `mass-rebuild-modules.py` 脚本
 
     ::
 
@@ -83,19 +83,19 @@
 
 .. note::
 
-        The token file should be located in infra's private ansible repo, or ask infra to get it to you using this `process`_.
+        令牌文件应位于 infra 的私有 ansible 存储库中，或者要求 infra 使用此 `过程`_ 将其发送给您。
 
 .. note::
 
-        The `build` option is really important to pay attention, since the mass branching of modules will also use the same script, just changing the option to `branch` and `module_mass_branching_platform` in `massrebuildsinfo.py`
+        `构建` 选项非常重要，因为模块的批量分支也将使用相同的脚本，只是将 `massrebuildsinfo.py` 中的选项更改为 `branch` 和 `module_mass_branching_platform` 。
 
-Post Mass Rebuild Tasks
+批量重建任务后
 -----------------------
-Once the module mass rebuild is done, send an email to the devel-announce@ list
+模块批量重建完成后，向devel-announce@列表发送电子邮件
 
-#. Send the final notification to the
-   *devel-announce@lists.fedoraproject.org* list
+#. 将最终通知发送到
+   *devel-announce@lists.fedoraproject.org* 列表
 
 .. _releng git repository: https://pagure.io/releng
-.. _process: https://pagure.io/fedora-infrastructure/issue/8048#comment-587789
+.. _过程: https://pagure.io/fedora-infrastructure/issue/8048#comment-587789
 .. _软件包的批量重建: https://docs.pagure.org/releng/sop_mass_rebuild_packages.html
