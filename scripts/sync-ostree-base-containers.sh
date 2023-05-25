@@ -20,7 +20,7 @@ current_stable="37"
 # Define what is rawhide so we know to push that tag
 current_rawhide="39"
 
-ostree_base_images=(silverblue kinoite)
+ostree_base_images=(silverblue kinoite sericea)
 
 # An optional additional alias for the image; this is only set for current stable and rawhide.
 # For example, given current_stable=36, then the previous release of 35 will just appear as a single
