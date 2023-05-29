@@ -30,7 +30,7 @@ EXAMPLE
 EOF
 }
 
-if ! [[ "${1}" =~ [31|32|33|34|35|36] ]];
+if ! [[ "${1}" =~ [37|38|39] ]];
 then
     ARCHES=("aarch64" "armhfp" "ppc64le" "s390x" "x86_64")
 else
