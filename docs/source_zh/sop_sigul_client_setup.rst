@@ -2,52 +2,49 @@
 
 
 ==================
-Sigul Client Setup
+Sigul 客户端设置
 ==================
 
-This document describes how to configure a sigul client. For more information
-on sigul, please see `User:Mitr <User-Mitr>`_
+本文档介绍如何配置 sigul 客户端。有关 sigul 的更多信息，请参阅 `User:Mitr <User-Mitr>`_
 
-Prerequisites
+先决条件
 =============
 
 
-#. Install ``sigul`` and its dependencies. It is available in both Fedora and EPEL:
+#. 安装 ``sigul`` 及其依赖项。它在Fedora和EPEL中都可用：
 
-   On Fedora:
+   在 Fedora 上:
 
    ::
 
         dnf install sigul
 
-   On RHEL/CentOS (Using EPEL):
+   在 RHEL/CentOS 上(使用 EPEL):
 
    ::
 
         yum install sigul
 
-#. Ensure that your koji certificate and the
-   `Fedora CA certificates <Fedora-Cert>`_ are present on the system you're
-   running the sigul client from at the following locations:
+#. 确保您的 koji 证书和
+   `Fedora CA 证书 <Fedora-Cert>`_ 存在于您运行 sigul 客户端系统的以下位置上：
 
    * ``~/.fedora.cert``
    * ``~/.fedora-server-ca.cert``
    * ``~/.fedora-upload-ca.cert``
 
-#. Admin privileges on koji are required to write signatures.
+#. 编写签名需要 koji 的管理员权限。
 
-Configuration
+配置
 =============
 
-#. Run ``sigul_setup_client``
-#. Choose a password for your NSS database. By default this will be stored on-disk in ``~/.sigul/client.conf``.
-#. Choose an export password. You will only need to remember it until finishing
+#. 运行 ``sigul_setup_client``
+#. 为 NSS 数据库选择一个密码。默认情况下，这将存储在磁盘上的 ``~/.sigul/client.conf`` 中。
+#. 选择导出密码。您只需要记住它，直到完成
    ``sigul_setup_client``.
-#. Enter the DB password you chose earlier, then the export password. You
-   should see the message ``pk12util: PKCS12 IMPORT SUCCESSFUL``
-#. Enter the DB password again. You should see the message ``Done``.
-#. Assuming that you are running the sigul client within phx2, edit
-   ``~/.sigul/client.conf`` to include the following lines: 
+#. 输入您之前选择的数据库密码，然后输入导出密码。应会看到消息 ``pk12util: PKCS12 IMPORT SUCCESSFUL``
+#. 再次输入数据库密码。您应该会看到消息 ``Done``.
+#. 假设您在 phx2 中运行 sigul 客户端，请编辑
+   ``~/.sigul/client.conf`` 以包含以下行：
 
 ::
 
@@ -55,11 +52,10 @@ Configuration
     bridge-hostname: sign-bridge.phx2.fedoraproject.org
     server-hostname: sign-vault.phx2.fedoraproject.org
 
-Updating your Fedora certificate
+更新您的 Fedora 证书 
 ================================
 
-When your Fedora certificate expires, after updating it run the following
-commands:
+当您的 Fedora 证书过期时，更新证书并运行以下命令：
 
 ::
 

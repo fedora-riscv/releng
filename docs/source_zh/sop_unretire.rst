@@ -2,48 +2,42 @@
 
 
 ===========================
-Unretiring a package branch
+取消停用软件包分支
 ===========================
 
-Description
+说明
 ===========
 
-Sometimes, packagers request that we *unretire* a package branch that has
-previously been retired.
+有时，打包程序会要求我们取消停用以前已停用的包分支。
 
-This typically happens on the `rawhide` branch, but could conceivably happen on
-any stable or arbitrary branch.
+这通常发生在 `rawhide` 分支上，但可以想象发生在任何稳定版或其他任意分支上。
 
-Action
+操作
 ======
 
-Validate Package Ready for Unretirement
+验证包已准备好取消停用
 ---------------------------------------
-#. Verify the package was not retired for any reason, such as legal or
-   license issues, that would prevent it from being re-instated.
+#. 验证包是否因任何原因（例如法律或许可证问题）而停用，这将阻止其重新恢复。
 
-#. Ensure a bugzilla was filed to review the package for unretirement.
+#. 确保已提交 Bugzilla 以审查要取消退役的软件包。
 
-#. Verify with the the requestor exactly which tags they would like
-   unblocked as part of the unretirement request.
+#. 与请求者核实要取消停用请求的哪些标签需要解除阻塞。
 
-Revert the Retirement Commit
+撤销停用的提交
 ----------------------------
-#. Connect to one of the compose systems.
+#. 连接到一个用于组合的系统
 
     ::
 
     $ ssh compose-x86-02.phx2.fedoraproject.org
 
-#. Clone the git-dist package using the the proper release engineering
-   credentials.
+#. 使用正确的发布工程凭据克隆 git-dist 包。
 
     ::
 
     $ GIT_SSH=/usr/local/bin/relengpush fedpkg --user releng clone PACKAGENAME
 
-#. Enter the directory of the cloned package and configure the git user
-   information.
+#. 进入克隆软件包的目录，配置 git 用户信息。
 
     ::
 
@@ -51,81 +45,71 @@ Revert the Retirement Commit
     $ git config --local user.name "Fedora Release Engineering"
     $ git config --local user.email "releng@fedoraproject.org"
 
-#. Git revert the `dead.package` file commit in dist-git on the particular branch
-   using its commit hash_id. Ensure the commit message contains a URL to the
-   request in pagure.
+#. Git 使用其提交hash_id在特定分支上的 dist-git 中还原 `dead.package` 文件提交。确保提交消息包含 pagure 格式的请求的 URL。
 
     ::
 
     $ git revert -s COMMIT_HASH_ID
     $ GIT_SSH=/usr/loca/bin/relengpush fedpkg --user releng push
 
-Unblock the Package in Koji
+在 Koji 中解锁包
 ---------------------------
 
-#. Check the current state of the branches in koji for the package.
+#. 检查 koji 中包的分支的当前状态。
 
     ::
 
     $ koji list-pkgs --show-blocked --package=PACKAGENAME
 
-#. Unblock each requested tag using koji.
+#. 使用 koji 取消阻塞每个请求的标签。
 
    ::
 
     $ koji unblock-pkg TAGNAME PACKAGENAME
 
-Verify Package is Not Orphaned
+验证软件包是否孤立
 ------------------------------
 
-#. Check package ownership
+#. 检查包所有权
 
-   Navigate to `https://src.fedoraproject.org/` and check package owner.
+   导航到 `https://src.fedoraproject.org/` 并检查包所有者。
 
-#. If the package is orphaned, then give the package to the requestor using
-   the `give-package` script from the `Release Engineering Repo`_.
+#. 如果包是孤立的，则使用 `Release Engineering Repo`_ 
+   中的 `give-package` 本将包提供给请求者。
 
    ::
 
    $ ./scripts/distgit/give-package --package=PACKAGENAME --custodian=REQUESTOR
 
    .. note::
-       This script requires the user to be a member of the group `cvsadmin`
-       in FAS.
+       此脚本要求用户是 FAS 中 `cvsadmin` 组的成员
 
-Update Product Definition Center (PDC)
+更新 PDC
 -----------------------------------------
 
 .. note::
-    If there are more than one tag to be unblocked then the PDC update
-    step should be completed for each tag and package.
+    如果要取消阻止多个标签，则应为每个标签和包完成 PDC 更新步骤。
 
-#. Log into the `Fedora PDC instance`_ using a FAS account.
+#. 使用 FAS 帐户登录 `Fedora PDC instance`_ 。
 
-#. Check PDC for the entry for the `PACKAGENAME` in each `TAG` that was
-   unblocked in a previous step.
+#. 检查 PDC 中每个 `TAG` 中在上一步中取消阻塞的 `PACKAGENAME` 条目。
 
     ::
 
       https://pdc.fedoraproject.org/rest_api/v1/component-branch-slas/?branch=TAG&global_component=PACKAGENAME
 
     .. note::
-         If no information is returned by this query then it is not in PDC
-         and is likely not yet a branch. The requestor should use the
-         `fedpkg request-branch` utility to ask for a branch.
+         如果此查询未返回任何信息，则它不在 PDC 中，并且可能还不是分支。请求者应该使用
+         `fedpkg request-branch` 程序来请求分支。
 
-#. If the package existed within PDC then obtain a token from the PDC site
-   while logged in by navigating to the
-   `https://pdc.fedoraproject.org/rest_api/v1/auth/token/obtain/` URL with
-   the Firefox web browser.
+#. 如果软件包存在于 PDC 中，则在登录时通过使用 Firefox Web 浏览器导航到
+   `https://pdc.fedoraproject.org/rest_api/v1/auth/token/obtain/` URL 从 PDC 站点获取令牌。
 
-#. Press F12 once the page has loaded and select the tab labeled `Network`.
-   Refresh the web page and find the line whose string in the file column
-   matches `/rest_api/v1/auth/token/obtain/`.
+#. 加载页面后按 F12，然后选择标有 `Network`.
+   的选项卡。刷新网页并找到文件列中字符串与
+   `/rest_api/v1/auth/token/obtain/` 匹配的行。
 
-#. Right click on specified line and select Copy>Copy as cURL.  Paste this
-   into a terminal session and add `-H "Accept: application/json"`. It should look
-   something similar to the below:
+#. 右键单击指定的行，然后选择复制>复制为 cURL。将其粘贴到终端会话中并添加 `-H "Accept: application/json"` 。它应该类似于以下内容：
 
     ::
 
@@ -141,15 +125,14 @@ Update Product Definition Center (PDC)
         -H 'Cache-Control: max-age=0' \
         -H "Accept: application/json"
 
-#. Using the token obtained from the previous step run the `adjust-eol.py`
-   script from the `Release Engineering Repo`_.
+#. 使用从上一步获取的令牌运行 `Release Engineering Repo`_ 中的 `adjust-eol.py` 脚本。
 
     ::
 
     $ PYTHONPATH=scripts/pdc/ scripts/pdc/adjust-eol.py fedora MYTOKEN PACKAGENAME rpm TAG default -y
 
     .. note::
-        The local machine will have configuration information in the `/etc/pdc.d/` directory. This is why *fedora* can be passed as an argument instead of the full API endpoint URL.
+        本地计算机将在 `/etc/pdc.d/` 目录中包含配置信息。这就是为什么 *fedora* 可以作为参数传递而不是完整的 API 接口 URL 的原因。
 
 
 .. _Fedora PDC instance: https://pdc.fedoraproject.org/

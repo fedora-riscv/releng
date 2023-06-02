@@ -2,47 +2,43 @@
 
 
 ===============================
-Stage Final Release for Mirrors
+镜像的阶段最终版本
 ===============================
 
 
-Description
+说明
 ===========
-When the release has been fully tested and approved at the "Go/No-Go" meeting
-it is ready for release to the Fedora mirrors.
+当该版本在“Go/No-Go”会议上经过全面测试和批准后，就可以发布到Fedora镜像中了。
 
-Action
+操作
 ======
-#. Gather the needed info for running the staging script:
-   Release Version: the numerical version number of the release ``24``
-   ComposeID: The ID of the Compose
-   Label: Compsoe label for the location in stage ``24_RC-1.2`` for example
-   Key: the name of teh release key ``fedora-24`` or ``fedora-24-secondary`` as examples
-   Prerelease: 0 or 1 sets if the release goes in test/ or not
-   Arch: <optional> For secondary arches, changes some internal locations
+#. 收集运行阶段脚本所需的信息：Release Version: 发布的数字版本号 ``24``；
+   ComposeID: 组合的ID
+   Label: 例如 ``24_RC-1.2`` 阶段中位置的组合标签
+   Key: 例如发布密钥的名称 ``fedora-24`` 或 ``fedora-24-secondary``
+   Prerelease: 根据版本进入测试/不进入测试设置为0或1
+   Arch: <可选的> 对于次要架构，更改一些内部位置
 
    ::
 
         $ scripts/stage-release.sh 24 Fedora-24-20160614.0 24_RC-1.2 fedora-24 0
 
 
-#. Sync the release to the Red Hat internal archive following internally documented
+#. 按照内部文档记录将版本同步到 Red Hat 内部存档
 
-Check and set EOL on previous releases to reflect reality
+检查并设置先前版本的 EOL 以反映现实 
 =========================================================
 
-#. check PDC for active releases and respective EOL date
+#. 检查 PDC 以了解有效版本和相应的 EOL 日期
 
-#. if needed run the adjust-eol-all.py script from releng repository to correct any mistakes
+#. 如果需要，请从 releng 存储库运行 adjust-eol-all.py 脚本以更正任何错误
 
 
-Verification
+验证
 ============
-Verification is somewhat difficult as one cannot look at the content via the
-web server due to permissions.  Typically we ask somebody from the
-Infrastructure team to give the tree a second set of eyes.
+验证有些困难，因为由于权限原因无法通过Web服务器查看内容。通常，我们会要求基础架构团队中的某个人再次审查一遍。
 
-Consider Before Running
+运行之前考虑
 =======================
-Hope the release is good!
+希望发布顺利！
 

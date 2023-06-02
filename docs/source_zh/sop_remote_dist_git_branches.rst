@@ -2,50 +2,49 @@
 
 
 ========================
-Remove dist-git branches
+删除 dist-git 分支
 ========================
 
-Description
+说明
 ===========
-Release Engineering is often asked by maintainers to remove branches in dist-git
-by maintainers.
+维护人员经常要求发布工程删除 dist-git 中的分支。
 
-Action
+操作
 ======
-#. Log into batcave01
+#. 登录 batcave01
 
    ::
 
         ssh <fas-username>@batcave01.iad2.fedoraproject.org
 
-#. Get root shell 
+#. 获取 root shell
 
-#. Log into pkgs01.iad2.fedoraproject.org
+#. 登录 pkgs01.iad2.fedoraproject.org
    ::
 
         ssh pkgs01.iad2.fedoraproject.org
 
-#. Change to the package's directory
+#. 切换到包的目录
 
    ::
 
         cd /srv/git/rpms/<package>.git/
 
-#. Remove the branch
+#. 删除分支
 
    ::
 
         git branch -D <branchname> </pre>
 
-Verification
+验证
 ============
-To verify just list the branches.
+要验证，只需列出分支。
 
 ::
 
     git branch
 
-Consider Before Running
+运行之前考虑
 =======================
-Make sure that the branch in question isn't one of our pre-created branches
-``f??/rawhide``, ``olpc?/rawhide``, ``el?/rawhide``
+确保有问题的分支不是我们预先创建的分支之一
+``f??/rawhide`` ， ``olpc?/rawhide`` ， ``el?/rawhide``

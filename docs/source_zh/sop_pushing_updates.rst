@@ -2,46 +2,39 @@
 
 
 ===============
-Pushing Updates
+推送更新
 ===============
 
-Description
+说明
 ===========
 
-Fedora updates are typically pushed once a day. This SOP covers the steps
-involved.
+Fedora 更新通常每天推送一次。本标准操作程序涵盖所涉及的步骤。
 
-Coordinate
+协调
 ----------
 
-Releng has a rotation of who pushes updates when. Please coordinate and only
-push updates when you are expected to or have notified other releng folks you
-are doing so. See: https://apps.fedoraproject.org/calendar/release-engineering/
-for the list or on irc you can run ``.pushduty`` in any channel with zodbot to
-see who is on duty this week.
+Releng 轮换谁在何时推送更新。请协调并仅在您期望或已通知其他相关人员您正在这样做时推送更新。请参阅： https://apps.fedoraproject.org/calendar/release-engineering/
+查看列表或在 irc 上，您可以使用 zodbot 在任何频道中运行 ``.pushduty`` ，以查看本周谁值班。
 
-Login to machine to sign updates
+登录到计算机以签署更新
 --------------------------------
 
-Login to a machine that is configured for sigul client support and has the
-bodhi client installed. Currently, this machine is:
+登录到配置为sigul 客户端支持并安装了 bodhi 客户端的计算机。
+目前，这台机器是：
 ``bodhi-backend01.phx2.fedoraproject.org``
 
-Decide what releases you're going to push.
+决定要推送的版本
 ------------------------------------------
 
-* If there is a Freeze ongoing, you SHOULD NOT push all stable requests for a
-  branched release, only specific blocker or freeze exception requests that QA
-  will request in a releng ticket.
+* 如果正在进行 Freeze ，则不应推送分支版本的所有 stable 请求，而应仅推送 QA
+  将在 releng 工单中请求的特定阻塞程序或冻结异常请求。
 
-* If there is no Freeze ongoing you can push all Fedora and EPEL releases at
-  the same time if you wish.
+* 如果没有正在进行的 Freeze ，如果你愿意，你可以同时推送所有的Fedora和EPEL版本。
 
-* From time to time there may be urgent requests in some branches, you can only
-  push those if requested. Note however that bodhi2 will automatically push
-  branches with security updates before others.
+* 某些分支可能会不时有紧急请求，您只能在被要求时推送这些请求。
+  但请注意， bodhi2 会自动推送具有安全更新的分支。
 
-Get a list of packages to push
+获取要推送的包列表
 ------------------------------
 
 ::
@@ -49,91 +42,66 @@ Get a list of packages to push
     $ sudo -u apache bodhi-push --releases 'f26,f25,f24,epel-7,EL-6' --username <yourusername>
     <enter your password+2factorauth, then your fas password>
 
-Sometimes you see a warning "Warning: foobar-1.fcxx has unsigned builds and has been skipped"
-which means those updates are currently getting signed and it can verified by listing the
-tagged builds in fxx-signing-pending tag.
+有时您会看到警告“警告： foobar-1.fcxx 具有未签名的版本并且已被跳过”，这意味着这些更新当前正在签名，并且可以通过在 fxx-signing-pending 标签中列出被标记的构建来验证。
 
 ::
     $ koji list-tagged fxx-signing-pending
 
-You can say 'n' to the push at this point if you wish to sign packages (see
-below). Or you can keep this request open in a window while you sign the
-packages, then come back and say y.
+如果您希望对包进行签名，此时可以对推送答复“n”（见下文）。或者，您可以在对包进行签名时在窗口中保持此请求处于打开状态，然后返回并答复 y。
 
-List the releases above you wish to push from: 25 24 5 6 7, etc
+列出上面您希望推送的版本：25 24 5 6 7等
 
-You can also specify ``--request=testing`` to limit pushes. Valid types are
-``testing`` or ``stable``.
+还可以指定 ``--request=testing`` 来限制推送。有效选项为
+``testing`` 或 ``stable`` 。
 
-The list of updates should be in the cache directory named ``Stable-$Branch``
-or ``Testing-$Branch`` for each of the Branches you wished to push.
+更新列表应位于要推送的每个分支的名为 ``Stable-$Branch``
+或 ``Testing-$Branch`` 的缓存目录中。
 
-During freezes you will need to do two steps: (If say, fedora 26 branched was
-frozen):
+在冻结期间，您需要执行两个步骤：（例如，Fedora 26 分支被冻结）：
 
 ::
 
     $ sudo -u apache bodhi-push --releases f26 --request=testing \
         --username <username>
 
-Then
+然后
 
 ::
 
     $ sudo -u apache bodhi-push --releases 'f25,f24,epel-7,EL-6' --username <username>
 
-During the Release Candidate compose phase we tag builds to be included into a
--compose tag (e.g. f26-compose). When we have a candidate that has been signed off as gold
-we need to ensure that all builds tagged into the -compose tag have been pushed stable.
-Once we have pushed all -compose builds stable we then have to clone the base tag (e.g. f26)
-to a tag for the milestone for Alpha and Beta (e.g. f26-Alpha). After final release we need
-to lock the base tag and adjust the release status in bodhi so that updates now hit the
--updates tag (e.g. f26-updates). Once we have cloned the tag or locked the tag and adjusted
-bodhi we are free to push stable updates again.
+在发布候选版本组合阶段，我们会将构建标记为包含在“-compose”标记中（例如f26-compose）。当我们有一个被标记为Gold的候选版本后，我们需要确保所有标记为“-compose”的构建已经被推送到正式版。
+一旦我们将所有“-compose”构建都推送到正式版，我们就需要将基本标记（例如f26）克隆到Alpha和Beta里程碑的标记中（例如f26-Alpha）。
+在最终发布之后，我们需要锁定基础标记，并在bodhi中调整发布状态，以便更新现在命中“-updates”标记（例如f26-updates）。一旦我们克隆了标记或锁定了标记并在bodhi中进行了调整，我们就可以再次推送稳定更新了。
 
-Pushing Stable updates during freeze
+在冻结期间推送稳定版更新
 ------------------------------------
 
-During feezes we need to push to stable builds included in the compose.  QA
-will file a ticket with the nvrs to push.
+在冻结期间，我们需要将包含在组合中的构建发布到稳定版。QA团队会提交一个带有NVR的票据以进行发布推送。
 
 .. note::
 
-    If you are pushing a bodhi update that contains multiple builds, you need
-    only pass bodhi-push a single build nvr and all the others in that update
-    will be detected and pushed along with it. However, if you are pushing
-    multiple disjoint bodhi updates then each build will need to be listed
-    individually.
+    如果您正在推送一个包含多个构建的Bodhi更新，您只需要传递单个构建NVR给bodhi-push，所有其他构建将会被检测并与其一起推送。但是，如果您正在推送多个不相干的Bodhi更新，则每个构建都需要单独列出。
 
 ::
 
     $ sudo -u apache bodhi-push --builds '<nvr1>,<nvr2>,...' --username <username>
 
 
-There are no updates to push.
+没有要推送的更新
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you are getting the message ``There are no updates to push.`` or the list of
-packages you are seeing to push out for the Stable updates request is not
-correct compared to what you specified in the ``--builds`` section of the
-command above then one of two things likely happened.
+如果收到消息 ``There are no updates to push.`` 或看到的要推送的稳定版更新请求的包列表与在上述命令的 ``--builds`` 部分中指定的内容相比不正确，则可能发生了以下两种情况之一。
 
-#. The update hasn't yet reached appropriate karma
+#. 更新还没有达到适当的Karma值
 
-   This should be handled case-by-case, if the QA Team has requested this be
-   pushed as stable to fix a blocker but there's not yet enough karma for an
-   autostable prompt to occur then you should verify with QA that these are
-   ready to go out even without karma. If they are, then log into the Bodhi
-   WebUI and modify the karma threshold of the update to 1 and add karma (if
-   necessary). This is not something we should do as normal practice and is
-   considered an edge case. When update requests come to RelEng, it should have
-   appropriate karma. Sometimes it doesn't and as long as QA approves, we need
-   not block on it.
+   这应该根据情况而定，如果QA团队已要求将其作为稳定版推出以解决阻止问题，但尚未获得足够的Karma值，则应该与QA团队验证这些更新是否准备好发布，即使没有Karma也可以。
+   如果他们准备好了，那么登录Bodhi WebUI，修改更新的Karma阈值为1并添加Karma（如果必要）。这不是我们通常应该做的事情，被认为是一个特殊情况。当更新请求到达RelEng时，它应该具有适当的Karma值。
+   有时它没有，只要QA批准，我们就不需要阻塞它。
 
-#. The update was never requested for stable
+#. 从未请求过稳定版更新
 
-   It's possible the update wasn't requested for stable, you can resolve this by
-   running the following on one of the bodhi-backend systems:
+   稳定版可能没有请求更新，您可以通过在其中一个 bodhi-backend 系统上运行以下命令来解决此问题：
 
    ::
 
@@ -141,33 +109,32 @@ command above then one of two things likely happened.
 
 
 
-Perform the bodhi push
+执行 bodhi 推送
 ----------------------
 
-Say 'y' to push for the above command.
+答复“y”以推动上述命令。
 
-Verification
+验证
 ============
-#. Monitor Bodhi's composes with ``bodhi-monitor-composes``
+#. 用 ``bodhi-monitor-composes`` 监视Bodhi的组合
 
    ::
 
     $ sudo -u apache watch -d -n 60 bodhi-monitor-composes
 
-#. Monitor the systemd journal
+#. 监视系统日志
 
    ::
 
     $ sudo journalctl -o short -u fedmsg-hub -l -f
 
-#. Check the processes
+#. 检查流程
 
    ::
 
     $ ps axf|grep bodhi
 
-#. Watch for fedmsgs through the process. It will indicate what releases it's
-   working on, etc. You may want to watch in ``#fedora-fedmsg``.
+#. 在整个过程中关注 fedmsgs 。它将指示它正在处理的版本等。您可能想在 ``#fedora-fedmsg`` 中观看。
 
    ::
 
@@ -182,62 +149,56 @@ Verification
         bodhi.mashtask.complete -- bodhi masher successfully mashed f23-updates
         bodhi.mashtask.sync.wait -- bodhi masher is waiting for f22-updates-testing to hit the master mirror
 
-#. Seach for problems with a particular push:
+#. 搜索特定推送的问题：
 
    ::
 
         sudo journalctl --since=yesterday -o short -u fedmsg-hub | grep dist-6E-epel (or f22-updates, etc)
 
-#. Note: Bodhi will look at the things you have told it to push and see if any have security updates, those branches will be started first. It will then fire off threads (up to 3 at a time) and do the rest.
+#. 注意：Bodhi 会查看你告诉它推送的东西，看看是否有安全更新，这些分支将首先启动。然后它将触发线程（一次最多 3 个）并完成其余的工作。
 
-Consider Before Running
+运行之前考虑
 =======================
-Pushes often fall over due to tagging issues or unsigned packages.  Be
-prepared to work through the failures and restart pushes from time to
-time
+推送经常由于标记问题或未签名的包而失败。准备好解决故障并不时重新启动推送
 
 ::
 
     $ sudo -u apache bodhi-push --resume
 
-Bodhi will ask you which push(es) you want to resume.
+Bodhi 会问你想继续哪些推送。
 
 
-Common issues / problems with pushes
+推送的常见问题
 ====================================
 
-* When the push fails due to new unsigned packages that were added after you
-  started the process. re-run step 4a or 4b with just the package names that
-  need to be signed, then resume.
+* 当推送由于启动进程后添加的新未签名包而失败时。仅使用需要签名的包名称重新运行步骤 4a 或 4b，然后继续。
 
-* When the push fails due to an old package that has no signature, run:
-  ``koji write-signed-rpm <gpgkeyid> <n-v-r>`` and resume.
+* 当推送由于没有签名的旧包而失败时，请运行：
+  ``koji write-signed-rpm <gpgkeyid> <n-v-r>`` 并恢复。
 
-* When the push fails due to a package not being tagged with updates-testing
-  when being moved stable: ``koji tag-pkg dist-<tag>-updates-testing <n-v-r>``
+* 当推送失败时，原因是软件包在移动到稳定版时未被标记为updates-testing： ``koji tag-pkg dist-<tag>-updates-testing <n-v-r>``
 
-* When signing fails, you may need to ask that the sigul bridge or server be
-  restarted.
+* 签名失败时，可能需要要求重新启动 sigul 网桥或服务器。
 
-* If the updates push fails with a:
+* 如果更新推送失败并显示：
   ``OSError: [Errno 16] Device or resource busy: '/var/lib/mock/*-x86_64/root/var/tmp/rpm-ostree.*'``
-  You need to umount any tmpfs mounts still open on the backend and resume the push.
+  您需要卸载后端上仍打开的任何 tmpfs 挂载并恢复推送。
 
-* If the updates push fails with:
+* 如果更新推送失败并显示：
   ``"OSError: [Errno 39] Directory not empty: '/mnt/koji/mash/updates/*/../*.repocache/repodata/'``
-  you need to restart fedmsg-hub on the backend and resume.
+  则需要在后端重新启动 fedmsg-hub 并恢复。
 
-* If the updates push fails with:
+* 如果更新推送失败，并显示：
   ``IOError: Cannot open /mnt/koji/mash/updates/epel7-160228.1356/../epel7.repocache/repodata/repomd.xml: File /mnt/koji/mash/updates/epel7-160228.1356/../epel7.repocache/repodata/repomd.xml doesn't exists or not a regular file``
-  This issue will be resolved with NFSv4, but in the mean time it can be worked around by removing the `.repocache` directory and resuming the push.
+  此问题将在 NFSv4中解决，但同时可以通过删除  `.repocache` 目录并恢复推送来解决。
   ``$ sudo rm -fr /mnt/koji/mash/updates/epel7.repocache``
 
-* If the Atomic OSTree compose fails with some sort of `Device or Resource busy` error, then run `mount` to see if there are any stray `tmpfs` mounts still active:
+* 如果 Atomic OSTree 组合失败并出现 `Device or Resource busy` 错误，请运行 `mount` 以查看是否有任何杂散的 `tmpfs` 挂载仍处于活动状态：
   ``tmpfs on /var/lib/mock/fedora-22-updates-testing-x86_64/root/var/tmp/rpm-ostree.bylgUq type tmpfs (rw,relatime,seclabel,mode=755)``
-  You can then
-  ``$ sudo umount /var/lib/mock/fedora-22-updates-testing-x86_64/root/var/tmp/rpm-ostree.bylgUq`` and resume the push.
+  然后，您可以
+  ``$ sudo umount /var/lib/mock/fedora-22-updates-testing-x86_64/root/var/tmp/rpm-ostree.bylgUq`` 并恢复推送。
 
-Other issues should be addressed by releng or bodhi developers in
-``#fedora-releng``.
+其他问题应由 releng 或 bodhi 开发人员在
+``#fedora-releng`` 中解决。
 
 

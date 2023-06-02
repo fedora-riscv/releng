@@ -2,10 +2,10 @@
 
 
 ===========================
-Update RelEng Rendered Docs
+更新 RelEng 渲染的文档
 ===========================
 
-Description
+说明
 ===========
 .. Put a description of the task here.
 

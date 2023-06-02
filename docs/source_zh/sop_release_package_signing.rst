@@ -2,74 +2,61 @@
 
 
 =======================
-Release Package Signing
+发布包签名
 =======================
 
-Description
+说明
 ===========
-For each of Fedora's public releases (Alpha, Beta, and Final) it is Release
-Engineering's responsibility to sign all packages with Fedora's GPG key. This
-provides confidence to Fedora's users about the authenticity of packages
-provided by Fedora.
+对于 Fedora 的每个公开版本（Alpha、Beta 和 Final），Release Engineering 有责任使用 Fedora 的 GPG 密钥对所有软件包进行签名。这为 Fedora 的用户提供了对 Fedora 提供的软件包的权威性的信心。
 
-The :doc:`/sop_create_release_signing_key` document explains the process for
-creating the GPG key used.
+:doc:`/sop_create_release_signing_key` 文档解释了创建所用 GPG 密钥的过程。
 
-Consider Before Running
+运行前考虑
 =======================
 
-This script takes a very long time to run, as much as 4 or 5 days, so it needs
-to be started well in advance of when you need the packages all signed.
+此脚本需要很长时间才能运行，最多需要 4 或 5 天，因此需要在确定要对所有包进行签名之前启动它。
 
-Signing all the packages will cause a lot of churn on the mirrors, so expect
-longer than usual compose and rsync times, as well as potential issues with
-proxies as file contents change but the name remains the same.
+对所有软件包进行签名将导致镜像站点的数据变动较多，因此您需要预计生成以及同步镜像所需的时间会比平常更长，还可能会出现代理服务器问题，因为文件内容改变但文件名仍然相同。
 
-Action
+操作
 ======
-#. Log into a system with ``sigul`` and start a ``screen`` or ``tmux`` session.
-   The signing process takes a long time--screen allows the process to continue
-   if you session gets disconnected.
+#. 使用 ``sigul`` 登录系统并启动 ``screen`` 或 ``tmux`` 会话。
+   签名过程需要很长时间 - 如果会话断开连接，screen 允许该过程继续。
 
    ::
 
         $ screen -S sign
 
-   or
+   或
 
    ::
 
         $ tmux new -s sign
 
-#. Check out the Release Engineering ``git`` repo
+#. 请查看发布工程 ``git`` 仓库
 
    ::
         $ git clone https://pagure.io/releng.git
 
-#. Change directories to the ``scripts`` directory to execute
+#. 将目录更改为 ``scripts`` 目录以执行
    ``sigulsign_unsigned.py``.
 
-   For example, to sign everything for Fedora 13 Alpha we would issue:
+  例如，要签署 Fedora 13 Alpha 的所有内容，我们将使用：
 
    ::
         $ ./sigulsign_unsigned.py -vv --tag dist-f13 fedora-13
 
-   This signs the packages with verbose output so you can track progress
-   incrementally.
+   这将使用详细输出对软件包进行签名，以便您可以按增量跟踪进度。
 
-Verification
+验证
 ============
-Once the signing is done, use ``rpmdev-checksig`` to verify that a package has
-been signed.  You can use the output of a recent rawhide compose to test.  In
-this example we use a released Fedora 12 package:
+签名完成后，使用 ``rpmdev-checksig`` 验证包是否已签名。您可以使用最近的 rawhide 组合的输出进行测试。
+在这个例子中，我们使用一个已发布的 Fedora 12 软件包：
 
 ::
 
     $ rpmdev-checksig /pub/fedora/linux/releases/12/Everything/i386/os/Packages/pungi-2.0.20-1.fc12.noarch.rpm 
     /pub/fedora/linux/releases/12/Everything/i386/os/Packages/pungi-2.0.20-1.fc12.noarch.rpm: MISSING KEY - 57bbccba
 
-This output shows that the apckage was signed with key ``57bbccba``, and that
-this key does not exist in your local rpm database. If the key did exist in the
-local rpm database it's likely there would be no output so it's best to run
-this on a system that does not have gpg keys imported.
+此输出显示 apckage 是使用密钥 ``57bbccba`` 签名的，并且此密钥不存在于本地 rpm 数据库中。如果密钥确实存在于本地 rpm 数据库中，则很可能没有输出，因此最好在没有导入 gpg 密钥的系统上运行它。
 
