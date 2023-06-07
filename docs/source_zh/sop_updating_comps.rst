@@ -2,30 +2,29 @@
 
 
 ==============
-Updating Comps
+更新 Comps
 ==============
 
-Description
+说明
 ===========
-When we start a new Fedora development cycle (when we branch rawhide) we have
-to create a new comps file for the new release.  This SOP covers that action.
+当我们开始一个新的 Fedora 开发周期时（当我们切换 rawhide 分支时），我们必须为新版本创建一个新的 comps 文件。本 SOP 涵盖该操作。
 
-Action
+操作
 ======
 
-#. clone the comps repo
+#. 克隆 comps repo
 
    ::
 
         $ git clone ssh://git@pagure.io/fedora-comps.git
 
-#. Create the new comps file for next release:
+#. 为下一版本创建新的 comps 文件：
 
    ::
 
         $ cp comps-f24.xml.in comps-f25.xml.in
 
-#. Edit Makefile to update comps-rawhide target
+#. 编辑 Makefile 以更新 comps-rawhide 目标
 
    ::
 
@@ -34,30 +33,28 @@ Action
         +comps-rawhide: comps-f25.xml
         +       @mv comps-f25.xml comps-rawhide.xml
 
-#. Add the new comps file to source control:
+#. 将新的 comps 文件添加到源代码管理：
 
    ::
 
         $ git add comps-f25.xml.in
 
-#. Edit the list of translated comps files in po/POTFILES.in to reflect
-   currently supported releases.
+#. 在 po/POTFILES.in 中编辑已翻译的合成文件列表，以反映当前支持的版本。
 
    ::
 
         -comps-f22.xml
         +comps-f25.xml
 
-#. Send it up:
+#. 推送：
 
    ::
         $ git push
 
-Verification
+验证
 ============
-One can review the logs for rawhide compose after this change to make sure
-the right comps file was used.
+在此更改后，可以查看 rawhide compose 的日志，以确保使用了正确的 comps 文件。
 
-Consider Before Running
+运行之前考虑
 =======================
-Nothing yet.
+目前尚无。

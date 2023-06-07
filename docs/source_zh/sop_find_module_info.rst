@@ -2,31 +2,29 @@
 
 
 ==========================
-Finding Module Information
+查找模块信息
 ==========================
 
-Description
+说明
 ===========
-When users submit builds to the Module Build Service (MBS), it in turn submits
-builds to Koji.  Sometimes, you are looking at a koji build, and you want to
-know what module-build it is a part of.
+当用户将构建提交到模块构建服务 （MBS） 时，它会依次将构建提交到 Koji。有时，您正在查看一个 koji 构建，并且您想知道它是哪个模块构建的一部分。
 
-Caveat
-======
+注意事项
+==========
 
-It requires that the build has been completed and has been tagged, until
-https://pagure.io/fm-orchestrator/issue/375 is complete.
+它要求构建已完成并已标记，直到
+https://pagure.io/fm-orchestrator/issue/375 完成。
 
-Setup
+设置
 =====
 
-Run the following::
+运行以下命令::
 
     $ sudo dnf install python-arrow python-requests koji
 
-Action
+操作
 ======
 
-Run the following::
+运行以下命令::
 
     $ scripts/mbs/koji-module-info.py $BUILD_ID

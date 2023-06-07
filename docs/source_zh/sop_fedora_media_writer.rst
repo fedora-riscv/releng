@@ -2,25 +2,23 @@
 
 
 ========================================
-Fedora Media Writer Building and Signing
+Fedora Media Writer构建和签名
 ========================================
 
-Description
+说明
 ===========
-Whenever a new version of Fedora Media Writer is available, it is required
-to build and code sign it.
+每当有新版本的 Fedora Media Writer 可用时，都需要对其进行构建和代码签名。
 
-Action
+操作
 ======
 
 Windows
 -------
 
-#. Get a windows code signing key from private ansible repository.
-It is in the ansible-private/files/code-signing/ directory
+#. 从私有 ansible repository 获得 Windows 代码签名密钥。它位于 ansible-private/files/code-signing/ 目录中
 
 
-#. Convert the .cert formatted certificate to .pxf format:
+#. 将 .cert 格式的证书转换为 .pxf 格式：
 
 
    ::
@@ -28,51 +26,46 @@ It is in the ansible-private/files/code-signing/ directory
         $ openssl pkcs12 -export -in code-signing.crt -inkey code-signing.key -out authenticode.pfx
 
 
-#. Clone the Fedora Media Writer git repo:
+#. 克隆 Fedora Media Writer git repo:
 
    ::
 
         $ git clone https://github.com/MartinBriza/MediaWriter.git
 
-#. Checkout the release tag for which the executable to be created:
+#. Checkout 到要为其创建可执行文件的版本标签：
 
    ::
 
         $ git checkout tags/<release_number>
 
-#. The script to build and sign the executable is available at dist/win/build.sh
+#. 用于生成可执行文件并对其进行签名的脚本可在 dist/win/build.sh 中找到
  
-#. Get the mingw-mediawriter from koji. Make sure the version is the one that
-   needs building and signing.
+#. 从 koji 获取 mingw-mediawriter 。确保版本是需要构建和签名的版本。
 
-#. Install the remaining packages that are listed under PACKAGES variable in
-   build.sh script.
+#. 安装 build.sh 脚本中 PACKAGES 变量下列出的其余软件包。
 
-#. Export CERTPATH to the location where the .pfx file is located and make sure
-   its named as authenticode.pfx and export CERTPASS to the file that contains the
-   password used in creating .pvk file.
+#. 将 CERTPATH 导出到 .pfx 文件所在的位置，并确保将其命名为 authenticode.pfx ，并将 CERTPASS 导出到包含用于创建 .pvk 文件密码的文件。
 
-#. Run the build.sh script:
+#. 运行 build.sh 脚本：
 
    ::
 
         $ ./build.sh
 
-Verification
+验证
 ============
-The FedoraMediaWriter-win32-<release_number>.exe is located under dist/win/ 
-directory.
+FedoraMediaWriter-win32-<release_number>.exe 位于 dist/win/ 目录下。
 
-OS X:
------
+OS X：
+---------
 
-Build:
+构建：
 ------
 
-#. install xcode 8.1 from apple store.
-#. install qt for mac from:
+#. 从 apple store 中安装 xcode 8.1。
+#. 从以下位置安装 qt for mac：
        http://download.qt.io/official_releases/qt/5.7/5.7.0/qt-opensource-mac-x64-clang-5.7.0.dmg
-#. Open a terminal and run the following commands
+#. 打开终端并运行以下命令
  
    ::
         $ git clone https://github.com/MartinBriza/MediaWriter
@@ -86,31 +79,30 @@ Build:
         $ $QT_PREFIX/$QT_VERSION/clang_64/bin/macdeployqt "Fedora Media Writer.app" \
         -executable="Fedora Media Writer.app/Contents/MacOS/helper" -qmldir="../../app"
 
-Prepare certificates
+准备证书
 --------------------
 
-This only needs to happen once per build machine, and prepares the certificates
-by requesting them from Apple.
+这只需要在每台构建计算机上执行一次，并通过从 Apple 请求证书来准备证书。
 
-#. Install Xcode from the Mac App store
-#. Start Xcode
-#. Press Command-, (or in the menu bar click Xcode -> Preferences)
-#. Go to Accounts tab
-#. Click the plus button and sign in
-#. Select the new account
-#. Select the correct team
-#. Click View Details
-#. Under "Signing Identities", find "Developer ID Application"
-#. Click Create
-#. Wait until the button disappears
-#. Done
+#. 从 Mac App store 安装 Xcode
+#. 启动 Xcode
+#. 按 Command- 键（或在菜单栏中点按 Xcode -> Preferences）
+#. 转到 Accounts 选项卡
+#. 单击加号按钮并登录
+#. 选择新账户
+#. 选择正确的团队
+#. 点击查看详细信息
+#. 在 “Signing Identities” 下找到 “Developer ID Application”
+#. 点击创建
+#. 等到按钮消失
+#. 完成
 
-Sign and DMG
+签名和 DMG
 ------------
 
-#. Open a terminal 
-#. cd to the root directory of the FMW project
-#. Run the following bash script:
+#. 打开终端
+#. cd 到 FMW 项目的根目录
+#. 运行以下 bash 脚本：
 
       ::
 
@@ -144,32 +136,28 @@ Sign and DMG
          hdiutil create -srcfolder "Fedora Media Writer.app"  -format UDCO -imagekey zlib-level=9 -scrub \
                         -volname FedoraMediaWriter-osx FedoraMediaWriter-osx-$(git  describe --tags).dmg
 
-Account Email(OS X)
+帐户电子邮件(OS X)
 -------------------
 
       ::
          releng@fedoraproject.org
 
-Account Holders(OS X)
+帐户持有人(OS X)
 ---------------------
 
-#. Primary: Dennis Gilmore(ausil)
-#. Backup: Kevin Fenzi(kevin)
-#. Manager/bill-payer: Paul Frields(pfrields)
+#. 主要: Dennis Gilmore(ausil)
+#. 备份: Kevin Fenzi(kevin)
+#. 经理/账单支付人: Paul Frields(pfrields)
 
 
-Sync binaries to the web
+将二进制文件同步到web
 ========================
-copy both files to  /srv/web/fmw on sundries01
-create symlinks to the FedoraMediaWriter-win32-latest.exe and FedoraMediaWriter-osx-latest.dmg
+将这两个文件复制到 sundries01 上的 /srv/web/fmw 目录中，并创建指向 FedoraMediaWriter-win32-latest.exe 和 FedoraMediaWriter-osx-latest.dmg 的符号链接。
 
-Consider Before Running
+运行之前考虑
 =======================
-Nothing yet.
+目前尚无。
 
-Issue with signing
+签名问题
 =======================
-If the build is done but it is not signed then try editing the ``build.sh``
-and add -askpass argument for all the osslsigncode commands and run the script,
-when it asks for the password you can enter the password that was used in
-creating .pvk file.
+如果构建已完成但未签名，请尝试编辑 ``build.sh`` 并为所有 osslsigncode 命令添加 -askpass 参数并运行脚本，当它要求输入密码时，您可以输入用于创建 .pvk 文件的密码。

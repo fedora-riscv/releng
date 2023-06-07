@@ -2,26 +2,22 @@
 
 
 =======================================
-Release the Fedora Container Base Image
+发布 Fedora 容器基础镜像
 =======================================
 
-Description
+说明
 ===========
 
-This SOP covers the steps involved in changing and releasing the Fedora Container
-Base image.
+本 SOP 涵盖了更改和发布 Fedora 容器基础映像所涉及的步骤。
 
-Fedora releases 2 container base images, `fedora` and `fedora-minimal`. These images
-are available on 3 registries `registry.fedoraproject.org`, `quay.io` and `DockerHub` (fedora-minimal is not available in DockerHub).
+Fedora 发布了 2 个容器基础镜像， `fedora` 和 `fedora-minimal` 。这些镜像可在 3 个注册表 `registry.fedoraproject.org` ， `quay.io` 和 `DockerHub` 上找到（Fedora-minimal 在 DockerHub 中不可用）。
 
 
-Modify a base image (Kickstart)
+修改基础镜像 (Kickstart)
 -------------------------------
 
-Base images are built in koji using the `image-factory` application to build the container
-image root filesystem (rootfs).
-Kickstart files are used to configure how the image is built and what is available in the image
-The solution consist of 3 Kickstarts.
+基础镜像是使用 `image-factory` 应用程序在 koji 中构建的，以构建容器镜像根文件系统 （rootfs）。
+Kickstart 文件用于配置镜像的构建方式以及镜像中可用的内容，该解决方案由3个 Kickstart 组成。
 
 `fedora-container-common <https://pagure.io/fedora-kickstarts/blob/main/f/fedora-container-common.ks>`_
 
@@ -29,55 +25,51 @@ The solution consist of 3 Kickstarts.
 
 `fedora-container-base-minimal <https://pagure.io/fedora-kickstarts/blob/main/f/fedora-container-base-minimal.ks>`_
 
-Changes made on the rawhide branch will results in the rawhide image, other branches (f30, f31) should
-be used to modify other releases.
+对 rawhide 分支所做的更改将导致 rawhide 镜像更改，其他分支（f30、f31）应用于修改其他版本。
 
-Compose Configuration (Pungi)
+组合配置 (Pungi)
 -----------------------------
 
-The configuration used to compose the container images is available in the pungi-fedora repository.
+用于组合容器镜像的配置在 pungi-fedora repository 中可用。
 
-For rawhide the configuration is in
+对于 rawhide ，配置在
 
 https://pagure.io/pungi-fedora/blob/main/f/fedora.conf
 
-While for other releases the configuration is in a dedicated file
+而对于其他版本，配置在专用文件中
 
 https://pagure.io/pungi-fedora/blob/f31/f/fedora-container.conf
 
 
-Release on registry.fedoraproject.org and quay.io
+发布在 registry.fedoraproject.org 和 quay.io 上
 -------------------------------------------------
 
-If you want to release the base image on registry.fp.o and quay.io you can use the following
-script.
+如果要在 registry.fp.o 和 quay.io 上发布基础镜像，可以使用以下脚本。
 
 `sync-latest-container-base-image.sh <https://pagure.io/releng/blob/main/f/scripts/sync-latest-container-base-image.sh>`_
 
-You will need to run that script from on of the releng composer machines in the infrastructure
-in order to have the credentials.
+您需要从基础架构中的 releng composer 计算机上运行该脚本才能获得凭据。
 
-If you do not have access to that machines, you can request the release by opening a ticket on the `releng tracker <https://pagure.io/releng/issues>`_.
+如果您无权访问该计算机，则可以通过在 `releng tracker <https://pagure.io/releng/issues>`_ 上打开一个工单来请求发布。
 
-The script can then be executed as follow
+然后可以按如下方式执行脚本
 
 ::
 
     $./sync-latest-container-base-image.sh 31
     $./sync-latest-container-base-image.sh 32
 
-This will take care of pushing the `fedora` and `fedora-minimal` images to both registries.
+这会负责将 `fedora` 和 `fedora-minimal` 镜像推送到两个仓库中。
 
 
 
-Release on DockerHub
+在 DockerHub 上发布
 --------------------
 
-Releasing on DockerHub is a little different since Fedora is an "offical" image there. In order to
-release new images there we have to update a Dockerfile and rootfs tarball on the following repo.
+在 DockerHub 上发布有点不同，因为Fedora在那里是一个 “offical” 镜像。为了在那里发布新镜像，我们必须在以下存储库中更新 Dockerfile 和 rootfs 压缩包。
 
 `docker-brew-fedora <https://github.com/fedora-cloud/docker-brew-fedora>`_.
 
-For the details on how to run the script please see
+有关如何运行脚本的详细信息，请参阅
 
 `README <https://github.com/fedora-cloud/docker-brew-fedora/blob/main/README.md>`_.

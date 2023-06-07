@@ -9,55 +9,47 @@
 ===========
 .. Put a description of the task here.
 
-When an improvement happens to the Release Engineering documentation following
-the :doc:`contributing <contributing>` for the `Sphinx`_ `reStructured Text`_
-source found in ``docs/source`` within the `RelEng git repository`_ someone has
-to manually perform a process in order to update the documentation that is
-hosted in the `pagure`_ documentation space for `Fedora RelEng docs`_.
+当Release Engineering文档在 `RelEng git repository`_ 的 ``docs/source`` 中使用 `Sphinx`_ `reStructured Text`_
+源代码进行改进并遵循了 :doc:`贡献 <contributing>` 之后，必须有人手动执行一个过程，以便更新托管在 `Fedora RelEng docs`_
+的 `pagure`_ 文档空间中的文档。
 
-Action
+操作
 ======
 .. Describe the action and provide examples
 
-In order to render the documentation using `Sphinx`_, you need to first be sure
-to have the package installed:
+为了使用 `Sphinx`_ 渲染文档，您需要首先确保已安装软件包：
 
 ::
 
     $ dnf install python-sphinx
 
-Then we'll need to clone the RelEng repository and the RelEng docs repository
-(the docs git repository is provided by pagure automatically). There is a script
-in the `releng` repository that takes care of cleanly updating the documentation
-site for us.
+然后我们需要克隆 RelEng repository 和 RelEng docs repository
+（docs git 仓库由 pagure 自动提供）。
+`releng` repository 中有一个脚本，负责为我们干净地更新文档站点。
 
 
 ::
 
     $ ./scripts/update-docs.sh
 
-The documentation is now live.
+该文档现已上线。
 
 .. note::
-    This will require someone with permissions to push to the rawhide branch for
-    the releng repository. If you are curious whom all has this ability, please
-    refer to the :doc:`Main Page <index>` and contact someone from the "Team
-    Composition"
+    这将需要具有权限的人员推送到 releng repository 的 rawhide 分支。如果您好奇谁都有这种能力，请参阅
+    :doc:`Main Page <index>` 并联系 “Team
+    Composition”
 
-Verification
+验证
 ============
 .. Provide a method to verify that the action completed as expected (success)
 
-Visit the `Fedora RelEng docs`_ website and verify that the changes are
-reflected live on the docs site.
+访问 `Fedora RelEng docs`_ 网站并验证更改是否实时反映在文档站点上。
 
-Consider Before Running
+运行之前考虑
 =======================
 .. Create a list of things to keep in mind when performing action.
 
-No considerations at this time. The docs git repository is simply a static
-html hosting space and we can just re-render the docs and push to it again if
-necessary.
+目前没有需要考虑的内容。docs git 存储库只是一个静态的 html 托管空间，我们可以重新渲染文档并在必要时再次推送到它。
 
 .. _Sphinx: http://sphinx-doc.org/
 .. _reStructured Text: https://en.wikipedia.org/wiki/ReStructuredText
