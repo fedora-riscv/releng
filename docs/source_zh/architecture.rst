@@ -4,16 +4,12 @@
 .. _architecture:
 
 =======================================
-Fedora Release Engineering Architecture
+发布工程架构
 =======================================
 
-Here you will find an index of documentation that describes the Fedora Release
-Engineering Architecture. The goal of this is to provide an overview of the
-environment and various systems that are used to build it as a reference to
-members of the Fedora Community as well as materials to help prospective Release
-Engineering Community members.
+在这里，您将找到一个文档索引，其中描述了 Fedora 发行工程架构。这样做的目的是为 Fedora 社区成员提供一个环境和各种系统的概述，以便作为参考资料，同时也提供了有助于潜在的发行工程社区成员的材料。
 
-Architecture Documents
+架构文档
 =============================
 
 .. toctree::

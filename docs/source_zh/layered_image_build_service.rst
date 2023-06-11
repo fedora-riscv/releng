@@ -1,19 +1,16 @@
 .. SPDX-License-Identifier:    CC-BY-SA-3.0
 
 =================================
-Fedora Layered Image Build System
+Fedora 分层镜像构建系统
 =================================
 
-The Fedora Layered Image Build System aims to provide an new type of official
-binary artifact produced by Fedora. Currently, we produce two main types of
-artifacts: RPMs, and images. The RPMs are created in `Koji`_ from specfiles in
-dist-git. The images come in different formats, but have in common creation in
-Koji from kickstart files — this includes the official Fedora Docker Base Image.
-This change introduces a new type of image, a `Docker`_ Layered Image, which is
-created from a Dockerfile and builds on top of that base image.
+Fedora 分层镜像构建系统旨在提供 Fedora 官方二进制制品的新类型。目前，我们生产两种主要类型的制
+品： RPM 和镜像。RPMs 是从 dist-git 中的 specfiles 在 `Koji`_ 中创建的。镜像有不同的格式，但
+是共同点是从 kickstart 文件中在 Koji 中创建的——这包括官方的 Fedora Docker 基础镜像。此更改
+引入了一种新类型的镜像，即 `Docker`_ 分层镜像，它是从 Dockerfile 创建的，并在该基础镜像之上构建。
 
 
-Layered Image Build Service Architecture
+分层镜像构建服务架构
 ========================================
 
 ::
@@ -102,20 +99,20 @@ Layered Image Build Service Architecture
 
 
     [--------------------- Robosignatory ------------------------------------]
-    [ Every time an image is tagged or changes names, Robosignatory signs it ]
+    [ 每次图像被标记或更改名称时 Robosignatory都会对其进行签名                      ]
     [                                                                        ]
-    [ NOTE: It's injection points in the diagram are ommitted for brevity    ]
+    [ NOTE: 为了简洁起见，在图中保留了它的注入点                                   ]
     [------------------------------------------------------------------------]
 
 
-Layered Image Build System Components
+分层映像构建系统组件
 =====================================
 
-The main aspects of the Layered Image Build System are:
+分层映像构建系统的主要方面是：
 
 * Koji
 
-  * koji-containerbuild plugin
+  * koji-containerbuild 插件
 
 * OpenShift Origin v3
 * Atomic Reactor
@@ -129,133 +126,101 @@ The main aspects of the Layered Image Build System are:
 * RelEng Automation
 
 
-The build system is setup such that Fedora Layered Image maintainers will submit
-a build to Koji via the ``fedpkg container-build`` command a ``containers``
-namespace within `DistGit`_. This will trigger the build to be scheduled in
-`OpenShift`_ via `osbs-client`_ tooling, this will create a custom
-`OpenShift Build`_ which will use the pre-made buildroot Docker image that we
-have created. The `Atomic Reactor`_ (``atomic-reactor``) utility will run within
-the buildroot and prep the build container where the actual build action will
-execute, it will also maintain uploading the `Content Generator`_ metadata back
-to `Koji`_ and upload the built image to the candidate docker registry. This
-will run on a host with iptables rules restricting access to the docker bridge,
-this is how we will further limit the access of the buildroot to the outside
-world verifying that all sources of information come from Fedora.
+该构建系统的设置是这样的，Fedora 分层镜像维护者将通过 ``fedpkg container-build`` 命令提交一个构建
+到 `DistGit`_ 内的 ``containers`` 命名空间中，这将触发使用 `osbs-client`_ 工具在 `OpenShift`_ 中调度构建，
+这将创建一个自定义的 `OpenShift Build`_ 构建，它将使用我们创建的预制的 buildroot Docker 镜像。
+`Atomic Reactor`_ （ ``atomic-reactor`` ）实用程序将在 buildroot 中运行并准备构建容器，在其中执行实际
+的构建操作，还将维护上传 `Content Generator`_ 元数据回 `Koji`_ 并将构建后的镜像上传到候选 docker 注册
+表。这将在一个带有 iptables 规则的主机上运行，该规则限制了对 docker 桥的访问，这是我们将进一步限
+制 buildroot 对外部世界进行验证的信息来源的方式。
 
-Completed layered image builds are hosted in a candidate docker registry which
-is then used to pull the image and perform tests with `Taskotron`_. The
-taskotron tests are triggered by a `fedmsg`_ message that is emitted from
-`Koji`_ once the build is complete. Once the test is complete, taskotron will
-send fedmsg which is then caught by the `RelEng Automation` Engine that will run
-the Automatic Release tasks in order to push the layered image into a stable
-docker registry in the production space for end users to consume.
+完成的分层镜像构建存储在候选 docker 注册表中，然后使用 `Taskotron`_ 拉取镜像并执行测试。Taskotron 测
+试由 `Koji`_ 发出的 `fedmsg`_ 消息触发，一旦构建完成就会发出。测试完成后，taskotron 将发送 fedmsg，然后
+由 `RelEng Automation` 引擎捕获，该引擎将运行自动发布任务，以将分层镜像推送到生产空间中的稳定 docker 注册表
+中，供最终用户使用。
 
-Note that every time the layered image tagged to a new registry, ultimately
-changing it's name, `Robosignatory`_ will automatically sign the new image. This
-will also occur as part of the Automated Release process as the image will be
-tagged from the candidate docker registry into the production docker registry in
-order to "graduate" the image to stable.
+请注意，每次将分层镜像标记到新的注册表中时，最终都会更改其名称，因此 `Robosignatory`_ 将自动签署新的镜像。
+这也将作为自动化发布流程的一部分发生，因为该镜像将从候选 docker 注册表中标记到生产 docker 注册表中，以
+将镜像“升级”为稳定版本。
 
 Koji
 ----
 
-`Koji`_ is the Fedora Build System.
+`Koji`_ 是 Fedora 构建系统。
 
 
-koji-containerbuild plugin
+koji-containerbuild 插件
 --------------------------
 
-The `koji-containerbuild`_ plugin integrates Koji and OSBS so that builds can be
-scheduled by koji and integrated into the build system with imports of metadata,
-logs, build data, and build artifacts.
+`koji-containerbuild`_ 插件集成了 Koji 和 OSBS，因此 koji 可以调度构建，并通过导入元数据、日志、构建数据和构建工件集成到构建系统中。
 
 OpenShift Origin v3
 -------------------
 
-`OpenShift Origin v3`_ is an open source Container Platform, built on top of
-`kubernetes`_ and `Docker`_. This provides many aspects of the system needed
-including a build pipeline for Docker images with custom build profiles, image
-streams, and triggers based on events within the system.
+`OpenShift Origin v3`_ 是一个开源容器平台，建立在
+`kubernetes`_ 和 `Docker`_ 之上。这提供了所需的系统的许多方面，包括 Docker 映像的构建管道，其中包含自定义构建配置文件、镜像流和基于系统内事件的触发器。
 
 Atomic Reactor
 --------------
 
-`Atomic Reactor`_ is an utility which allows for the building of containers from
-within other containers providing hooks to trigger automation of builds as well
-as plugins providing automatic integration many other utilities and services.
+`Atomic Reactor`_ 是一个实用程序，它允许从其他容器内构建容器，提供钩子以触发构建自动化以及提供自动集成许多其他实用程序和服务的插件。
 
 
-osbs-client tools
+osbs-client 工具
 -----------------
 
-`osbs-client`_ tools allow for users to access the build functionality of
-`OpenShift Origin v3`_ using a simple set of command line utilities.
+`osbs-client`_ 工具允许用户使用一组简单的命令行实用程序访问
+`OpenShift Origin v3`_ 的构建功能。
 
 
 docker-registry
 ---------------
 
-A `docker-registry`_ is a stateless, highly scalable server side application
-that stores and lets you distribute Docker images.
+`docker-registry`_ 是一个无状态、高度可扩展的服务器端应用程序，用于存储并允许您分发 Docker 镜像。
 
-There are many different implementations of docker-registries, two main ones
-are supported by the Fedora Layered Image Build System.
+有许多不同的 docker-registry 实现，Fedora 分层镜像构建系统支持两个主要的实现。
 
 docker-distribution
 ~~~~~~~~~~~~~~~~~~~
 
-The `docker-distribution`_ registry is considered the Docker upstream "v2
-registry" such that it was used by upstream to implement the new version 2
-specification of the docker-registry.
+`docker-distribution`_ 注册表被认为是 Docker 上游的“v2 注册表”，因此它被上游用于实现 docker-registry 的新版本 2 规范。
 
-Fedora Production Registry
+Fedora 生产注册表
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Implementation details of this are still unknown at the time of this writing and
-will be updated at a later date. For the current status and implementation notes
-please visit the `FedoraDockerRegistry`_ page.
+在撰写本文时，这方面的实施细节仍然未知，并将在以后更新。有关当前状态和实现说明，请访问 `FedoraDockerRegistry`_ 页面。
 
 Taskotron
 ---------
 
-`Taskotron`_ is an automated task execution framework, written on top of
-`buildbot`_ that currently executes many Fedora automated QA tasks and we will
-be adding the Layered Image automated QA tasks. The tests themselves will be
-held in DistGit and maintained by the Layered Image maintainers.
+`Taskotron`_ 是一个自动化任务执行框架，编写在
+`buildbot`_ 之上，目前执行许多 Fedora 自动化 QA 任务，我们将添加分层映像自动化 QA 任务。测试本身将在DistGit中进行，并由分层映像维护者维护。
 
 RelEng Automation
 -----------------
 
-`RelEng Automation`_ is an ongoing effort to automate as much of the RelEng
-process as possible by using `Ansible`_ and being driven by `fedmsg`_ via
-`Loopabull`_ to execute Ansible Playbooks based on fedmsg events.
+`RelEng Automation`_ 是一项持续的努力，通过使用 `Ansible`_ 并由 `fedmsg`_ 通过
+`Loopabull`_ 驱动，以执行基于 fedmsg 事件的 Ansible Playbook，从而尽可能多地自动化 RelEng 流程。
 
 Robosignatory
 -------------
 
-`Robosignatory`_ is a fedmsg consumer that automatically signs artifacts and
-will be used to automatically sign docker layered images for verification by
-client tools as well as end users.
+`Robosignatory`_ 是一个 fedmsg 的客户，它会自动对工件进行签名，并将用于自动对Docker分层映像进行签名，以便客户端工具和最终用户进行验证。
 
-Future Integrations
+未来的集成
 -------------------
 
-In the future various other components of the `Fedora Infrastructure`_
-will likely be incorporated.
+将来， `Fedora Infrastructure`_ 的其他各种组件可能会被合并。
 
 PDC
 ~~~
 
-`PDC`_ is Fedora's implementation of `Product Definition Center`_ which allows
-Fedora to maintain a database of each Compose and all of it's contents in a way
-that can be queried and used to make decisions in a programatic way.
+`PDC`_ 是 Fedora 对 `Product Definition Center`_ 的实现，它允许 Fedora 以一种可以查询的方式维护每个 Compose 及其所有内容的数据库，并以编程方式用于决策。
 
 The New Hotness
 ~~~~~~~~~~~~~~~
 
-`The New Hotness`_ is a `fedmsg`_ consumer that listens to
-release-monitoring.org and files bugzilla bugs in response (to notify packagers
-that they can update their packages).
+`The New Hotness`_ 是一个 `fedmsg`_ 的客户，它监听 release-monitoring.org 并提交bugzilla错误作为响应（通知打包者他们可以更新他们的软件包）。
 
 .. _Ansible: http://ansible.com/
 .. _buildbot: http://buildbot.net/

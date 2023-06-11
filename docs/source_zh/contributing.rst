@@ -1,36 +1,29 @@
 .. SPDX-License-Identifier:    CC-BY-SA-3.0
 
 =============================================
-Fedora Release Engineering Contributing Guide
+Fedora 发布工程贡献指南
 =============================================
 
-Fedora Release Engineering works with many different utilities that are
-maintained in respective upstream locations. Fedora Release Engineering
-maintains an "Upstream First" policy such that if there is a bug in an utility
-or a feature needed, we pursue that upstream before entertaining the idea of
-carrying a Fedora specific patch.
+Fedora Release Engineering 使用许多不同的实用程序，这些实用程序在相应的上游位置得到维护。
+Fedora Release Engineering 实施“上游优先”的政策，如果实用程序存在错误或需要的功能，我们会
+在考虑使用 Fedora 特定补丁之前，优先考虑解决上游问题。
 
-Fedora Release Engineering also has a number of scripts and utilities that are
-strictly Fedora centric in order to automate tasks and processes as they
-relate to Fedora itself which is what is contained in the `releng git
-repository`_ hosted on `Pagure`_. If you would like to contribute to something
-in this repository, please reference the :ref:`contributing-to-releng` section.
+Fedora Release Engineering 还有许多严格针对 Fedora 的脚本和实用程序，以自动化与 Fedora 本身
+相关的任务和流程，并包含在托管在 `Pagure`_ 上的 `releng git repository`_ 中。如果您想要为此存储库做出贡献，请
+参考 :ref:`contributing-to-releng` 部分。
 
 .. _contributing-to-releng:
 
-Contributing to releng
+为 releng 贡献
 ======================
 
-In order to contribute to the releng `git`_ repository (where the source
-reStructured Text version of these docs live), you should first have a `Fedora
-Account System`_ (FAS) account, log into `pagure.io`_ and the fork the `releng
-git repository`_.
+如果要为 releng `git`_ 存储库做出贡献（其中包含这些文档的源 reStructured Text 版本），您首先
+需要拥有 `Fedora Account System`_ (FAS) 帐户，登录 `pagure.io`_ ，然后 fork `releng git repository`_ 。
 
-Once you've forked the `releng git repository`_, you will need to set the remote
-upstream git clone of your fork in order to track the official releng
-repository. While not mandatory, it's conventional to call the remote upstream
-the name ``upstream`` which can be done with the following command while within
-the directory of your local git clone of your fork.
+一旦您 fork 了 `releng git repository`_ ，您需要设置远程上游 git 克隆以跟踪官方 releng 存储库。虽
+然不是强制性的，但通常将远程上游称为 ``upstream`` ，可以使用以下命令在本地 git clone 所在的目录中
+执行此操作：
+
 
 .. code:: bash
 
@@ -38,45 +31,39 @@ the directory of your local git clone of your fork.
 
 .. note::
 
-    If you are not currently familiar with git, it is highly recommended to
-    visit git's upstream and familiarize yourself.
+    如果你目前还不熟悉 git，强烈建议你访问 git 的upstream并熟悉一下。
 
     http://www.git-scm.com/
 
 
-RelEng Developer Workflow
+RelEng 开发者工作流程
 -------------------------
 
-There are many options for developer workflow, but the recommended workflow for
-Fedora releng repository is known as a "`Topic Branch`_" based workflow in git
-nomenclature. This is how Fedora Release Engineering contributors can submit
-changes to the `releng git repository`_ for both code and documentation.
+对于开发者工作流程，有许多选项，但 Fedora releng 存储库推荐的工作流程是基于 git 术语中的“ `Topic Branch`_ ”的工作流程。
+这是 Fedora Release Engineering 贡献者可以提交代码和文档更改到 `releng git repository`_ 的方式。
 
-The general workflow is as follows:
+常规工作流程如下：
 
-* Checkout ``main`` branch of the local git clone of your releng repository
-  clone.
+* Checkout 克隆到本地的 releng repository 的 ``main`` 分支。
 
   ::
 
     $ git checkout main
 
-* Pull upstream and merge into local main to make sure that your main
-  branch is in line with the latest changes from upstream. Then push it to your
-  clone so that origin knows about the changes.
+* 拉取upstream并合并到本地主分支，以确保您的主分支与上游的最新更改保持一致。然后将其推送到您的克隆，以便origin知道更改。
 
   ::
 
     $ git pull --rebase upstream main
     $ git push origin main
 
-* Create a topic branch from main.
+* 从main创建主题分支。
 
   ::
 
     $ git checkout -b my-topic-branch
 
-* Make changes in your topic branch and commit them to your topic branch.
+* 在主题分支中进行更改，并将其提交到主题分支。
 
   ::
 
@@ -87,9 +74,8 @@ The general workflow is as follows:
     $ git add somefile.py
     $ git commit -s -m "awesome patch to somefile.py"
 
-* This step is optional but recommended in order to avoid collisions when
-  submitting upstream. Here we will checkout main again and merge
-  ``upstream/main`` so that we can resolve any conflicts locally.
+* 此步骤是可选的，但建议使用，以避免在upstream提交时发生冲突。在这里，我们将再次Checkout main 并合并
+  ``upstream/main`` ，以便我们可以在本地解决任何冲突。
 
   ::
 
@@ -97,7 +83,7 @@ The general workflow is as follows:
     $ git pull --rebase upstream main
     $ git push origin main
 
-* Rebase on main before submitting a pull request
+* 在提交pull request之前在main上rebase
 
   ::
 
@@ -105,34 +91,29 @@ The general workflow is as follows:
 
     ..... Resolve any conflicts if needed ......
 
-* Push your topic branch to your fork's origin in pagure.
+* 将您的主题分支推送到您的fork在 pagure 中的origin。
 
   ::
 
     $ git push origin my-topic-branch
 
 
-* Open a pull request in Rel Eng Pagure. https://pagure.io/releng/pull-requests
+* 在 Rel Eng Pagure 上开启一个 pull request。 https://pagure.io/releng/pull-requests
 
 
 
-Developer Workflow Tips and Tricks
+开发人员工作流程提示和技巧
 ----------------------------------
 
-Below are some Fedora Release Engineering Developer Workflow Tips and Tricks
-used by current members of the team in order to help assist with development.
+以下是一些 Fedora 发布工程开发人员工作流程提示和技巧，由团队的当前成员使用，以帮助协助开发。
 
-pullupstream
-^^^^^^^^^^^^
+pull upstream
+^^^^^^^^^^^^^^^
 
 
-The following is an useful shell function to place in your ``~/.bashrc`` to
-help automate certain aspects of the developer workflow. It will allow you to
-merge in the upstream main or devel branch into your forked repository for
-easily keeping in line with the upstream repository.
+下面是一个有用的 shell 函数，可以放在 ``~/.bashrc`` 中，以帮助自动化开发人员工作流的某些方面。它将允许您将 upstream main 分支或开发分支合并到您 fork 的存储库中，以便轻松与 upstream 存储库保持一致。
 
-The following is the bash function to be added to your ``~/.bashrc`` and make
-sure to ``source ~/.bashrc`` after adding it in order to "enable" the function.
+以下是要添加到 ``~/.bashrc`` 中的 bash 函数，并确保在添加后使用 ``source ~/.bashrc`` 以“启用”该功能。
 
 ::
 
@@ -148,8 +129,7 @@ sure to ``source ~/.bashrc`` after adding it in order to "enable" the function.
         fi
     }
 
-With the function in place you can easily pull and merge in the releng main
-branch even while using a topic branch as follows:
+有了这个功能，你也可以轻松地拉取和合并releng主分支，即使使用主题分支，如下所示：
 
 ::
 
@@ -168,9 +148,7 @@ branch even while using a topic branch as follows:
     On branch docs
     nothing to commit, working directory clean
 
-Now that you're back on your topic branch you can easily rebase on your local
-main branch in order to resolve any merge conflicts that may come up for
-clean pull request submission.
+现在，您回到了主题分支，您可以轻松地在本地主分支上重新定位，以解决干净拉取请求提交时可能出现的任何合并冲突。
 
 ::
 
@@ -178,94 +156,77 @@ clean pull request submission.
     Current branch docs is up to date.
 
 
-RelEng Upstream Tools
+RelEng Upstream 工具
 =====================
 
-Fedora Release Engineering uses many tools that exist in their own upstream
-project space. These are tools that every Fedora Release Engineer should be
-familiar with and in the event there is a bug or a feature needed, we should
-participate in the respective upstream to resolve the issue first before
-considering carrying a Fedora specific patch.
+Fedora发布工程团队使用许多存在于其自己的上游项目空间中的工具。这些是每个Fedora发布工程师都应该熟悉的工具，如果存在错误或需要功能，我们应该首先参与到相应的上游项目中解决问题，然后再考虑携带Fedora特定的补丁。
 
-Tools List
+工具列表
 ----------
 
-Tools Release Engineering is actively involved with upstream
+工具发布工程积极参与 upstream
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Below are a set of tools that are centric to the Release Engineering team and
-our processes. We actively engage with upstreams of these projects. For these
-tools, we recommend the same git contribution workflow that is outlined above
-for this git repository.
+以下是一组工具，它们是发布工程团队和我们的流程的核心。我们积极参与这些项目的 upstream。对于这些工具，我们建议使用与此git存储库概述相同的git贡献工作流程。
 
 * `koji <https://pagure.io/koji>`_ -
-  Build System used by Fedora
+  Fedora 使用的构建系统
 * `mash <https://pagure.io/mash>`_ -
-  Tool that creates repositories from koji tags, and solves them for multilib
-  dependencies.
+  从 koji 标签创建存储库的工具，并解决多库依赖项。
 * `pungi <https://pagure.io/pungi>`_ -
-  Fedora Compose tool
+  Fedora 组合工具
 * `Product Defintion Center (PDC)
   <https://github.com/release-engineering/product-definition-center>`_ -
-  Repository and API for storing and querying product metadata
+  用于存储和查询产品元数据的存储库和 API
 * `koji-containerbuild
   <https://github.com/release-engineering/koji-containerbuild>`_ -
-  Koji plugin to integrate OSBS with koji
+  Koji 插件，用于将 OSBS 与 Koji 集成
 
-Tools Release Engineering is actively mostly consumers of
+工具发布工程是最活跃的客户
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Below are the set of tools that the Release Engineering team either consumes
-directly or as the side effect of other tools in the Release Engineering
-Infrastructure. Tools here should always be engaged upstream in the event of a
-bug or enhancement needed but are not tools that the Release Engineering team
-is extremely active in their continued upstream development and will defer to
-each upstream for recommended contributions workflow.
+以下是 Release Engineering 团队直接使用或作为 Release Engineering 基础设施中其他工具的副作用所使用的一组工具。
+这些工具在需要 Bug 修复或增强功能时应始终从上游中调用，但它们不是 Release Engineering 团队在其持续上游开发方面非
+常活跃的工具，并将推迟到每个上游的推荐贡献工作流程。
 
 * `fedpkg <https://pagure.io/fedpkg>`_ -
-  command line utility for Fedora (and EPEL) developers. It interacts with
-  dist-git, koji, rpmbuild, git, etc.
+  Fedora（和EPEL）开发人员的命令行实用程序。它与dist-git，koji，rpmbuild，git等交互。
 * `rpkg <https://pagure.io/rpkg>`_ -
-  library for dealing with rpm packaging in a git source control (used by
-  fedpkg)
+  用于在 git 源代码控制中处理 rpm 打包的库（由 Fedpkg 使用）
 * `dist-git <https://github.com/release-engineering/dist-git>`_ -
-  remote Git repository specificaly designed to hold RPM package sources.
+  专门设计用于保存 RPM 包源的远程 Git 存储库。
 * `creatrepo <http://createrepo.baseurl.org/>`_ -
-  A python program which generate repodata from a set of rpm files.
+  一个从一组rpm文件生成repodata的python程序。
 * `createrepo_c <https://github.com/rpm-software-management/createrepo_c>`_ -
-  C implementation of createrepo
+  创建存储库的C实现
 * `oz <https://github.com/clalancette/oz>`_ -
-  set of programs and classes to do automated installations of operating
-  systems.
+  用于自动安装操作系统的程序和类集。
 * `imagefactory <http://imgfac.org/>`_ -
-  imagefactory builds images for a variety of operating system/cloud
-  combinations.
+  imagefactory 为各种操作系统/云组合构建映像。
 * `sigul <https://pagure.io/sigul>`_ -
-  An automated gpg signing system
+  自动GPG签名系统
 * `mock <https://github.com/rpm-software-management/mock/wiki>`_ -
-  a tool for building packages in prestine buildroots
+   用于在prestine buildroots中构建软件包的工具
 * `fedmsg <http://www.fedmsg.com/en/latest/>`_ -
-  Fedora Infrastructure Message Bus
+  Fedora 基础设施消息总线
 * `lorax <https://github.com/rhinstaller/lorax>`_ -
-  tool to build install trees and images
+  构建安装树和映像的工具
 * `OpenShift <http://www.openshift.org/>`_ -
-  Open Source Platform as a Service by Red Hat
+  红帽的开源平台即服务
 * `OSBS <https://github.com/projectatomic/osbs-client>`_ -
-  set of utilities that turn OpenShift into a layered image build system
+  一组实用程序，可将 OpenShift 转换为分层映像构建系统
 * `taskotron <https://fedoraproject.org/wiki/Taskotron>`_ -
-  a framework for automated task execution.
+  用于自动执行任务的框架。
 * `pulp <http://www.pulpproject.org/>`_ -
-  a platform for managing repositories of content, such as software packages,
-  and pushing that content out to large numbers of consumer
+  一个用于管理内容存储库（如软件包）并将内容推送给大量客户的平台
 * `crane <https://github.com/pulp/crane>`_ -
-  Crane is a small read-only web application that provides enough of the docker
-  registry API to support "docker pull"
+  Crane 是一个小型只读 Web 应用程序，它提供了足够的 docker 注册表 API 来支持“docker pull”
 * `pagure <https://pagure.io/pagure>`_
-  A git centered forge
+  以 git 为中心的 forge
 * `rpm-ostree <https://github.com/projectatomic/rpm-ostree>`_ -
-  Store RPMs in OSTree repository, and atomically upgrade from commits
+  将 RPM 存储在 OSTree 存储库中，并从 commit 进行原子升级
 * `ostree <https://wiki.gnome.org/Projects/OSTree>`_ -
-  a tool for managing bootable, immutable, versioned filesystem trees.
+  用于管理可引导、不可变、版本化的文件系统树的工具。
 
 .. _releng git repository: https://pagure.io/releng
 .. _Pagure: https://pagure.io/pagure

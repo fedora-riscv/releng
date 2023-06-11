@@ -4,156 +4,113 @@
 .. _overview:
 
 ===================================
-Fedora Release Engineering Overview
+Fedora 发布工程概述
 ===================================
 
 .. _overview-intro:
 
-Introduction
+介绍
 ============
 
-The development of Fedora is a very open process, involving over a thousand
-package maintainers (along with testers, translators, documentation writers
-and so forth). These maintainers are responsible for the bulk of Fedora
-distribution development. An elected `committee of people`_
-provides some level of direction over the engineering aspects of the project.
+Fedora 的开发过程非常开放，涉及到1000多个软件包维护者（还有测试人员、翻译人员、文档撰写人员等等）。这些维护者负责 Fedora 分发的大部分开发工作。一个由选举产生的 `委员会`_ 为项目的工程方面提供了一定程度的指导。
 
-The rapid pace of Fedora development leaves little time for polishing the
-development system into a quality release. To solve this dilemma, the Fedora
-project makes use of regular freezes and milestone (Alpha, Beta, Final)
-releases of the distribution, as well as "branching" of our trees to maintain
-different strains of development.
+Fedora 开发的快速节奏留给开发系统很少的时间来制作质量可靠的版本。为了解决这个问题，Fedora 项目采用了定期冻结和发布分销版的里程碑（Alpha、Beta、Final）以及分支开发树以维护不同的开发线路。
 
-Stable branches of the Fedora tree and associated `Repositories`_ are
-maintained for each Fedora release. The `Rawhide`_ rolling development tree
-is the initial entry point for all Fedora development, and the trunk from
-which all branches diverge. Releases are `Branched`_ from Rawhide some time
-before they are sent out as stable releases, and the milestone releases
-(Alpha, Beta and Final) are all built from this Branched tree.
+每个 Fedora 发行版都有稳定的分支树和关联的 `存储库`_ 。 `Rawhide`_  是任何 Fedora 开发的起点和所有分支发散的主干。在将其发送为稳定版本之前，发行版将从 Rawhide `分支`_ ，里程碑版本（Alpha、Beta 和 Final）均是从这些分支树构建而成。
 
-Nightly snapshot images of various kinds are built from Rawhide and Branched
-(when it exists) and made available for download from within the trees on the
-`mirrors`_ or from the `Koji`_ build system.
+各种类型的每夜快照图像都是从 Rawhide 和 Branch 构建（如果存在）并从 `mirrors`_ 或 `Koji`_ 构建系统中提供下载。
 
-The `Fedora Release Life Cycle`_ page is a good entry point for more details
-on these processes. Some other useful references regarding the Fedora release
-process include:
+`Fedora 发布生命周期`_ 页面是更详细了解这些过程的好入口。关于 Fedora 发布过程的其他一些有用参考资料包括：
 
-* The `Release planning process
+* `发布规划过程
   <https://fedoraproject.org/wiki/Changes/Policy>`_
-* The `release validation test plan
+* `发布验证测试计划
   <https://fedoraproject.org/wiki/QA:Release_validation_test_plan>`_
-* The `updates-testing process
-  <https://fedoraproject.org/wiki/QA:Updates_Testing>`_, via
-  `Bodhi <https://fedoraproject.org/wiki/Bodhi>`_ and the
-  `Updates Policy <https://fedoraproject.org/wiki/Updates_Policy>`_
-* The `test compose and release candidate system
+* `更新测试过程
+  <https://fedoraproject.org/wiki/QA:Updates_Testing>`_，通过
+  `Bodhi <https://fedoraproject.org/wiki/Bodhi>`_ 和
+  `更新政策 <https://fedoraproject.org/wiki/Updates_Policy>`_
+* `测试组合和发布候选系统
   <https://fedoraproject.org/wiki/QA:SOP_compose_request>`_
-* The `blocker bug process
+* `阻止程序错误进程
   <https://fedoraproject.org/wiki/QA:SOP_blocker_bug_process>`_
-  and
-  `freeze exception bug process
+  和
+  `冻结异常错误进程
   <https://fedoraproject.org/wiki/QA:SOP_freeze_exception_bug_process>`_
-* The `Repositories`
-* The `Bugzilla system
+* `存储库`_
+* `Bugzilla 系统
   <https://fedoraproject.org/wiki/Bugs_and_feature_requests>`_
 
-Final Release Checklist
+最终版本清单
 =======================
 
-Various tasks need to be accomplished prior to a final Fedora release.
-Release Engineering is responsible for many of them, as outlined here.
+在最终的 Fedora 发布之前需要完成各种任务。发布工程负责其中的许多，如此处所述。
 
-Release Announcement
+发布公告
 --------------------
 
-The `Fedora Documentation Project`_ prepares release announcements for the
-final releases.  A `bug needs to be filed`_ for this two weeks before the
-final release date.
+`Fedora 文档项目`_ 为最终版本准备发布公告。需要在最终发布日期前两周提交一个 `bug 报告`_ 。
 
-Mirror List Files
+镜像列表文件
 -----------------
 
-A new set of mirror list files need to be created for the new release.
-Email `Fedora Mirror Admins`_ to have these files created.  These should
-be created at the Final Freeze point but may redirect to Rawhide until final
-bits have been staged.
+需要为新的发行版创建一组镜像列表文件。请给 `Fedora 镜像管理员`_ 发送电子邮件以创建这些文件。这些镜像列表文件应该在 Final Freeze 时创建，但可能会重定向到 Rawhide，直到最终位已经准备就绪。
 
-Release Composing
+发布组合
 =================
 
-Fedora “releases” can be built by anyone with a fast machine of proper arch
-and access to a package repository.  All of the tools necessary to build a
-release are available from the package repository. These tools aim to provide
-a consistent way to build Fedora releases. A complete release can actually be
-built with only a couple commands, including the creation of network install
-images, offline install images ('DVDs'), live images, disk images, install
-repositories, [[FedUp]] upgrade images, and other bits.
-These commands are named pungi and livecd-creator.
+任何拥有适当架构和访问软件包仓库的快速计算机的人都可以构建 Fedora“发行版”。构建发行版所需的所有工具都可以从软件包仓库中获取。这些工具旨在提供一种一致的方式来构建 Fedora 发行版。
+实际上，只需要几个命令就可以构建完整的发行版，其中包括创建网络安装映像、离线安装映像（'DVD'）、实时映像、磁盘映像、安装存储库、[[FedUp]]升级映像和其他一些程序。这些命令被命名为 pungi 和 livecd-creator。
 
 .. note::
-    There is work currently being done to replace livecd-creator with
-    `livemedia-creator`_.
+    目前正在开展工作，用 livecd-creator 取代
+    `livemedia-creator`_ 。
 
 Pungi
 -----
 
-`Pungi`_ is the tool used to compose Fedora releases.  It requires being ran
-in a chroot of the package set that it is composing.  This ensures that the
-correct userland tools are used to match up with the kernel that will be used
-to perform the installation.  It uses a comps file + yum repos to gather
-packages for the compose.  The `Koji`_ build system provides a way to run
-tasks within chroots on the various arches, as well as the ability to produce
-yum repos of packages from specific collections.
+`Pungi`_ 是用于组合 Fedora 发行版的工具。它需要在它所组织的软件包集的 chroot 环境中运行。这样可以确保使用正确的用户空间工具来匹配将用于执行安装的内核。
+它使用 comps 文件和 yum 仓库来收集组织所需的软件包。 `Koji`_ 构建系统提供了在各种架构的 chroot 环境中运行任务并能够从特定集合中生成软件包的 yum 仓库的方法。
 
 Livecd-creator
 --------------
 
-Livecd-creator is part of the `livecd-tools`_ package in Fedora and it is used
-to compose the live images as part of the Fedora release. It is also used to
-compose many of the custom `Spins`_ or variants of Fedora.
+Livecd-creator 是 Fedora 中的 `livecd-tools`_ 软件包的一部分，它用于在 Fedora 发行版中组合实时映像。它还用于组合许多自定义 `Spins`_ 或 Fedora 的变体。
 
-Distribution
+分发
 ============
 
-Once a compose has been completed, the composed tree of release media,
-installation trees, and frozen `Repositories`_ needs to be synchronized with
-the Fedora mirror system. [[MirrorManager]] has some more details on the
-mirror system. Many of the images are also offered via BitTorrent as an
-alternative method of downloading.
+一旦组合完成，就需要将组合的发行版媒体、安装树和冻结的 `存储库`_ 与 Fedora 镜像系统进行同步。[[MirrorManager]]提供了镜像系统的更多详细信息。许多映像还通过 BitTorrent 提供作为另一种下载方法。
 
-Download Mirrors
+下载镜像
 ----------------
 
-Depends on the Fedora Mirror System and infrastructure to populate them
-privately.
+如果需要私有化填充 Fedora 镜像系统和基础设施，则需要取决于其本身。
 
 BitTorrent
 ----------
 
-BitTorrent is currently served by http://torrent.fedoraproject.org. Images are
-added to the system via this `Standard Operating Procedure
-<https://infrastructure.fedoraproject.org/infra/docs/docs/sysadmin-guide/sops/torrentrelease.rst>`_.
+BitTorrent 目前由 http://torrent.fedoraproject.org 提供服务。映像通过此 `标准操作程序
+<https://infrastructure.fedoraproject.org/infra/docs/docs/sysadmin-guide/sops/torrentrelease.rst>`_ 添加到系统中。
 
-Acknowledgements
+致谢
 ================
 
-This document was influenced by `release engineering documents
-<http://www.freebsd.org/doc/en_US.ISO8859-1/articles/releng/article.html>`_
-from `FreeBSD <http://freebsd.org>`_.
+本文档受到 `FreeBSD <http://freebsd.org>`_  `发布工程文档
+<http://www.freebsd.org/doc/en_US.ISO8859-1/articles/releng/article.html>`_ 的影响。
 
-.. _committee of people: https://fedoraproject.org/wiki/Fedora_Engineering_Steering_Committee
-.. _Repositories: https://fedoraproject.org/wiki/Repositories
+.. _委员会: https://fedoraproject.org/wiki/Fedora_Engineering_Steering_Committee
+.. _存储库: https://fedoraproject.org/wiki/存储库
 .. _Rawhide: https://fedoraproject.org/wiki/Releases/Rawhide
-.. _Branched: https://fedoraproject.org/wiki/Releases/Branched
+.. _分支: https://fedoraproject.org/wiki/Releases/Branched
 .. _mirrors: https://mirrors.fedoraproject.org/
 .. _Koji: https://fedoraproject.org/wiki/Koji
 .. _PDC: https://pdc.fedoraproject.org/
-.. _Fedora Release Life Cycle: https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
-.. _Fedora Documentation Project: https://fedoraproject.org/wiki/Docs_Project
-.. _bug needs to be filed:
+.. _Fedora 发布生命周期: https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
+.. _Fedora 文档项目: https://fedoraproject.org/wiki/Docs_Project
+.. _bug 报告:
     https://bugzilla.redhat.com/bugzilla/enter_bug.cgi?product=Fedora%20Documentation&op_sys=Linux&target_milestone=---&bug_status=NEW&version=devel&component=release-notes&rep_platform=All&priority=normal&bug_severity=normal&assigned_to=relnotes%40fedoraproject.org&cc=&estimated_time_presets=0.0&estimated_time=0.0&bug_file_loc=http%3A%2F%2F&short_desc=RELNOTES%20-%20Summarize%20the%20release%20note%20suggestion%2Fcontent&comment=Provide%20details%20here.%20%20Do%20not%20change%20the%20blocking%20bug.&status_whiteboard=&keywords=&issuetrackers=&dependson=&blocked=151189&ext_bz_id=0&ext_bz_bug_id=&data=&description=&contenttypemethod=list&contenttypeselection=text%2Fplain&contenttypeentry=&maketemplate=Remember%20values%20as%20bookmarkable%20template&form_name=enter_bug 
-.. _Fedora Mirror Admins: mailto:mirror-admin@fedoraproject.org
+.. _Fedora 镜像管理员: mailto:mirror-admin@fedoraproject.org
 .. _livemedia-creator: https://github.com/rhinstaller/lorax/blob/master/src/sbin/livemedia-creator
 .. _Pungi: https://pagure.io/pungi
 .. _livecd-tools: https://fedoraproject.org/wiki/FedoraLiveCD

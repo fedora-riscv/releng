@@ -2,74 +2,57 @@
 
 
 ================================================
-Fedora Release Engineering Troubleshooting Guide
+Fedora 发布工程故障排除指南
 ================================================
 
-Fedora Release Engineering consists of many different systems, many different
-code bases and multiple tools. Needless to say, things can get pretty complex
-in a hurry. This aspect of Fedora Release Engineering is not very welcoming to
-newcomers who would like to get involved. This guide stands as a place to
-educate those new to the processes, systems, code bases, and tools. It also is
-to serve as a reference to those who aren't new but maybe are fortunate enough
-to not have needed to diagnose things in recent memory.
+Fedora Release Engineering 包含许多不同的系统、许多不同的代码库和多个工具。不用说，事情可能会变得非常复杂。
+这个方面对于想要参与其中的新手来说并不是很友好。本指南旨在为那些新到流程、系统、代码库和工具的人提供教育，并作为
+那些不是新手但可能幸运地没有需要在最近的记忆中诊断问题的人的参考。
 
-We certainly won't be able to document every single possible compontent in the
-systems that could go wrong but hopefully over time this document will stand as
-a proper knowledge base for reference and educational purposes on the topics
-listed below.
+我们当然无法记录系统中可能出现的每个可能出现问题的组件，但希望随着时间的推移，本文档将作为适当的知识库，用于以下
+所列主题的参考和教育目的。
 
-Compose
+
+组合
 =======
 
-If something with a compose has gone wrong, there's a number of places to find
-information. Each of these are discussed below.
+如果组合的内容出错，可以在许多地方查找信息。下面将逐一讨论。
 
-releng-cron list
+releng-cron 列表
 ----------------
 
-The compose output logs are emailed to the releng-cron mailing list. It is
-good practice to check the `releng-cron mailing list archives`_ and find the
-latest output and give it a look.
+组合输出日志通过电子邮件发送到 releng-cron 邮件列表。检查 `releng-cron 邮件列表存档`_ 找到最新的输出并查看是一种很好的做法。
 
 .. _compose-machines:
 
-compose machines
+组合机器
 ----------------
 
-If the `releng-cron mailing list archives`_ doesn't prove to be useful, you can
-move on to checking the contents of the composes themselves on the primary
-compose machines in the Fedora Infrastructure. At the time of this writing,
-there are multiple machines based on the specific compose you are looking for:
+如果 `releng-cron 邮件列表存档`_ 被证明是没有用的，你可以继续在 Fedora 基础设施中的主要的组合机器上检查组合本身的内容。在撰写本文时，根据您要查找的特定组合，有多台计算机：
 
-* Two-Week Atomic Nightly Compose
+* 两周的原子夜间组合
 
   * ``compose-x86-01.phx2.fedoraproject.org``
 
-* Branched Compose
+* 分支组合
 
   * ``branched-composer.phx2.fedoraproject.org``
 
-* Rawhide Compose
+* Rawhide 组合
 
   * ``rawhide-composer.phx2.fedoraproject.org``
 
-Depending on which specific compose you are in search of will depend on what
-full path you will end up inspecting:
+根据您要搜索的特定组合，将取决于您最终将检查的完整路径：
 
-* For Two Week Atomic you will find the compose output in
-  ``/mnt/fedora_koji/compose/``
-* For Release Candidate / Test Candidate composes you will find compose output
-  in ``/mnt/koji/compose/``
+* 对于两周原子，您将在
+  ``/mnt/fedora_koji/compose/`` 中找到组合的输出
+* 对于版本候选/测试候选组合，您将在 ``/mnt/koji/compose/`` 中找到组合的输出
 
 .. note::
-    It's possible the mock logs are no longer available. The mock chroots are
-    rewritten on subsequent compose runs.
+    mock 日志可能不再可用。mock chroots 在随后的组合运行中被重写。
 
-You can also check for mock logs if they are still persisting from the compose
-you are interested in. Find the specific mock chroot directory name (that will
-reside in ``/var/lib/mock/``) you are looking for by checking the appropriate
-compose mock configuration (the following is only a sample provided at the time
-of this writing):
+您还可以检查 mock 日志，以查看您感兴趣的组合是否仍然存在。通过检查相应的组合 mock 配置（以下仅为本文撰写
+时提供的示例），找到您要查找的特定 mock chroot 目录名称（将驻留在 ``/var/lib/mock/`` 中）：
 
 ::
 
@@ -83,23 +66,16 @@ of this writing):
         /etc/mock/fedora-23-compose-i386.cfg     /etc/mock/fedora-rawhide-compose-i386.cfg
         /etc/mock/fedora-23-compose-x86_64.cfg   /etc/mock/fedora-rawhide-compose-x86_64.cfg
 
-running the compose yourself
+运行组合本身
 ----------------------------
 
-If you happen to strike out there and are still in need of debugging, it might
-be time to just go ahead and run the compose yourself. The exact command needed
-can be found in the cron jobs located on their respective compose machines, this
-information can be found in the :ref:`compose-machines` section. Also note that
-each respective compose command should be ran from it's respective compose
-machine as outlined in the :ref:`compose-machines` section.
+如果您在那里没有找到相应的信息并且仍然需要进行调试，那么也许是时候自己运行组合了。所需的确切命令可以在各自的组合机器上的计划作业中
+找到，该信息可以在 :ref:`compose-machines` 部分找到。另请注意，每个相应的组合命令都应该从其各自的组合机器上运行，如 :ref:`compose-machines` 部分所述。
 
-An example is below, setting the compose directory as your ``username-debug.1``,
-the ``.1`` at the end is common notation for an incremental run of a compose. If
-you need to do another, increment it to ``.2`` and continue. This is helpful to
-be able to compare composes.
+以下是一个示例，将组合目录设置为您的 ``用户名-debug.1`` ，末尾的 ``.1`` 是组合的递增运行的常见符号。如果您需要另一个组合，请将其递增到 ``.2`` 并继续。这有助于对比组合。
 
 .. note::
-    It is recommended that the following command be run in `screen`_ or `tmux`_
+    建议在 `screen`_ 或 `tmux`_ 中运行以下命令
 
 ::
 
@@ -108,36 +84,22 @@ be able to compare composes.
         git checkout -b stable twoweek-stable && \
         LANG=en_US.UTF-8 ./scripts/make-updates 23 updates $USER-debug.1
 
-The above command was pulled from the ``twoweek-atomic`` cron job with only the
-final parameter being altered. This is used as the name of the output directory.
+上面的命令是从 ``twoweek-atomic`` cron 作业中提取的，只更改了最后一个参数。这用作输出目录的名称。
 
-The compose can take some time to run, so don't be alarmed if you don't see
-output in a while. This should provide you all the infromation needed to debug
-and/or diagnose further. When in doubt, as in ``#fedora-releng`` on
-``irc.libera.chat``.
+组合可能需要一些时间才能运行，因此如果您有一段时间没有看到输出，请不要担心。这应该为您提供了进一步调试和/或诊断所需的所有信息。如果有疑问，请在 ``irc.libera.chat`` 上询问 ``#fedora-releng`` 。
 
-Docker Layered Image Build Service
+Docker 层次化镜像构建服务
 ==================================
 
-The `Docker Layered Image Build Service`_ is built using a combination of
-technologies such as `OpenShift`_, `osbs-client`_, and the
-`koji-containerbuild`_ plugin that when combined are often refered to as an
-OpenShift Build Service instance (OSBS). Something to note is that `OpenShift`_
-is a `kubernetes`_ distribution with many features built on top of `kubernetes`_
-such as the `build primitive`_ that is used as the basis for the build service.
-This information will hopefully shed light on some of the terminology and
-commands used below.
+`Docker 层次化镜像构建服务`_ 是使用多种技术构建的，例如 `OpenShift`_ 、 `osbs-client`_ 和 `koji-containerbuild`_ 插件，当结合在一起时通常被称为 OpenShift 构建服务实例（OSBS）。
+需要注意的是， `OpenShift`_ 是基于 `kubernetes`_ 构建的 `kubernetes`_ 发行版，具有许多内置于 Kubernetes 之上的功能，例如用作构建服务基础的 `构建原语`_ 。这些信息有望阐明下面使用的某些术语和命令。
 
-There are a few "common" scenarios in which build may fail or hang that will
-need some sort of inspection of the build system.
+构建可能失败或挂起的几个“常见”场景都需要对构建系统进行某种类型的检查。
 
-Build Appears to stall after being scheduled
+构建在计划后似乎停止
 --------------------------------------------
 
-In the event that a build scheduled through koji appears to be stalled and is
-not in a ``free`` state (i.e. - has been scheduled). An administrator will need
-to ssh into ``osbs-master01`` or ``osbs-master01.stg`` (depending stage vs
-production) and inspect the build itself.
+如果通过 koji 安排的构建似乎已停滞并且不处于 ``free`` 状态（即已被安排），则管理员需要 ssh 到 ``osbs-master01`` 或 ``osbs-master01.stg`` （取决于阶段与生产）并检查构建本身。
 
 ::
 
@@ -157,16 +119,14 @@ production) and inspect the build itself.
     # extremely verbose logs, these should in normal circumstances be found in
     # the koji build log post build
 
-The information found in the commands above will generally identify the issue.
+在上述命令中找到的信息通常可以识别问题。
 
-Build fails but there's no log output in the Koji Task
+构建失败，但 Koji 任务中没有日志输出
 ------------------------------------------------------
 
-Sometimes there is a communications issue between Koji and OSBS which cause for
-a failure to be listed in Koji but without all the logs. These can be diagnosed
-by checking the ``kojid`` logs on the Koji builder listed in the task output.
+有时 Koji 与 OSBS 之间存在通信问题，导致故障未在 Koji 中列出但没有所有日志。可以通过检查任务输出中列出的 Koji 构建器上的 ``kojid`` 日志来诊断这些问题。
 
-For example:
+例如：
 
 ::
 
@@ -185,25 +145,16 @@ For example:
 
     90123598 buildContainer (noarch) failed
 
-In this example the buildContiner task was scheduled and ran on
-``buildvm-04.stg`` with the actual createContainer task being on
-``buildvm-02.stg``, and ``buildvm-02.stg`` is where we're going to want to begin
-looking for failures to communicate with OSBS as this is the point of contact
-with the external system.
+在这个例子中，buildContiner 任务在 ``buildvm-04.stg`` 上被安排并运行，实际的 createContainer 任务
+在 ``buildvm-02.stg`` 上进行，而且我们将从 ``buildvm-02.stg`` 开始寻找与 OSBS 通信失败的错误，因为这是与外部系统联系的接触点。
 
-Logs can be found in ``/var/log/kojid.log`` or if necessary, check the koji hub
-in question. Generally, you will want to start with the first point of contact
-with OSBS and "work your way back" so in the above example you would first check
-``buildvm-02.stg``, then move on to ``buildvm-04.stg`` if nothing useful was
-found in the logs of the previous machine, and again move on to the koji hub if
-neither of the builder machines involved provided useful log information.
+日志可以在 ``/var/log/kojid.log`` 中找到，或者必要时，检查相应的 koji hub。通常，您会想从与 OSBS 的第一个接触点
+“倒退”，因此在上面的例子中，首先检查 ``buildvm-02.stg`` ，然后如果在前一个机器的日志中没有发现有用的信息，则转移到 ``buildvm-04.stg`` ，如果涉及的构建器机器都没有提供有用的日志信息，则再次转移到 koji hub。
 
-Build fails because it can't get to a network resource
+构建失败，因为它无法访问网络资源
 ------------------------------------------------------
 
-Sometimes there is a situation where the firewall rules get messed up on one of
-the OpenShift Nodes in the environment. This can cause output similar to the
-following:
+有时，防火墙规则在环境中的某个 OpenShift 节点上会搞砸。这可能会导致类似于以下内容的输出：
 
 ::
 
@@ -220,8 +171,7 @@ following:
       0 free  0 open  1 done  1 failed
 
 
-If we go to the OSBS Master and run the following commands, we will see the root
-symptom:
+如果我们转到OSBS主服务器并运行以下命令，我们将看到根本问题：
 
 ::
 
@@ -244,13 +194,9 @@ symptom:
     http: error: ConnectionError: HTTPConnectionPool(host='10.5.126.213', port=10250): Max retries exceeded with url: / (Caused by NewConnectionError('<requests.packages.urllib3.connection.HTTPConnection object at 0x7fdab064b320>: Failed to establish a new connection: [Errno 113] No route to host',)) while doing GET request to URL: http://10.5.126.213:10250/
 
 
-In the above output, we can see that we do actually have network connectivity to
-the Node but we can not connect to the OpenShift service that should be
-listening on port ``10250``.
+在上面的输出中，我们可以看到我们确实与节点有网络连接，但我们无法连接到应该侦听端口 ``10250`` 的 OpenShift 服务。
 
-To fix this, you need to ssh into the OpenShift Node that you can't connect to
-via port ``10250`` and run the following commands. This should resolve the
-issue.
+要解决此问题，您需要 ssh 到无法通过端口 ``10250`` 连接到的 OpenShift 节点，然后运行以下命令。这应该可以解决问题。
 
 ::
 
@@ -261,10 +207,10 @@ issue.
 .. _OpenShift: https://www.openshift.org/
 .. _screen: https://www.gnu.org/software/screen/
 .. _osbs-client: https://github.com/projectatomic/osbs-client
-.. _build primitive: https://docs.openshift.org/latest/dev_guide/builds.html
+.. _构建原语: https://docs.openshift.org/latest/dev_guide/builds.html
 .. _koji-containerbuild:
     https://github.com/release-engineering/koji-containerbuild
-.. _releng-cron mailing list archives:
+.. _releng-cron 邮件列表存档:
     https://lists.fedoraproject.org/archives/list/releng-cron@lists.fedoraproject.org/
 .. _Docker Layered Image Build Service:
     https://fedoraproject.org/wiki/Changes/Layered_Docker_Image_Build_Service

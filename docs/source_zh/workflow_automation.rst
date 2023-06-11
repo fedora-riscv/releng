@@ -1,40 +1,26 @@
 .. SPDX-License-Identifier:    CC-BY-SA-3.0
 
 =================================
-Fedora RelEng Workflow Automation
+Fedora RelEng 工作流程自动化
 =================================
 
 .. `releng-automation`_:
 
-The Fedora RelEng Workflow Automation is a means to allow RelEng to define a
-pattern by which Release Engineering work is automated in an uniform fashion.
-The automation technology of choice is `ansible`_ and the "workflow engine" is
-powered by `loopabull`_, which is an event loop that allows us to pass the
-information contained within a `fedmsg`_ and insert it into `ansible`_
-`playbooks`_. This will effectively create an event driven workflow
-that can take action conditionally based on the contents of arbitrary `fedmsg`_
-data.
+Fedora RelEng 工作流自动化是一种允许 RelEng 定义统一方式自动化 Release Engineering 工作的手段。选择的自动化技术是 `ansible`_ ，而
+“工作流引擎”由 `loopabull`_ 提供支持，它是一个事件循环，允许我们将包含在 `fedmsg`_ 中的信息传递并插入到 `ansible`_ `playbooks`_ 中。
+这将有效地创建一个基于事件驱动的工作流程，可以根据任意 `fedmsg`_ 数据的内容有条件地采取行动。
 
-Background on the topic can be found in the `Release Engineering Automation
-Workflow Engine`_ Change proposal, as well as in the `releng-automation`_ pagure
-repository.
+有关该主题的背景信息可以在“ `Release Engineering Automation
+Workflow Engine`_  Change proposal”，以及 `releng-automation`_ pagure 存储库中找到。
 
-RelEng Workflow Automation Architecture
+RelEng 工作流程自动化的架构
 =======================================
 
-By using `fedmsg`_ as the source of information feeding the event loop, we will
-configure `loopabull`_ to listen for specific `fedmsg topics`_ which will
-correspond with `ansible`_ `playbooks`_. When one of the appropriate `fedmsg
-topics`_ is encountered across the message bus, it's message payload is then
-injected into the corresponding playbook as an extra set of variables. A member
-of the Fedora Release Engineering Team can at that point use this as a means to
-perform whatever arbitrary action or series of actions they can otherwise
-perform with `ansible`_ (including what we can enable via custom `modules`_)
-based on the input of the message payload.
+通过使用 `fedmsg`_ 作为信息源来提供事件循环，我们将配置 `loopabull`_ 以侦听特定的 `fedmsg 主题`_ ，这些主题将与 `ansible`_ `playbooks`_ 相对应。
+当消息总线上遇到适当的 `fedmsg 主题`_ 之一时，它的消息负载将注入到相应的 playbook 中，作为额外的变量集。Fedora Release Engineering 团队的成员可以利
+用这一点，根据消息负载的输入执行他们可以使用 `ansible`_ 执行的任意操作或系列操作（包括我们可以通过自定义 `模块`_ 启用的操作）。
 
-
-The general overview of the architecture is below as well as a description of
-how it works:
+下面是架构的概述以及其工作原理的描述：
 
 ::
 
@@ -70,35 +56,19 @@ how it works:
                 |                       |
                 +-----------------------+
 
-The flow of data will begin with an event somewhere in the `Fedora
-Infrastructure`_ that sends a `fedmsg`_ across the message bus, then the
-messages will be taken in and serialized in to a `rabbitmq`_ worker queue using
-`fedmsg-rabbitmq-serializer`_. Then `loopabull`_ will be listening to the
-rabbitmq worker queue for tasks to come in. Once a message is recieved, it is
-processed and once it is either no-op'd or a corresponding ansible playbook is
-run to completion, the message will be ``ack``'d and cleared from the worker
-queue. This will allow for us to scale loopabull instances independently from
-the message queue as well as ensure that work is not lost because of a downed or
-busy loopabull instance. Also, as a point of note, the loopabull service
-instances will be scaled using `systemd`_ `unit templates`_.
+数据流程始于 `Fedora 基础设施`_ 中的某个事件，该事件会通过消息总线发送一个 `fedmsg`_ 。然后使用 `fedmsg-rabbitmq-serializer`_ 将
+消息序列化成 `rabbitmq`_ 工作队列。然后 `loopabull`_ 将监听 RabbitMQ 工作队列以等待任务进入。一旦接收到消息，就会处理消息，并且一旦
+没有操作或相应的 ansible playbook 完成运行，就会 ``ack`` 并从工作队列中清除消息。这将允许我们独立扩展 loopabull 实例，而不影响消息队列，
+并确保由于 downed 或忙碌的 loopabull 实例而不会丢失工作。值得注意的是，loopabull 服务实例将使用 `systemd`_ `unit templates`_ 进行扩展。
 
-Once a playbook has been triggered, it will run tasks on remote systems on
-behalf of a loopabull automation user. These users can be privileged if need be,
-however the scope of their privilege is based on the purpose they serve. These
-user accounts are provisioned by the `Fedora Infrastructure`_ Team based on the
-requirements of the :ref:`RelEng Task Automation User Request Standard Operating
-Procedure (SOP) <sop_requesting_task_automation_user>` document and tasks are
-subject to code and security audit.
+一旦触发了 playbook，它将代表 loopabull 自动化用户在远程系统上运行任务。如果需要，这些用户可以拥有特权，但他们的权限范围基于他们所服务的目的。
+这些用户帐户由 `fedora 基础设施`_ 团队根据 :ref:`RelEng 任务自动化用户请求标准操作程序（SOP） <sop_requesting_task_automation_user>` 文档的要求进行配置，并且任务受到代码和安全审计的限制。
+
 
 Fedora Lib RelEng
 =================
 
-`Fedora Lib RelEng`_ (flr), is a library and set of command line tools to expose
-the library that aims to provide re-usable code for common tasks that need to be
-done in Release Engineering. Combining this set of command line tools when
-necessary with the Release Engineering Automation pipeline allows for easy
-separation of permissions and responsibilities via sudo permissions on remote
-hosts. This is explained in more detail on the project's pagure page.
+`Fedora Lib RelEng`_ (flr) 是一个库和一组命令行工具，旨在提供可重用代码，以执行 Release Engineering 中需要完成的常见任务。将这组命令行工具与 Release Engineering 自动化流程结合使用，可以通过远程主机上的 sudo 权限轻松分离权限和责任。有关该项目的详细信息，请参阅项目的 Pagure 页面。
 
 .. _ansible: https://ansible.com/
 .. _rabbitmq: https://www.rabbitmq.com/
@@ -106,13 +76,13 @@ hosts. This is explained in more detail on the project's pagure page.
 .. _Fedora Lib RelEng: https://pagure.io/flr
 .. _loopabull: https://github.com/maxamillion/loopabull
 .. _releng-automation: https://pagure.io/releng-automation
-.. _modules: https://docs.ansible.com/ansible/modules.html
+.. _模块: https://docs.ansible.com/ansible/modules.html
 .. _systemd: https://freedesktop.org/wiki/Software/systemd/
 .. _playbooks: https://docs.ansible.com/ansible/playbooks.html
-.. _Fedora Infrastructure: https://fedoraproject.org/wiki/Infrastructure
+.. _fedora 基础设施: https://fedoraproject.org/wiki/Infrastructure
 .. _unit templates: https://fedoramagazine.org/systemd-template-unit-files/
 .. _fedmsg-rabbitmq-serializer: https://pagure.io/fedmsg-rabbitmq-serializer
-.. _fedmsg topics: https://fedora-fedmsg.readthedocs.io/en/latest/topics.html
+.. _fedmsg 主题: https://fedora-fedmsg.readthedocs.io/en/latest/topics.html
 .. _Release Engineering Automation Workflow Engine:
     https://fedoraproject.org/wiki/Changes/ReleaseEngineeringAutomationWorkflowEngine
 .. _RelEng Automation Request Standard Operating Procedure (SOP): FIXME_WRITE_THIS_DAMN_DOC

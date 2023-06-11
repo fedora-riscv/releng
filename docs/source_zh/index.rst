@@ -10,7 +10,7 @@
 Fedora Release Engineering
 ==========================
 
-Contents:
+目录：
 
 .. toctree::
     :maxdepth: 2
@@ -23,25 +23,21 @@ Contents:
     sop
 
 
-This page contains information about the Fedora Release Engineering team.
+本页包含有关 Fedora 发布工程团队的信息。
 
 .. _releng-contact-info:
 
-Contact Information
+联系信息
 ===================
-* IRC: ``#fedora-releng`` on irc.libera.chat
-* Mailing List: `rel-eng@lists.fedoraproject.org <https://admin.fedoraproject.org/mailman/listinfo/rel-eng>`_
-* Issue tracker: `Fedora Releng Pagure Tickets <https://pagure.io/releng/new_issue>`_
+* IRC: ``#fedora-releng`` 在 irc.libera.chat 上
+* 邮件列表： `rel-eng@lists.fedoraproject.org <https://admin.fedoraproject.org/mailman/listinfo/rel-eng>`_
+* 问题跟踪： `Fedora Releng Pagure Tickets <https://pagure.io/releng/new_issue>`_
 
-If you want the to get something done (e.g. moving packages to buildroots or
-into frozen compositions) by the ReleaseEngineering Team, please create a
-ticket in the issue tracker mentioned above. Please enter your FAS-username or
-e-mail address in the respective textbox, to make sure the team can contact
-you.
+如果您希望发布工程团队完成某些事情（例如，将软件包移动到buildroot或冻结的合成中），请在上面提到的问题跟踪器中创建工单。请在相应的文本框中输入您的FAS用户名或电子邮件地址，以确保团队可以与您联系。
 
 .. _index-team-composition:
 
-Team Composition
+团队组成
 ================
 
 * `Mohan Boddu (mboddu) <https://fedoraproject.org/wiki/User:mohanboddu>`_ (Lead)
@@ -56,123 +52,100 @@ Team Composition
 * `Ralph Bean (threebean) <https://fedoraproject.org/wiki/User:ralph>`_
 * Kellin (Kellin)
 
-Release Team members are approved by FESCo.  However, FESCo has
-delegated this power to the Release Team itself.  If you want to join
-the team, please read :ref:`join-releng`.
+发布团队成员由 FESCo 批准。但是，FESCo 已将此权力委托给发布团队本身。如果您想加入团队，请阅读 :ref:`join-releng` 。
 
-What is Fedora Release Engineering?
+什么是 Fedora 发布工程？
 ===================================
 
-For a Broad Overview, see :doc:`overview <overview>`.
+有关概述，请参阅 :doc:`overview <overview>`.
 
-Why we do things the way we do them
+为什么我们以我们的方式做事
 ===================================
 
-For information on the Fedora Release Engineering Philosophy, see
+有关 Fedora 发布工程理念的信息，请参阅
 :doc:`philosophy <philosophy>`.
 
-Fedora Release Engineering Leadership
+Fedora 发布工程领导
 =====================================
 
-Mohan Boddu (mboddu on IRC, FAS username mohanboddu)
+Mohan Boddu (mboddu on IRC, FAS 用户名 mohanboddu)
 
-Leadership is currently appointed by FESCo with input from the current release
-team.
+领导层目前由 FESCo 任命，并听取当前发布团队的意见。
 
-Things we Do
+我们做的事情
 ============
 
-* Create official Fedora releases.
-    * Fedora Products
+* 创建官方 Fedora 版本。
+    * Fedora 产品
         * Cloud
         * Server
         * Workstation
     * Fedora Spins
-* Report progress towards release from `branched`_ creation on.
-* Give reports to FESCo on changes to processes.
-* If something is known to be controversial, we let FESCo know before
-  implementing otherwise implementation generally happens concurrently to
-  reporting.
-* Set policy on freeze management
-* Administrate the build system(s)
-* Remove unmaintained packages from Fedora
-* Push updated packages
-* write and maintain tools to compose and push Fedora
+* 报告从 `branched`_ 创建开始发布的进度。
+* 向 FESCo 报告流程更改。
+* 如果已知某些内容有争议，我们会在实施之前告知 FESCo，否则实施通常与报告同时进行。
+* 制定冻结管理政策
+* 管理构建系统
+* 从 Fedora 中删除未维护的软件包
+* 推送更新的包
+* 编写和维护工具来组合和推送 Fedora
 
 
 .. _join-releng:
 
-Joining Release Engineering
+加入发布工程
 ===========================
 
-Much of rel-eng's communication is via IRC. One of the best ways to initially
-get involved is to attend one of the meetings and say that you're interested
-in doing some work during the open floor at the end of the meeting.  If you
-can't make the meeting times, you can also ping one of us on IRC or sign up for
-the `mailing list <https://admin.fedoraproject.org/mailman/listinfo/rel-eng>`_.
+rel-eng 的大部分沟通是通过 IRC 进行的。最好的方法之一是参加其中一个会议，并在会议的开放时间说出你有兴趣在结束时做一些工作。如果你不能参加会议，你也可以在IRC上与我们联系或者注册
+`邮件列表 <https://admin.fedoraproject.org/mailman/listinfo/rel-eng>`_ 。
 
-Since release engineering needs special access to systems essential to Fedora
-people new to rel-eng will usually get access a little bit at a time.
-Typically people won't immediately be granted the ability to sign packages and
-push updates for example. A couple of tasks you could start out with are
-troubleshooting why builds are failing (and if rel-eng could take actions to
-fix it) as the requests are submitted to pagure or help with scripts for various
-rel-eng tasks.
+由于发布工程需要特殊的访问权限才能访问 Fedora 的重要系统，因此新加入 rel-eng 的人通常会逐步获得访问权限。例如，通常人们不会立即获得签署软件包和推送更新的能力。你可以从以下一些任务开始：调查构建失败的原因（如果 rel-eng 能够采取措施来解决）并帮助编写各种 rel-eng 任务的脚本。
 
-There are also a number of tools that Fedora Release Engineering uses and
-relies upon, working on improving these upstream to fascilitate with new
-things that the Fedora Project is aiming to deliver is also a great way to get
-involved with Fedora Rel-Eng.
+Fedora 发布工程还使用和依赖许多工具，努力改进这些工具的上游，以促进 Fedora 项目正在努力实现的新功能也是加入 Fedora Rel-Eng 的好方法之一。
 
-How we do it
+我们如何做
 ============
 
-See our :doc:`Standard Operating Procedures <sop>` for details on how we do
-the things we do.
+请参阅我们的 :doc:`标准操作程序 <sop>` ，详细了解我们如何做我们所做的事情。
 
-Most discussions regarding release engineering will happen either in
-`#fedora-releng` or on the releng mailing list. For requests, please consult
-the :ref:`releng-contact-info`
+大多数关于发布工程的讨论将在
+`#fedora-releng` 或 releng 邮件列表中进行。如有要求，请查阅联系信息 :ref:`releng-contact-info`
 
-Meetings
+会议
 ========
-rel-eng holds regular meetings every Monday at 14:30 UTC in `#fedora-meeting-2`
-on the Libera IRC network.
+rel-eng 每周一 14:30 UTC 在 Libera IRC 网络上的 `#fedora-meeting-2` 举行例会。
 
-* `Meeting agendas <https://pagure.io/releng/issues?status=Open&tags=meeting>`_ are created
-  from open tickets in pagure that contain the meeting keyword.
+* `会议议程 <https://pagure.io/releng/issues?status=Open&tags=meeting>`_ 是根据包含会议关键字的 pagure 中的开放工单创建的。
 
-Meeting Minutes
+会议纪要
 ---------------
-Minutes are posted to the rel-eng mailing list. They are also available at the
-`Meetbot team page for releng
-<https://meetbot.fedoraproject.org/sresults/?group_id=releng&type=team>`_
+会议记录发布到 rel-eng 件列表中。它们也可以在
+`releng Meetbot 团队页面
+<https://meetbot.fedoraproject.org/sresults/?group_id=releng&type=team>`_ 上找到
 
-There are also `historical Meeting Minutes for 2007-04-16 to 2009-05-04
-<https://fedoraproject.org/wiki/ReleaseEngineering/Meetings>`_.
+还有 `2007-04-16 到 2009-05-04 的历史会议纪要
+<https://fedoraproject.org/wiki/ReleaseEngineering/Meetings>`_ 。
 
-Current activities
+当前活动
 ==================
 
-See our `kanban board`_ for ongoing project work.
+请参阅我们的 `看板`_ ，了解正在进行的项目工作。
 
-See our `ticket queue <https://pagure.io/releng/issues>`_ for the things we are
-currently working.
+请参阅我们的 `工单队列 <https://pagure.io/releng/issues>`_ ，了解我们目前正在做的事情。
 
-See `Releases <https://fedoraproject.org/wiki/Releases>`_ for information
-about Fedora releases, including schedules.
+有关 Fedora 版本的信息，包括时间表，请参阅 `Releases <https://fedoraproject.org/wiki/Releases>`_ 。
 
-Freeze Policies
+冻结策略
 ===============
 
-* `Milestone (Alpha, Beta, Final) freezes <https://fedoraproject.org/wiki/Milestone_freezes>`_
-* `String Freeze Policy`_ (Same time as Alpha Freeze)
-* `Change freeze policy <https://fedoraproject.org/wiki/Changes/Policy>`_
-  (that's 'Change' as in 'feature')
-* `Updates Policy <https://fedoraproject.org/wiki/Updates_Policy>`_
-  (not technically a freeze, but of interest)
+* `里程碑 (Alpha, Beta, Final) 冻结 <https://fedoraproject.org/wiki/Milestone_freezes>`_
+* `String 冻结策略`_ (与 alpha 冻结相同)
+* `更改冻结策略 <https://fedoraproject.org/wiki/Changes/Policy>`_
+  (即“feature”中的“Change”)
+* `更新政策 <https://fedoraproject.org/wiki/Updates_Policy>`_
+  (不是技术性冻结，而是兴趣)
 
-Indices and tables
+索引和表
 ==================
 
 * :ref:`genindex`
@@ -180,7 +153,7 @@ Indices and tables
 * :ref:`search`
 
 .. _branched: https://fedoraproject.org/wiki/Releases/Branched
-.. _kanban board:
+.. _看板:
     http://taiga.fedorainfracloud.org/project/acarter-fedora-docker-atomic-tooling/kanban
-.. _String Freeze Policy:
+.. _String 冻结策略:
     https://fedoraproject.org/wiki/Software_String_Freeze_Policy
