@@ -51,7 +51,7 @@ CRITPATH_GROUPS = [
     "@critical-path-standard",
     "@critical-path-xfce",
 ]
-PRIMARY_ARCHES = ("armhfp", "aarch64", "x86_64")
+PRIMARY_ARCHES = ("aarch64", "x86_64")
 ALTERNATE_ARCHES = ("ppc64le", "s390x")
 BODHI_RELEASEURL = "https://bodhi.fedoraproject.org/releases/?rows_per_page=500"
 FEDORA_BASEURL = "http://dl.fedoraproject.org/pub/fedora/linux/"
@@ -126,9 +126,6 @@ def expand_dnf_critpath(urls, arch):
     # be marked incorrectly
     conf.persistdir = temp_cache_dir
     conf.installroot = temp_install_root
-    # dnf needs arches, not basearches to work
-    if arch == "armhfp":
-        conf.arch = "armv7hl"
     else:
         conf.arch = arch
     packages = dict()
@@ -269,9 +266,6 @@ def write_files(critpath, outpath, jsonout):
 
 def generate_critpath(release, args, output, jsonout, forcebranched=False):
     check_arches = args.arches.split(",")
-    if not (release.isdigit() and int(release) < 37):
-        # armhfp is gone on F37+
-        check_arches.remove("armhfp")
     alternate_check_arches = args.altarches.split(",")
     package_count = 0
 
