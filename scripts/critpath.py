@@ -126,8 +126,7 @@ def expand_dnf_critpath(urls, arch):
     # be marked incorrectly
     conf.persistdir = temp_cache_dir
     conf.installroot = temp_install_root
-    else:
-        conf.arch = arch
+    conf.arch = arch
     packages = dict()
 
     try:
