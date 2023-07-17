@@ -22,7 +22,7 @@ from massrebuildsinfo import MASSREBUILDS
 
 # Set some variables
 # Some of these could arguably be passed in as args.
-rebuildid = 'f38'
+rebuildid = 'f39'
 massrebuild = MASSREBUILDS[rebuildid]
 user = 'Fedora Release Engineering <releng@fedoraproject.org>'
 comment = 'Rebuilt for ' + massrebuild['wikipage']
