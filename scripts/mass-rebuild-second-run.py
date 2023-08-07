@@ -156,7 +156,7 @@ for pkg in pkgs:
         continue
 
     # git commit
-    commit = ['git', 'commit', '-a', '-s', '-m', comment, '--allow-empty']
+    commit = ['git', 'commit', '-a', '-m', comment, '--allow-empty']
     print('Committing changes for %s' % name)
     if runme(commit, 'commit', name, enviro,
                  cwd=os.path.join(workdir, name)):
