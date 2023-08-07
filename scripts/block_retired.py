@@ -44,7 +44,8 @@ class ReleaseMapper(object):
         if namespace == "container":
             # git branchname, koji tag, epel build tag
             self.mapping = (
-                ("rawhide", "f39-container", ""),
+                ("rawhide", "f40-container", ""),
+                ("f39", "f39-container", ""),
                 ("f38", "f38-container", ""),
                 ("f37", "f37-container", ""),
                 ("f36", "f36-container", ""),
@@ -63,7 +64,8 @@ class ReleaseMapper(object):
         else:
             # git branchname, koji tag, epel build tag
             self.mapping = (
-                ("rawhide", "f39", ""),
+                ("rawhide", "f40", ""),
+                ("f39", "f39", ""),
                 ("f38", "f38", ""),
                 ("f37", "f37", ""),
                 ("f36", "f36", ""),
