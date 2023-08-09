@@ -148,7 +148,12 @@ flatpak_pkgs=$(koji list-pkgs --quiet --tag="f${old_release}-flatpak" | awk '{ p
 "${KOJICLI}" add-tag-inheritance "f${release}-flatpak-runtime" "f${release}" --intransitive
 
 # Packages that are rebuilt for inclusion in applications (with prefix=/app)
-"${KOJICLI}" add-tag "f${release}-flatpak-app"
+# This has an accompanying dist-repo created using the tag2distrepo plugin, which we use
+# when building application containers.
+"${KOJICLI}" add-tag "f${release}-flatpak-app" \
+             --arches="${FLATPAK_ARCHES}" \
+             -x tag2distrepo.enabled=true \
+             -x tag2distrepo.inherit=false
 "${KOJICLI}" add-tag-inheritance "f${release}-flatpak-app" "f${release}" --intransitive
 "${KOJICLI}" add-group-pkg "f${release}-flatpak-app" build flatpak-rpm-macros flatpak-runtime-config
 "${KOJICLI}" add-group-pkg "f${release}-flatpak-app" srpm-build flatpak-rpm-macros
@@ -182,18 +187,16 @@ flatpak_pkgs=$(koji list-pkgs --quiet --tag="f${old_release}-flatpak" | awk '{ p
 "${KOJICLI}" add-tag-inheritance "f${release}-flatpak-runtime-packages" "f${release}-flatpak-runtime" --priority=0
 "${KOJICLI}" add-tag-inheritance "f${release}-flatpak-runtime-packages" "f${release}-flatpak-runtime-override" --priority=10
 
-# The repository for getting application packages from when creating a container
-"${KOJICLI}" add-tag "f${release}-flatpak-app-packages" --arches="${FLATPAK_ARCHES}"
-"${KOJICLI}" add-tag-inheritance "f${release}-flatpak-app-packages" "f${release}-flatpak-app" --priority=0
-
 #### Extra Data ####
 
 # Add extra data to the Flatpak build tag pointing to a) the tag where to find runtimes
 # b) the tag to take runtime packages from c) the tag to take applications from
-"${KOJICLI}" edit_tag "f${release}-flatpak-container-build" \
+# and say that we're using a dist-repo for app_package_tag.
+"${KOJICLI}" edit-tag "f${release}-flatpak-container-build" \
     -x flatpak.runtime_tag="f${release}-flatpak-updates-candidate" \
     -x flatpak.runtime_package_tag="f${release}-flatpak-runtime-packages" \
-    -x flatpak.app_package_tag="f${release}-flatpak-app-packages"
+    -x flatpak.app_package_tag="f${release}-flatpak-app" \
+    -x flatpak.app_package_dist_repo=true
 
 #### Targets ####
 
@@ -202,9 +205,8 @@ flatpak_pkgs=$(koji list-pkgs --quiet --tag="f${old_release}-flatpak" | awk '{ p
 "${KOJICLI}" add-target "f${release}-flatpak-runtime" "f${release}-flatpak-runtime-build" "f${release}-flatpak-runtime"
 "${KOJICLI}" add-target "f${release}-flatpak-app" "f${release}-flatpak-app-build" "f${release}-flatpak-app"
 
-# And two lovely targets just to make kojira rebuild the installation repositories
+# And a lovely target just to make kojira rebuild the installation repository for runtimes
 "${KOJICLI}" add-target "f${release}-flatpak-runtime-kojira" "f${release}-flatpak-runtime-packages" "f${release}-flatpak-app"
-"${KOJICLI}" add-target "f${release}-flatpak-app-kojira" "f${release}-flatpak-app-packages" "f${release}-flatpak-app"
 
 
 # Point eln to new rawhide release
