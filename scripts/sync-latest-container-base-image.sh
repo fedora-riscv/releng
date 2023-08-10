@@ -30,13 +30,8 @@ EXAMPLE
 EOF
 }
 
-if ! [[ "${1}" =~ [37|38|39] ]];
-then
-    ARCHES=("aarch64" "armhfp" "ppc64le" "s390x" "x86_64")
-else
-    ARCHES=("aarch64" "ppc64le" "s390x" "x86_64")
+ARCHES=("aarch64" "ppc64le" "s390x" "x86_64")
 
-fi
 # This is the release of Fedora that is currently stable, it will define if we
 # need to move the fedora:latest tag
 current_stable="38"
