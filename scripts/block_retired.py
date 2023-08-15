@@ -13,8 +13,8 @@ import requests
 
 
 log = logging.getLogger(__name__)
-RETIRING_BRANCHES = ["el6", "epel7", "epel8", "epel8-next", "epel9", "epel9-next", "epel8-playground", "rawhide", "f38"]
-PROD_ONLY_BRANCHES = ["el6", "epel7", "epel8", "epel8-next", "epel9", "epel9-next", "epel8-playground", "rawhide", "f38"]
+RETIRING_BRANCHES = ["el6", "epel7", "epel8", "epel8-next", "epel9", "epel9-next", "epel8-playground", "rawhide", "f39"]
+PROD_ONLY_BRANCHES = ["el6", "epel7", "epel8", "epel8-next", "epel9", "epel9-next", "epel8-playground", "rawhide", "f39"]
 
 PRODUCTION_PDC = "https://pdc.fedoraproject.org"
 STAGING_PDC = "https://pdc.stg.fedoraproject.org"
