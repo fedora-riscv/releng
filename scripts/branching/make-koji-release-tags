@@ -167,12 +167,16 @@ flatpak_pkgs=$(koji list-pkgs --quiet --tag="f${old_release}-flatpak" | awk '{ p
 "${KOJICLI}" add-group-pkg "f${release}-flatpak-container-build" flatpak-build flatpak-module-tools dnf tar
 
 # The repository for build dependencies when building runtime RPMs
-"${KOJICLI}" add-tag "f${release}-flatpak-runtime-build" --arches="${FLATPAK_ARCHES}"
+"${KOJICLI}" add-tag "f${release}-flatpak-runtime-build" \
+    --arches="${FLATPAK_ARCHES}" \
+    -x rpm.macro.distcore='.fc%{fedora}runtime'
 "${KOJICLI}" add-tag-inheritance "f${release}-flatpak-runtime-build" "f${release}-flatpak-runtime" --priority=0
 "${KOJICLI}" add-tag-inheritance "f${release}-flatpak-runtime-build" "f${release}-build" --priority=10
 
 # The repository for build dependencies when building application RPMs
-"${KOJICLI}" add-tag "f${release}-flatpak-app-build" --arches="${FLATPAK_ARCHES}"
+"${KOJICLI}" add-tag "f${release}-flatpak-app-build" \
+    --arches="${FLATPAK_ARCHES}" \
+    -x rpm.macro.distcore='.fc%{fedora}app'
 "${KOJICLI}" add-tag-inheritance "f${release}-flatpak-app-build" "f${release}-flatpak-app" --priority=0
 "${KOJICLI}" add-tag-inheritance "f${release}-flatpak-app-build" "f${release}-flatpak-runtime" --priority=10
 "${KOJICLI}" add-tag-inheritance "f${release}-flatpak-app-build" "f${release}-build" --priority=20
