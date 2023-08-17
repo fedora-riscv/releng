@@ -19,7 +19,7 @@ fi
 old_release=$(bc -l <<< "${release}-1")
 
 PRIMARY_ARCHES="i686 x86_64 aarch64 ppc64le s390x"
-FLATPAK_ARCHES="i686 x86_64"
+FLATPAK_ARCHES="x86_64 aarch64 ppc64le"
 
 KOJICLI=koji
 
