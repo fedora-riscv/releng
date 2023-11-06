@@ -16,7 +16,7 @@ shift
 ARCHES=("x86_64" "aarch64" "ppc64le")
 # This is the release of Fedora that is currently stable, it will define if we
 # need to move the fedora:latest tag
-current_stable="37"
+current_stable="39"
 # Define what is rawhide so we know to push that tag
 current_rawhide="40"
 
