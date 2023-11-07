@@ -184,7 +184,7 @@ flatpak_pkgs=$(koji list-pkgs --quiet --tag="f${old_release}-flatpak" | awk '{ p
 #### Tags defining repositories for container installation ####
 
 # An override tag that we can tag packages that have not gone stable yet for runtime inclusion
-"${KOJICLI}" add-tag "f${release}-flatpak-runtime-override" --parent=f${release}
+"${KOJICLI}" add-tag "f${release}-flatpak-runtime-override" --parent=f${release}-updates
 
 # The repository for getting runtime packages from when creating a container
 "${KOJICLI}" add-tag "f${release}-flatpak-runtime-packages" --arches="${FLATPAK_ARCHES}"
