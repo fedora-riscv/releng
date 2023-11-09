@@ -2,7 +2,7 @@
 
 N=$1
 ARCHES='aarch64 ppc64le x86_64'
-VARIANTS='silverblue kinoite sericea'
+VARIANTS='silverblue kinoite sericea onyx'
 OSTREE_COMPOSE_BASEDIR='/mnt/koji/compose/ostree/repo'
 OSTREE_REPO_BASEDIR='/mnt/koji/ostree/repo/'
 
