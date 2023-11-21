@@ -50,5 +50,5 @@ done
 
 # Store the retired packages in separate json files by release
 for release in "${!retired[@]}"; do
-  printf '{"%s": [%s]}\n' "$release" "${retired[$release]:0:-1}" > retired_in_${release}.json
+  printf '{"%s": [%s]}\n' "$release" "${retired[$release]:0:-1}" > /srv/cache/lookaside/retired_in_${release}.json
 done
