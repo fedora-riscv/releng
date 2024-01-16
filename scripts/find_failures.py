@@ -24,8 +24,8 @@ from requests.packages.urllib3.util.retry import Retry
 
 # Set some variables
 # Some of these could arguably be passed in as args.
-buildtag = 'f39-rebuild' # tag to check
-desttag = 'f39' # Tag where fixed builds go
+buildtag = 'f40-rebuild' # tag to check
+desttag = 'f40' # Tag where fixed builds go
 epoch = '2023-07-19 10:30:00.000000' # Date to check for failures from
 failures = {} # dict of owners to lists of packages that failed.
 failed = [] # raw list of failed packages

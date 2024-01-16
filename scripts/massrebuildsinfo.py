@@ -24,7 +24,19 @@ PKG_SKIP_LIST = [
 # keep this sorted new -> old
 MASSREBUILDS = {
     "f40":{
+            "buildtag": 'f40-rebuild',  # tag to build from
+            "epoch": '2024-01-18 10:30:00.000000',  # rebuild anything not built after this date
+            # rebuild all modules that has run time dependency on this platform, this is used during mass branching time
+            "targets": ['f40-candidate', 'rawhide', 'f40'],
+            # build targets to check for existing builds to skip rebuild
+            "target": 'f40-rebuild',  # target to build into
+            "desttag": 'f40',  # Tag where fixed builds go
+            "product": "Fedora",  # for BZ product field
+            "version": "rawhide",  # for BZ version field, rawhide before branching or xx after branching
+            "rawhide_version": "40",  # for next version calculation and other comments
             "tracking_bug": "2231791",  # Tracking bug for mass build failures
+            "wikipage": "https://fedoraproject.org/wiki/Fedora_40_Mass_Rebuild",
+            "pkg_skip_list": PKG_SKIP_LIST,  # packages to skip in rebuild
     },
     "f39":{
      		"buildtag": 'f39-rebuild',  # tag to build from

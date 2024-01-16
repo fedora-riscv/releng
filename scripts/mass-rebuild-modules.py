@@ -21,7 +21,7 @@ from gi.repository import Modulemd
 
 from massrebuildsinfo import MASSREBUILDS
 
-rebuildid = 'f39'
+rebuildid = 'f40'
 massrebuild = MASSREBUILDS[rebuildid]
 user = 'Fedora Release Engineering <releng@fedoraproject.org>'
 comment = 'Rebuilt for ' + massrebuild['wikipage']
