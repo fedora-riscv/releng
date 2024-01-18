@@ -183,7 +183,7 @@ for pkg in pkgs:
                  cwd=os.path.join(workdir, name)):
         continue
     # git push
-    push = ['git', 'push']
+    push = ['git', 'push', '--no-verify']
     print('Pushing changes for %s' % name)
     if runme(push, 'push', name, enviro,
                  cwd=os.path.join(workdir, name)):
