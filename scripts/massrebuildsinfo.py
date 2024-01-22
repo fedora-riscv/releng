@@ -25,7 +25,7 @@ PKG_SKIP_LIST = [
 MASSREBUILDS = {
     "f40":{
             "buildtag": 'f40-rebuild',  # tag to build from
-            "epoch": '2024-01-19 10:30:00.000000',  # rebuild anything not built after this date
+            "epoch": '2024-01-22 14:00:00.000000',  # rebuild anything not built after this date
             # rebuild all modules that has run time dependency on this platform, this is used during mass branching time
             "targets": ['f40-candidate', 'rawhide', 'f40'],
             # build targets to check for existing builds to skip rebuild
