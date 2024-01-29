@@ -23,6 +23,9 @@ PKG_SKIP_LIST = [
 
 # keep this sorted new -> old
 MASSREBUILDS = {
+    "f41":{
+            "tracking_bug": "2260875",  # Tracking bug for mass build failures
+    },
     "f40":{
             "buildtag": 'f40-rebuild',  # tag to build from
             "epoch": '2024-01-22 20:45:00.000000',  # rebuild anything not built after this date
