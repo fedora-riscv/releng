@@ -24,7 +24,7 @@ from find_failures import get_failed_builds
 # here
 from massrebuildsinfo import MASSREBUILDS
 
-rebuildid = 'f38'
+rebuildid = 'f40'
 failures = {} # dict of owners to lists of packages that failed.
 failed = [] # raw list of failed packages
 

@@ -1,15 +1,18 @@
 Hi all,
 
-Today, YYYY-MM-DD, is an important day on the Fedora Linux fN
-schedule [1], with significant cut-offs.
+Today, YYYY-MM-DD, is an important day on the Fedora Linux fN schedule
+[1], with significant cut-offs.
 
-Today we have the Final Freeze [2] which starts at 14:00 UTC. This
-means that only packages which fix accepted blocker or freeze
-exception bugs [3][4][5] will be marked as 'stable' and included in
-the Final composes. Other builds will remain in updates-testing until
-the Final release is approved, at which point the Final freeze is
-lifted and packages can move to the 'updates' repository, pending
-updates will be pushed before final release as zero day updates.
+Today we have the Final Freeze [2] which starts at 14:00 UTC. This means
+that only packages which fix accepted blocker or freeze exception bugs
+[3][4][5] will be marked as 'stable' and included in the Final composes.
+Other builds will remain in updates-testing until the Final release is
+approved, at which point the Final freeze is lifted and packages can
+move to the 'updates' repository. Pending updates will be pushed before
+final release as zero day updates.
+
+Regards,
+Fedora Release Engineering
 
 [1] https://fedorapeople.org/groups/schedule/f-fN/f-fN-key-tasks.html
 [2] https://fedoraproject.org/wiki/Milestone_freezes

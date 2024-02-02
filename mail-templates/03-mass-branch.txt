@@ -1,25 +1,27 @@
 Hi All,
 
-Fedora Linux fN has now been branched, please be sure to do a git pull
---rebase to pick up the new branch, as an additional reminder
-rawhide/fN has been completely isolated from previous releases, so
-this means that anything you do for fN you also have to do in the
-rawhide branch and do a build there. There will be a Fedora Linux fN
-compose and it'll appear in
-http://dl.fedoraproject.org/pub/fedora/linux/development/fN/ once
-complete.
+Fedora Linux fN has now been branched, please be sure to do a
+'git fetch -v' to pick up the new branch. As an additional reminder,
+rawhide/fN has been completely isolated from previous releases, which
+means that anything you do for fN you also have to do in the rawhide
+branch and do a build there. There will be a Fedora Linux fN compose and
+it will appear in [1] once complete.
 
-Bodhi is currently enabled in the fN branch like it is for rawhide,
-with automatic update creation. At the hit Beta change freeze point
-in the Fedora Linux fN schedule [1] updates-testing will be enabled and
-manual bodhi updates will be required as in all stable releases.
+Bodhi is currently enabled in the fN branch like it is for rawhide, with
+automatic update creation. At the hit Beta change freeze point in the
+Fedora Linux fN schedule [2] updates-testing will be enabled and manual
+bodhi updates will be required as in all stable releases.
 
 Two things to remember:
 
 1. The modules will be built for a new platform:fN+1
 2. fN/branched release is frozen right now until we get a successful
-compose, expect that your fN builds won't be available immediately.
+   compose, expect that your fN builds won't be available immediately.
 
 Thanks for understanding.
 
-[1] https://fedorapeople.org/groups/schedule/f-fN/f-fN-key-tasks.html
+Regards,
+Fedora Release Engineering
+
+[1] https://dl.fedoraproject.org/pub/fedora/linux/development/fN/
+[2] https://fedorapeople.org/groups/schedule/f-fN/f-fN-key-tasks.html

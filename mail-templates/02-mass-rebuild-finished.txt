@@ -1,24 +1,24 @@
 Hi all,
 
 Per the Fedora Linux fN schedule [1] we started a mass rebuild for
-Fedora Linux fN on YYYY-MM-DD. We did a mass rebuild for Fedora
-Linux fN for:
+Fedora Linux fN on YYYY-MM-DD. We did a mass rebuild for Fedora Linux fN
+for:
 
 <list changes that need mass rebuild here>
 https://fedoraproject.org/wiki/Changes/NAME
 
 The mass rebuild was done in a side tag (fN-rebuild) and moved over to
 fN. Failures can be seen
-https://kojipkgs.fedoraproject.org/mass-rebuild/fN-failures.html Things
-still needing rebuilding
+https://kojipkgs.fedoraproject.org/mass-rebuild/fN-failures.html
+Things still needing rebuilding
 https://kojipkgs.fedoraproject.org/mass-rebuild/fN-need-rebuild.html
 
-X builds have been tagged into fN, there is currently Y failed
-builds that need to be addressed by the package maintainers. FTBFS bugs
-will be filed shortly. Please be sure to let releng know if you see any
-bugs in the reporting. You can contact releng in #fedora-releng on
-libera.chat, by dropping an email to our list [2], joining 
-#releng:fedoraproject.org on Matrix, or filing an issue in pagure [3] 
+X builds have been tagged into fN, there is currently Y failed builds
+that need to be addressed by the package maintainers. FTBFS bugs will be
+filed shortly. Please be sure to let releng know if you see any bugs in
+the reporting. You can contact releng in #fedora-releng on libera.chat,
+by dropping an email to our list [2], joining #releng:fedoraproject.org
+on Matrix, or filing an issue in pagure [3].
 
 Regards,
 Fedora Release Engineering

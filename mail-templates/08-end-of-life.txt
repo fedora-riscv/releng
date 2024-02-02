@@ -10,13 +10,12 @@ stopped as well.
 Fedora Linux fN+1 will continue to receive updates until approximately
 one month after the release of Fedora Linux fN+2. The maintenance
 schedule of Fedora Linux releases is documented on the Fedora Project
-wiki [1]. The Fedora Project wiki also contains instructions[2] on how to
-upgrade from a previous release of Fedora Linux to a version receiving
-updates.
+wiki [1]. The Fedora Project wiki also contains instructions[2] on how
+to upgrade from a previous release of Fedora Linux to a version
+receiving updates.
 
 Regards,
 Fedora Release Engineering
 
 [1]https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle#Maintenance_Schedule
 [2]https://fedoraproject.org/wiki/Upgrading?rd=DistributionUpgrades
-

@@ -9,10 +9,10 @@ moved to the Fedora Repository.
 
 Today is also the Beta freeze [4]. This means that only packages which
 fix accepted blocker or freeze exception bugs [5][6] will be marked as
-'stable' and included in the Beta composes. Other builds will remain
-in updates-testing until the Beta release is approved, at which point
-the Beta freeze is lifted and packages can move to 'stable' as usual
-until the Final freeze.
+'stable' and included in the Beta composes. Other builds will remain in
+updates-testing until the Beta release is approved, at which point the
+Beta freeze is lifted and packages can move to 'stable' as usual until
+the Final freeze.
 
 Today is also the Software String freeze [7], which means that strings
 marked for translation in Fedora-translated projects should not now be
@@ -21,10 +21,10 @@ changed for Fedora Linux fN.
 Finally, today is the 'completion deadline' Change Checkpoint [8],
 meaning that Fedora Linux fN Changes must now be 'feature complete or
 close enough to completion that a majority of its functionality can be
-tested'. All tracking bugs should be on ON_QA state or later to
-reflect this.
+tested'. All tracking bugs should be on ON_QA state or later to reflect
+this.
 
-Regards
+Regards,
 Fedora Release Engineering
 
 [1] https://fedorapeople.org/groups/schedule/f-fN/f-fN-key-tasks.html

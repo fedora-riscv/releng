@@ -1,0 +1,21 @@
+Hi all,
+
+Today, YYYY-MM-DD, we will be removing inactive packagers
+from the packager group.
+
+This is in accordance with the FESCo policy on inactive packagers:
+https://docs.fedoraproject.org/en-US/fesco/Policy_for_inactive_packagers/
+
+If the removed user is 'main admin' for a package, this package
+will be orphaned. If there are co-maintainers for the package,
+one of them should take the role of 'main admin',
+by clicking "✋ Take" on
+`https://src.fedoraproject.org/rpms/<package>`".
+
+Otherwise any packager may take the package while it's orphaned.
+After 6 weeks, the package will be retired.
+After another 8 weeks, a new review is needed to unretire it.
+see https://docs.fedoraproject.org/en-US/fesco/Policy_for_orphan_and_retired_packages/
+for more details.
+
+Packages that have been orphaned are:

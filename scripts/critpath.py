@@ -51,7 +51,7 @@ CRITPATH_GROUPS = [
     "@critical-path-standard",
     "@critical-path-xfce",
 ]
-PRIMARY_ARCHES = ("armhfp", "aarch64", "x86_64")
+PRIMARY_ARCHES = ("aarch64", "x86_64")
 ALTERNATE_ARCHES = ("ppc64le", "s390x")
 BODHI_RELEASEURL = "https://bodhi.fedoraproject.org/releases/?rows_per_page=500"
 FEDORA_BASEURL = "http://dl.fedoraproject.org/pub/fedora/linux/"
@@ -81,20 +81,20 @@ def get_bodhi_releases():
     return BODHIRELEASES
 
 
-def get_paths(release):
+def get_paths(release, forcebranched=False):
     """This does a certain amount of fudging so we can refer to
     Branched by its release number or "branched", and Rawhide by its
     release number or "rawhide" or "devel".
     """
     relnums = get_bodhi_releases()
-    if relnums.get(release) == "stable":
+    if relnums.get(release) == "stable" and not forcebranched:
         return (
             f"releases/{release}/Everything/$basearch/os",
             f"updates/{release}/Everything/$basearch"
         )
     elif release in ("rawhide", "devel") or relnums.get(release) == "rawhide":
         return ("development/rawhide/Everything/$basearch/os", "")
-    elif release == "branched" or relnums.get(release) == "branched":
+    elif release == "branched" or relnums.get(release) == "branched" or forcebranched:
         if release == "branched":
             try:
                 release = [relnum for relnum in relnums if relnums[relnum] == "branched"][0]
@@ -126,11 +126,7 @@ def expand_dnf_critpath(urls, arch):
     # be marked incorrectly
     conf.persistdir = temp_cache_dir
     conf.installroot = temp_install_root
-    # dnf needs arches, not basearches to work
-    if arch == "armhfp":
-        conf.arch = "armv7hl"
-    else:
-        conf.arch = arch
+    conf.arch = arch
     packages = dict()
 
     try:
@@ -267,11 +263,8 @@ def write_files(critpath, outpath, jsonout):
     print(f"Wrote {package_count} items to {outpath}")
 
 
-def generate_critpath(release, args, output, jsonout):
+def generate_critpath(release, args, output, jsonout, forcebranched=False):
     check_arches = args.arches.split(",")
-    if not (release.isdigit() and int(release) < 37):
-        # armhfp is gone on F37+
-        check_arches.remove("armhfp")
     alternate_check_arches = args.altarches.split(",")
     package_count = 0
 
@@ -281,7 +274,7 @@ def generate_critpath(release, args, output, jsonout):
         baseurl = args.composeurl + "/Everything/$basearch/os"
         alturl = args.composeurl + "/Everything/$basearch/os"
     else:
-        paths = get_paths(release)
+        paths = get_paths(release, forcebranched=forcebranched)
         baseurl = args.url + paths[0]
         alturl = args.alturl + paths[0]
         if paths[1]:
@@ -307,7 +300,20 @@ def generate_critpath(release, args, output, jsonout):
         urls = [url for url in urls if url]
 
         print(f"Expanding critical path for {arch}")
-        pkgdict = expand_dnf_critpath(urls, arch)
+        try:
+            pkgdict = expand_dnf_critpath(urls, arch)
+        except dnf.exceptions.RepoError:
+            # this is a dumb workaround for the 'interregnum problem'
+            # where for a few days each cycle a new release is marked
+            # stable in bodhi, but isn't actually in the stable path
+            # on the mirror yet. this should never recurse because
+            # releases/ isn't in the branched base URL, but just in
+            # case, check forcebranched too
+            if "releases/" in baseurl and not forcebranched:
+                print(f"Failed to find release {release} at stable path {baseurl}!")
+                print("Trying branched path instead...")
+                return generate_critpath(release, args, output, jsonout, forcebranched=True)
+            raise
 
         for (group, pkgs) in pkgdict.items():
             package_count = len(pkgs)

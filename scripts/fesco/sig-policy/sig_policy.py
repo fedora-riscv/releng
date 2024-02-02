@@ -12,20 +12,22 @@
 import argparse
 import functools
 import os
-import shutil
-import subprocess
 import sys
 
+import fedrq.config
 import requests
+from fedrq.backends.base import RepoqueryBase
 
-# (name of SIG group, ACL, package name filter)
+# (namespace, name of SIG group, ACL, package name filter)
 POLICY = [
+    # Flatpak SIG: https://pagure.io/fesco/fesco-docs/pull-request/72
+    ("flatpaks", "flatpak-sig", "commit", lambda x: x),
     # Go SIG: https://pagure.io/fesco/fesco-docs/pull-request/68
-    ("go-sig", "commit", lambda x: x in go_packages()),
+    ("rpms", "go-sig", "commit", lambda x: x in go_packages()),
     # R SIG: https://pagure.io/fesco/fesco-docs/pull-request/69
-    ("r-maint-sig", "commit", lambda x: x.startswith("R-") or x in r_packages()),
+    ("rpms", "r-maint-sig", "commit", lambda x: x.startswith("R-") or x in r_packages()),
     # Rust SIG: https://pagure.io/fesco/fesco-docs/pull-request/66
-    ("rust-sig", "commit", lambda x: x.startswith("rust-")),
+    ("rpms", "rust-sig", "commit", lambda x: x.startswith("rust-")),
 ]
 
 PAGURE_DIST_GIT_DATA_URL = "https://src.fedoraproject.org/extras/pagure_bz.json"
@@ -34,83 +36,34 @@ VALID_ACLS = ["ticket", "commit", "admin"]
 
 
 @functools.cache
+def get_rq() -> RepoqueryBase:
+    """
+    Return a RepoqueryBase object with the rawhide buildroot repositories
+    """
+    return fedrq.config.get_config().get_rq("rawhide", "@buildroot")
+
+
+@functools.cache
 def go_packages() -> set[str]:
-    INSTALLROOT = "/tmp/dnf-sig-policy"
-
-    cmd = [
-        "dnf", "--quiet",
-        "--installroot", INSTALLROOT,
-        "--repo", "rawhide",
-        "--repo", "rawhide-source",
-        "--releasever", "rawhide",
-        "repoquery",
-        # query source package and binary package names,
-        # so BuildRequires and Requires can be differentiated
-        "--qf", "%{source_name} %{name}",
-        "--whatrequires", "golang",
-        "--whatrequires", "golang-bin",
-        "--whatrequires", "go-rpm-macros",
-    ]
-
-    ret = subprocess.run(cmd, stdout=subprocess.PIPE)
-    ret.check_returncode()
-
-    # remove temporary dnf cache
-    shutil.rmtree(INSTALLROOT)
-
-    # use a set for fast membership checks
-    packages = set()
-    for line in ret.stdout.decode().splitlines():
-        source_name, name = line.split(" ")
-
-        if source_name == "(none)":
-            # package is a source package:
-            # "%{name}" *is* the source name
-            packages.add(name)
-        else:
-            # package is a binary package:
-            # skip, only BuildRequires are covered by the policy
-            continue
-
+    rq = get_rq()
+    query = rq.query(
+            requires=rq.query(name=["golang", "golang-bin", "go-rpm-macros"]),
+            # Only BuildRequires are covered by the policy
+            arch="src",
+    )
+    packages = {package.name for package in query}
     return packages
 
 
 @functools.cache
 def r_packages() -> set[str]:
-    INSTALLROOT = "/tmp/dnf-sig-policy"
-
-    cmd = [
-        "dnf", "--quiet",
-        "--installroot", INSTALLROOT,
-        "--repo", "rawhide",
-        "--repo", "rawhide-source",
-        "--releasever", "rawhide",
-        "repoquery",
-        # query source package and binary package names,
-        # so BuildRequires and Requires can be differentiated
-        "--qf", "%{source_name} %{name}",
-        "--whatrequires", "libR.so*",
-    ]
-
-    ret = subprocess.run(cmd, stdout=subprocess.PIPE)
-    ret.check_returncode()
-
-    # remove temporary dnf cache
-    shutil.rmtree(INSTALLROOT)
-
-    # use a set for fast membership checks
-    packages = set()
-    for line in ret.stdout.decode().splitlines():
-        source_name, name = line.split(" ")
-
-        if source_name == "(none)":
-            # package is a source package:
-            # skip, only Requires are covered by the policy
-            continue
-        else:
-            # package is a binary package:
-            # collect "%{source_name}"
-            packages.add(source_name)
+    rq = get_rq()
+    query = rq.query(
+        requires__glob="libR.so*",
+        # Only Requires are covered by the policy
+        arch__neq="src",
+    )
+    packages = {package.source_name for package in query}
 
     # add "R" which does not link with "libR.so" itself
     packages.add("R")
@@ -131,12 +84,11 @@ def get_package_data() -> dict[str, list[str]]:
     ret.raise_for_status()
 
     data = ret.json()
-    rpms = data["rpms"]
 
-    return rpms
+    return data
 
 
-def add_package_acl(package: str, group: str, acl: str, token: str):
+def add_package_acl(namespace: str, package: str, group: str, acl: str, token: str):
     """
     Send an HTTP POST request to the pagure API endpoint for modifying ACLs on
     a project.
@@ -148,7 +100,7 @@ def add_package_acl(package: str, group: str, acl: str, token: str):
     if acl not in VALID_ACLS:
         raise ValueError(f"Not a valid ACL: {acl}")
 
-    url = f"https://src.fedoraproject.org/api/0/rpms/{package}/git/modifyacls"
+    url = f"https://src.fedoraproject.org/api/0/{namespace}/{package}/git/modifyacls"
 
     payload = {
         "user_type": "group",
@@ -189,7 +141,7 @@ def main() -> int:
         return 1
 
     try:
-        packages = get_package_data()
+        package_data = get_package_data()
 
     except IOError as ex:
         print("Failed to fetch data from pagure-dist-git:", file=sys.stderr)
@@ -199,8 +151,10 @@ def main() -> int:
     # keep track of failed requests
     failures = dict()
 
-    for (group, acl, filtr) in POLICY:
+    for (namespace, group, acl, filtr) in POLICY:
         print(f"Processing group: {group}")
+
+        packages = package_data[namespace]
 
         # keep track of candidate packages
         candidates = []
@@ -228,11 +182,11 @@ def main() -> int:
         failed = []
 
         for candidate in candidates:
-            print(f"- add {group!r} with {acl!r} ACL to {candidate!r}")
+            print(f"- add {group!r} with {acl!r} ACL to '{namespace}/{candidate}'")
 
             if not args.dry:
                 try:
-                    add_package_acl(candidate, group, acl, token)
+                    add_package_acl(namespace, candidate, group, acl, token)
                 except Exception as ex:
                     print(ex, file=sys.stderr)
                     failed.append(candidate)

@@ -43,12 +43,12 @@ sudo -u ftpsync chmod 700 $ALTARCHDESTDIR/$RELPREFIX$RELEASEVER
 
 sudo -u ftpsync compose-partial-copy --arch=x86_64 --arch=src \
      $BASE/$SHORTRELEASEVER/$COMPOSEID/compose/$dir/ $DESTDIR/$RELPREFIX$RELEASEVER/$dir/ \
-     --variant Everything --variant Cloud --variant Container --variant Modular --variant Sericea --variant Server --variant Silverblue --variant Kinoite --variant Spins --variant Workstation \
+     --variant Everything --variant Cloud --variant Container --variant Modular --variant Sericea --variant Server --variant Silverblue --variant Kinoite --variant Spins --variant Workstation --variant Onyx \
      --link-dest=/pub/fedora/linux/development/$SHORTRELEASEVER/Everything/ --link-dest=$STAGEDIR/$STAGE/Everything/ --link-dest=$STAGEDIR/$STAGE/$dir/
 
 sudo -u ftpsync compose-partial-copy --arch=aarch64 \
      $BASE/$SHORTRELEASEVER/$COMPOSEID/compose/$dir/ $DESTDIR/$RELPREFIX$RELEASEVER/$dir/ \
-     --variant Everything --variant Cloud --variant Container --variant Modular --variant Sericea --variant Server --variant Silverblue --variant Kinoite --variant Workstation \
+     --variant Everything --variant Cloud --variant Container --variant Modular --variant Sericea --variant Server --variant Silverblue --variant Kinoite --variant Workstation --variant Onyx\
      --link-dest=/pub/fedora/linux/development/$SHORTRELEASEVER/Everything/ --link-dest=$STAGEDIR/$STAGE/Everything/ --link-dest=$STAGEDIR/$STAGE/$dir/
 
 sudo -u ftpsync compose-partial-copy --arch=x86_64 --arch=src \
@@ -58,7 +58,7 @@ sudo -u ftpsync compose-partial-copy --arch=x86_64 --arch=src \
 
 sudo -u ftpsync compose-partial-copy --arch=i386 --arch=ppc64le --arch=s390x \
      $BASE/$SHORTRELEASEVER/$COMPOSEID/compose/$dir /$ALTARCHDESTDIR/$RELPREFIX$RELEASEVER/$dir/ \
-     --variant Everything --variant Cloud --variant Container --variant Labs --variant Modular --variant Sericea --variant Server --variant Silverblue --variant Kinoite --variant Spins --variant Workstation \
+     --variant Everything --variant Cloud --variant Container --variant Labs --variant Modular --variant Sericea --variant Server --variant Silverblue --variant Kinoite --variant Spins --variant Workstation --variant Onyx\
      --link-dest=/pub/fedora/linux/development/$SHORTRELEASEVER/Everything/ --link-dest=$STAGEDIR/$STAGE/Everything/ --link-dest=$STAGEDIR/$STAGE/$dir/
 
 sudo -u ftpsync compose-partial-copy --arch=aarch64 \

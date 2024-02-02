@@ -19,6 +19,7 @@ fi
 old_release=$(bc -l <<< "${release}-1")
 
 PRIMARY_ARCHES="i686 x86_64 aarch64 ppc64le s390x"
+FLATPAK_ARCHES="x86_64 aarch64 ppc64le"
 
 KOJICLI=koji
 
@@ -121,21 +122,96 @@ container_release=${release}-container
 "${KOJICLI}" remove-tag-inheritance rawhide "f${old_release}"
 "${KOJICLI}" add-tag-inheritance rawhide "f${release}"
 
+#### The pre-F39 tags structure for Flatpak containers, that needs to be created ####
+
 # Set up a corresponding set of tags for flatpaks.
 # They are only setup for branched release.
-old_flatpak_release=${old_release}-flatpak
-older_release=$(bc -l <<< "${old_release}-1")
-"${KOJICLI}" add-tag "f${old_flatpak_release}"
-"${KOJICLI}" add-tag --parent "f${old_flatpak_release}" "f${old_flatpak_release}-updates"
-"${KOJICLI}" add-tag --parent "f${old_flatpak_release}-updates" "f${old_flatpak_release}-updates-candidate"
-"${KOJICLI}" add-tag --parent "f${old_flatpak_release}-updates" "f${old_flatpak_release}-updates-testing"
-"${KOJICLI}" add-tag --parent "f${old_flatpak_release}-updates-testing" "f${old_flatpak_release}-updates-testing-pending"
-"${KOJICLI}" add-tag --parent "f${old_flatpak_release}-updates" "f${old_flatpak_release}-updates-pending"
-"${KOJICLI}" add-tag --parent "f${old_flatpak_release}-updates" "f${old_flatpak_release}-override"
-"${KOJICLI}" add-target "f${old_flatpak_release}"-candidate "f${old_release}"-build "f${old_flatpak_release}"-updates-candidate
+"${KOJICLI}" add-tag "f${release}-flatpak"
+"${KOJICLI}" add-tag --parent "f${release}-flatpak" "f${release}-flatpak-updates"
+"${KOJICLI}" add-tag --parent "f${release}-flatpak-updates" "f${release}-flatpak-updates-candidate"
+"${KOJICLI}" add-tag --parent "f${release}-flatpak-updates" "f${release}-flatpak-updates-testing"
+"${KOJICLI}" add-tag --parent "f${release}-flatpak-updates-testing" "f${release}-flatpak-updates-testing-pending"
+"${KOJICLI}" add-tag --parent "f${release}-flatpak-updates" "f${release}-flatpak-updates-pending"
+"${KOJICLI}" add-tag --parent "f${release}-flatpak-updates" "f${release}-flatpak-override"
 # Add packages from the stable release
-flatpak_pkgs=$(koji list-pkgs --quiet --tag="f${older_release}-flatpak" | awk '{ print $1}')
-"${KOJICLI}" add-pkg --owner=releng "f${old_flatpak_release}" $flatpak_pkgs
+flatpak_pkgs=$(koji list-pkgs --quiet --tag="f${old_release}-flatpak" | awk '{ print $1}')
+"${KOJICLI}" add-pkg --owner=releng "f${release}-flatpak" $flatpak_pkgs
+
+#### Destination tags ####
+
+# These inherit from f${old_release} so that pkglist information doesn't need to be individually
+# maintained for them, but are --intransitive so that we can fine-tune things when
+# creating build tags
+
+# Packages that are rebuilt for inclusion in runtimes (perhaps with reduced dependencies)
+"${KOJICLI}" add-tag "f${release}-flatpak-runtime"
+"${KOJICLI}" add-tag-inheritance "f${release}-flatpak-runtime" "f${release}" --intransitive
+
+# Packages that are rebuilt for inclusion in applications (with prefix=/app)
+# This has an accompanying dist-repo created using the tag2distrepo plugin, which we use
+# when building application containers.
+"${KOJICLI}" add-tag "f${release}-flatpak-app" \
+             --arches="${FLATPAK_ARCHES}" \
+             -x tag2distrepo.enabled=true \
+             -x tag2distrepo.inherit=false
+"${KOJICLI}" add-tag-inheritance "f${release}-flatpak-app" "f${release}" --intransitive
+"${KOJICLI}" add-group-pkg "f${release}-flatpak-app" build flatpak-rpm-macros flatpak-runtime-config
+"${KOJICLI}" add-group-pkg "f${release}-flatpak-app" srpm-build flatpak-rpm-macros
+
+#### Build tags ####
+
+# The repository that tools (flatpak-module-tools, flatpak, ostree, etc) are installed from
+# when building a flatpak. This is also used as the build tag when building Flatpaks
+"${KOJICLI}" add-tag "f${release}-flatpak-container-build" --parent="f${release}-build" --arches="${FLATPAK_ARCHES}"
+"${KOJICLI}" add-group "f${release}-flatpak-container-build" flatpak-build
+"${KOJICLI}" add-group-pkg "f${release}-flatpak-container-build" flatpak-build flatpak-module-tools dnf tar
+
+# The repository for build dependencies when building runtime RPMs
+"${KOJICLI}" add-tag "f${release}-flatpak-runtime-build" \
+    --arches="${FLATPAK_ARCHES}" \
+    -x rpm.macro.distcore='.fc%{fedora}runtime'
+"${KOJICLI}" add-tag-inheritance "f${release}-flatpak-runtime-build" "f${release}-flatpak-runtime" --priority=0
+"${KOJICLI}" add-tag-inheritance "f${release}-flatpak-runtime-build" "f${release}-build" --priority=10
+
+# The repository for build dependencies when building application RPMs
+"${KOJICLI}" add-tag "f${release}-flatpak-app-build" \
+    --arches="${FLATPAK_ARCHES}" \
+    -x rpm.macro.distcore='.fc%{fedora}app'
+"${KOJICLI}" add-tag-inheritance "f${release}-flatpak-app-build" "f${release}-flatpak-app" --priority=0
+"${KOJICLI}" add-tag-inheritance "f${release}-flatpak-app-build" "f${release}-flatpak-runtime" --priority=10
+"${KOJICLI}" add-tag-inheritance "f${release}-flatpak-app-build" "f${release}-build" --priority=20
+
+#### Tags defining repositories for container installation ####
+
+# An override tag that we can tag packages that have not gone stable yet for runtime inclusion
+"${KOJICLI}" add-tag "f${release}-flatpak-runtime-override" --parent=f${release}-updates
+
+# The repository for getting runtime packages from when creating a container
+"${KOJICLI}" add-tag "f${release}-flatpak-runtime-packages" --arches="${FLATPAK_ARCHES}"
+"${KOJICLI}" add-tag-inheritance "f${release}-flatpak-runtime-packages" "f${release}-flatpak-runtime" --priority=0
+"${KOJICLI}" add-tag-inheritance "f${release}-flatpak-runtime-packages" "f${release}-flatpak-runtime-override" --priority=10
+
+#### Extra Data ####
+
+# Add extra data to the Flatpak build tag pointing to a) the tag where to find runtimes
+# b) the tag to take runtime packages from c) the tag to take applications from
+# and say that we're using a dist-repo for app_package_tag.
+"${KOJICLI}" edit-tag "f${release}-flatpak-container-build" \
+    -x flatpak.runtime_tag="f${release}-flatpak-updates-candidate" \
+    -x flatpak.runtime_package_tag="f${release}-flatpak-runtime-packages" \
+    -x flatpak.app_package_tag="f${release}-flatpak-app" \
+    -x flatpak.app_package_dist_repo=true
+
+#### Targets ####
+
+# Targets for building Flatpak containers, runtime RPMs, and application RPMs
+"${KOJICLI}" add-target "f${release}-flatpak-candidate" "f${release}-flatpak-container-build" "f${release}-flatpak-updates-candidate"
+"${KOJICLI}" add-target "f${release}-flatpak-runtime" "f${release}-flatpak-runtime-build" "f${release}-flatpak-runtime"
+"${KOJICLI}" add-target "f${release}-flatpak-app" "f${release}-flatpak-app-build" "f${release}-flatpak-app"
+
+# And a lovely target just to make kojira rebuild the installation repository for runtimes
+"${KOJICLI}" add-target "f${release}-flatpak-runtime-kojira" "f${release}-flatpak-runtime-packages" "f${release}-flatpak-app"
+
 
 # Point eln to new rawhide release
 "${KOJICLI}" remove-tag-inheritance eln "f${old_release}"

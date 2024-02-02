@@ -30,18 +30,13 @@ EXAMPLE
 EOF
 }
 
-if ! [[ "${1}" =~ [31|32|33|34|35|36] ]];
-then
-    ARCHES=("aarch64" "armhfp" "ppc64le" "s390x" "x86_64")
-else
-    ARCHES=("aarch64" "ppc64le" "s390x" "x86_64")
+ARCHES=("aarch64" "ppc64le" "s390x" "x86_64")
 
-fi
 # This is the release of Fedora that is currently stable, it will define if we
 # need to move the fedora:latest tag
-current_stable="37"
+current_stable="39"
 # Define what is rawhide so we know to push that tag
-current_rawhide="39"
+current_rawhide="40"
 # Sanity checking
 # FIXME - Have to update this regex every time we drop a new Fedora Release
 if ! [[ "${1}" =~ [31|32|33|34|35|36|37|38|39] ]];
@@ -65,6 +60,8 @@ fi
 #
 build_name=$(koji -q latest-build --type=image f${1}-updates-candidate Fedora-Container-Base | awk '{print $1}')
 minimal_build_name=$(koji -q latest-build --type=image f${1}-updates-candidate Fedora-Container-Minimal-Base | awk '{print $1}')
+toolbox_build_name=$(koji -q latest-build --type=image f${1}-updates-candidate Fedora-Container-Toolbox | awk '{print $1}')
+
 
 if [[ ${1} -eq "$current_stable" ]]; then
     tagname="latest"
@@ -118,6 +115,7 @@ if [[ ${1} -gt "$current_rawhide" ]]; then
     exit 1
 fi
 
+# For fedora-container-base
 if [[ -n ${build_name} ]]; then
     # Download the image
     work_dir=$(mktemp -d)
@@ -135,6 +133,7 @@ if [[ -n ${build_name} ]]; then
     printf "Removing temporary directory\n"
     rm -rf $work_dir
 fi
+# For fedora-container-minimal-base
 if [[ -n ${minimal_build_name} ]]; then
     # Download the image
     work_dir=$(mktemp -d)
@@ -148,7 +147,23 @@ if [[ -n ${minimal_build_name} ]]; then
     popd &> /dev/null
 
     generate_manifest_list fedora-minimal ${1}
+    printf "Removing temporary directory\n"
+    rm -rf $work_dir
+fi
+# For fedora-container-toolbox
+if [[ -n ${toolbox_build_name} ]]; then
+    # Download the image
+    work_dir=$(mktemp -d)
+    pushd ${work_dir} &> /dev/null
+    koji download-build --type=image  ${toolbox_build_name}
+    # Import the image
+    for arch in "${ARCHES[@]}"; do
+        xz -d ${toolbox_build_name}.${arch}.tar.xz
+        copy_image docker-archive:${toolbox_build_name}.${arch}.tar fedora-toolbox:${1}-${arch}
+    done
+    popd &> /dev/null
 
+    generate_manifest_list fedora-toolbox ${1}
     printf "Removing temporary directory\n"
     rm -rf $work_dir
 fi
