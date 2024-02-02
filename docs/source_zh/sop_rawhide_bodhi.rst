@@ -2,24 +2,22 @@
 
 
 ===========================
-Enabling Rawhide in Bodhi
+在Bodhi中启用Rawhide
 ===========================
 
-Description
+概述
 ===========
 
-This SOP covers the steps needed to enable Rawhide in Bodhi.
+本SOP涵盖了在Bodhi中启用Rawhide所需的步骤。
 
 
-Create the release in Bodhi
+在Bodhi中创建release
 ---------------------------
 
-In oder to start creating updates in Bodhi for rawhide, the release needs to be created
-in Bodhi. Rawhide in Bodhi is represented by the Fedora version (ie Fedora 31), but it is set
-in the prerelease state.
+为了开始在Bodhi中为Rawhide创建更新，需要在Bodhi中创建release。 Bodhi中的Rawhide由Fedora版本（即Fedora 31）表示，但它设置为预发布状态。
 
 
-Add the koji tags
+增加 koji tags
 +++++++++++++++++
 
 ::
@@ -32,7 +30,7 @@ Add the koji tags
     $ koji add-tag --parent f31 f31-override
 
 
-Change the koji targets
+更改 koji targets
 +++++++++++++++++++++++
 
 ::
@@ -41,7 +39,7 @@ Change the koji targets
     $ koji edit-target f31-candidate --dest-tag f31-updates-candidate
     $ koji edit-target rawhide --dest-tag f31-updates-candidate
 
-Create the release in bodhi
+在Bodhi中创建release
 +++++++++++++++++++++++++++
 
 ::
@@ -52,25 +50,24 @@ Create the release in bodhi
       --state pending --override-tag f31-override --create-automatic-updates --not-composed-by-bodhi
 
 
-The important flags are `--not-composed-by-bodhi` which tells bodhi not to include the rawhide updates in the nightly pushes
-and `--create-automatic-updates` which tells bodhi to automatically create an update listen to koji tag (build tagged with the pending-testing-tag) messages.
+重要的标志是`--not-composed-by-bodhi`，它告诉bodhi不要在每晚的推送中包括rawhide更新，以及`--pending-automatic-updates`，它告诉bodhi自动创建一个更新侦听koji标签（用pending-testing-tag标记的构建）消息。
 
 
-Bodhi configuration
+Bodhi 配置
 +++++++++++++++++++
 
-Bodhi is configured to required zero mandatory days in testing for the rawhide release.
-This is done in ansible roles/bodhi2/base/templates/production.ini.j2 with the following.
+Bodhi被配置为在Rawhide发布测试中要求零强制天数。
+这是在ansible roles/bodhi 2/base/templates/production.ini.j2中完成的，如下所示。
 
 ::
 
     f{{ FedoraRawhideNumber }}.pre_beta.mandatory_days_in_testing = 0
 
 
-Robosignatory configuration
+Robosignatory 配置
 +++++++++++++++++++++++++++
 
-Robosignatory needs to be configured to signed the rawhide builds before these builds are tested by the CI pipeline.
+Robosigniter需要配置为在CI管道测试这些构建之前对rawhide构建进行签名。
 
 ::
 
@@ -85,16 +82,15 @@ Robosignatory needs to be configured to signed the rawhide builds before these b
 Branching Rawhide
 -----------------
 
-When it is time to branch rawhide, a new release should be created (eg. F32) following the steps above. The old rawhide release (eg. F31) should stay configured as rawhide until we active Bodhi
-for it (2 weeks later). To activate Bodhi on the old rawhide (eg. F31) the existing release in bodhi should be modified has follow.
+当到了分支rawhide的时候，应该创建一个新的版本（例如 F32）按照上述步骤。旧的rawhide释放（例如 F31）应该保持配置为rawhide，直到我们为它激活Bodhi（2周后）。要激活旧rawhide上的Bodhi（如 F31）现有的release在Bodhi中应该修改如下。
 
 ::
     $ bodhi releases edit --name "F31" --stable-tag f31-updates --no-create-automatic-updates --composed-by-bodhi
 
-Robosignatory configuration
+Robosignatory 配置
 +++++++++++++++++++++++++++
 
-At Bodhi activation time the Robosignatory configuration needs to be update to match the normal configuration of bodhi releases.
+在Bodhi激活时，需要更新Robosignator配置以匹配Bodhi版本的正常配置。
 
 ::
 
